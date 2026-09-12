@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Concerns\Sortable;
+use App\Models\CricketMatch;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -75,6 +76,19 @@ class AdminTeamController extends Controller
     public function destroy(Team $team)
     {
         $name = $team->name;
+
+        $matchCount = CricketMatch::where('home_team_id', $team->id)
+            ->orWhere('away_team_id', $team->id)
+            ->count();
+
+        if ($matchCount > 0) {
+            return back()->withErrors(['team' => "Cannot delete '{$name}' — it has {$matchCount} match record(s). Deleting it would cascade-delete match and stat history for the opposing team(s) as well. Remove or reassign those matches first."]);
+        }
+
+        if ($team->players()->exists()) {
+            return back()->withErrors(['team' => "Cannot delete '{$name}' — it still has signed players. Release them to free agency first."]);
+        }
+
         $team->delete();
         return redirect()->route('admin.teams.index')->with('status', "Team '$name' deleted.");
     }

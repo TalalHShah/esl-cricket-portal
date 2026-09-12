@@ -14,7 +14,7 @@ class ManagerController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::where('role', 'manager')->orWhere('role', 'admin');
+        $query = User::whereIn('role', ['manager', 'admin']);
 
         $sort = $this->applySort($query, $request, [
             'name_asc' => fn ($q) => $q->orderBy('name'),
@@ -45,6 +45,13 @@ class ManagerController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $targetTeam = Team::find($validated['team_id']);
+        $existingManager = $targetTeam->manager_id ? User::find($targetTeam->manager_id) : null;
+
+        if ($existingManager) {
+            return back()->withErrors(['team_id' => "This team is already managed by {$existingManager->name}. Reassign or remove that manager first."])->withInput();
+        }
+
         $manager = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -53,7 +60,7 @@ class ManagerController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        Team::find($validated['team_id'])->update(['manager_id' => $manager->id]);
+        $targetTeam->update(['manager_id' => $manager->id]);
 
         return redirect()->route('admin.managers.index')->with('status', "Manager '{$manager->name}' created successfully.");
     }
@@ -80,6 +87,13 @@ class ManagerController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $targetTeam = Team::find($validated['team_id']);
+
+        if ($targetTeam->manager_id && $targetTeam->manager_id !== $manager->id) {
+            $existingManager = User::find($targetTeam->manager_id);
+            return back()->withErrors(['team_id' => "This team is already managed by {$existingManager?->name}. Reassign or remove that manager first."])->withInput();
+        }
+
         $manager->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -87,7 +101,7 @@ class ManagerController extends Controller
         ]);
 
         Team::where('manager_id', $manager->id)->update(['manager_id' => null]);
-        Team::find($validated['team_id'])->update(['manager_id' => $manager->id]);
+        $targetTeam->update(['manager_id' => $manager->id]);
 
         return redirect()->route('admin.managers.index')->with('status', "Manager '{$manager->name}' updated.");
     }

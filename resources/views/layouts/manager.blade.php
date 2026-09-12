@@ -35,11 +35,26 @@
                     @if(auth()->user()->managedTeam)
                         <span class="text-sm" style="color: var(--paper-dim);">{{ auth()->user()->managedTeam->name }}</span>
                     @endif
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.panel') }}" class="btn-accent px-5 py-2.5">
+                            Admin Panel
+                        </a>
+                    @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="btn-ghost px-5 py-2.5">
                             Sign Out
                         </button>
+                    </form>
+                </div>
+
+                <div class="sm:hidden flex items-center gap-2">
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.panel') }}" class="btn-accent px-3 py-2 text-xs">Admin</a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn-ghost px-3 py-2 text-xs">Sign Out</button>
                     </form>
                 </div>
             </div>

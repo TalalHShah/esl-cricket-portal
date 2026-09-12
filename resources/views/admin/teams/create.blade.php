@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-4xl font-black text-white">➕ Add New Team</h1>
+        <h1 class="text-4xl font-black text-white">Add New Team</h1>
     </div>
 
     <div class="cricket-card rounded-2xl p-8 max-w-2xl">

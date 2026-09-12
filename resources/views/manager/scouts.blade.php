@@ -3,22 +3,22 @@
 @section('title', 'Scouts')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-4xl font-black text-white mb-2 flex items-center gap-2"><span>🔍</span> Scout Free Agents</h1>
-        <p class="text-lg text-slate-400">{{ $players->total() }} unsigned player{{ $players->total() !== 1 ? 's' : '' }} available</p>
+    <div class="mb-10">
+        <p class="eyebrow gold mb-2">Player Recruitment</p>
+        <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Scout Free Agents</h1>
+        <p class="text-sm mt-2" style="color: var(--paper-faint);">{{ $players->total() }} unsigned player{{ $players->total() !== 1 ? 's' : '' }} available</p>
     </div>
 
-    {{-- Filters --}}
-    <div class="card-section rounded mb-8 p-6">
+    <div class="card-section mb-10 p-6">
         <form method="GET" action="{{ route('manager.scouts') }}" class="flex flex-wrap items-end gap-3">
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Search</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name..."
-                       class="rounded px-3 py-2 text-sm text-white border" style="background-color: var(--bg-tertiary); border-color: var(--border);">
+                <label class="eyebrow block mb-2">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name"
+                       class="field px-3 py-2 text-sm">
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Role</label>
-                <select name="role" class="rounded px-3 py-2 text-sm text-white border" style="background-color: var(--bg-tertiary); border-color: var(--border);">
+                <label class="eyebrow block mb-2">Role</label>
+                <select name="role" class="field px-3 py-2 text-sm">
                     <option value="">All Roles</option>
                     @foreach ($roles as $role)
                         <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
@@ -26,58 +26,48 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Tier</label>
-                <select name="tier" class="rounded px-3 py-2 text-sm text-white border" style="background-color: var(--bg-tertiary); border-color: var(--border);">
+                <label class="eyebrow block mb-2">Tier</label>
+                <select name="tier" class="field px-3 py-2 text-sm">
                     <option value="">All Tiers</option>
                     @foreach ($tiers as $tier)
                         <option value="{{ $tier }}" @selected(request('tier') === $tier)>{{ $tier }}</option>
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="btn-accent px-4 py-2 text-sm font-bold rounded">Search</button>
-            <a href="{{ route('manager.scouts') }}" class="px-4 py-2 text-sm font-semibold text-white rounded" style="background-color: var(--bg-tertiary); border: 1px solid var(--border);">Reset</a>
+            <button type="submit" class="btn-accent px-5 py-2.5">Search</button>
+            <a href="{{ route('manager.scouts') }}" class="btn-ghost px-5 py-2.5">Reset</a>
         </form>
     </div>
 
-    {{-- Players Grid --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @forelse ($players as $player)
-            <div class="card-section rounded p-6">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <h3 class="text-lg font-black text-white">{{ $player->name }}</h3>
-                        <p class="text-xs text-slate-400">{{ $player->country }}</p>
-                    </div>
-                    <span class="px-2 py-1 text-xs font-bold rounded" style="background-color: var(--primary); color: white;">{{ $player->tier }}</span>
-                </div>
-                <div class="space-y-2 text-sm mb-4">
-                    <div class="flex justify-between">
-                        <span class="text-slate-400">Role</span>
-                        <span class="text-white font-semibold">{{ $player->role }}</span>
-                    </div>
-                    @if($player->age)
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Age</span>
-                            <span class="text-white font-semibold">{{ $player->age }}</span>
-                        </div>
+            <div class="card-section lift-on-hover p-4">
+                <div class="player-portrait mb-4" style="aspect-ratio: 3/4;">
+                    @if($player->image)
+                        <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                    @else
+                        <div class="initials">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
                     @endif
-                    <div class="flex justify-between">
-                        <span class="text-slate-400">Value</span>
-                        <span class="stat-value text-base">{{ number_format((float) $player->current_value, 0) }}</span>
-                    </div>
                 </div>
-                <a href="{{ route('manager.transfers') }}" class="block w-full text-center btn-accent py-2 text-sm font-bold rounded">
-                    View in Transfer Market
-                </a>
+                <div class="flex items-start justify-between mb-3">
+                    <h3 class="text-base font-semibold" style="color: var(--paper);">{{ $player->name }}</h3>
+                    <span class="tag gold">{{ $player->tier }}</span>
+                </div>
+                <p class="text-xs mb-1" style="color: var(--paper-faint);">{{ $player->role }} — {{ $player->country }}</p>
+                @if($player->age)
+                    <p class="text-xs mb-3" style="color: var(--paper-faint);">Age {{ $player->age }}</p>
+                @endif
+                <p class="text-lg font-semibold mb-4" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
+                <a href="{{ route('manager.transfers') }}" class="btn-ghost w-full py-2 text-xs">View in Transfer Market</a>
             </div>
         @empty
-            <div class="sm:col-span-2 lg:col-span-3">
-                <div class="card-section rounded p-12 text-center text-slate-500">No free agents match your filters</div>
+            <div class="sm:col-span-2 lg:col-span-4">
+                <div class="card-section p-12 text-center" style="color: var(--paper-faint);">No free agents match your filters</div>
             </div>
         @endforelse
     </div>
 
-    <div class="mt-8">
+    <div class="mt-10">
         {{ $players->links() }}
     </div>
 @endsection

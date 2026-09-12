@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-4xl font-black text-white">✏️ Edit Manager</h1>
+        <h1 class="text-4xl font-black text-white">Edit Manager</h1>
         <p class="mt-2 text-slate-400">{{ $manager->name }}</p>
     </div>
 

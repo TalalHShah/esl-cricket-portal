@@ -9,48 +9,48 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/themes.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { font-family: 'Inter', sans-serif; }
+        body, input, select, button { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+<body class="min-h-screen">
 
     {{-- Navigation Bar --}}
     <header class="sticky top-0 z-50">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-20 items-center justify-between">
                 {{-- Logo --}}
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                    <div class="logo-badge w-12 h-12 rounded flex items-center justify-center">
-                        <span class="text-white font-black text-xl">🏏</span>
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 interactive">
+                    <div class="logo-badge w-10 h-10 flex items-center justify-center">
+                        <span class="font-display font-semibold text-lg" style="color: var(--paper);">EC</span>
                     </div>
-                    <div class="hidden sm:block">
-                        <h1 class="text-xl font-black text-white tracking-tight">ESL CRICKET</h1>
-                        <p class="text-xs font-bold" style="color: var(--accent);">ELITE SERIES LEAGUE</p>
+                    <div class="hidden sm:block leading-none">
+                        <h1 class="font-display text-xl font-semibold tracking-wide" style="color: var(--paper);">ESL CRICKET</h1>
+                        <p class="eyebrow gold mt-1">Elite Series League</p>
                     </div>
                 </a>
 
                 {{-- Desktop Nav --}}
                 <nav class="hidden md:flex items-center gap-8">
-                    <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-white hover:opacity-80 transition">Home</a>
-                    <a href="{{ route('news.index') }}" class="text-sm font-semibold text-white hover:opacity-80 transition">News</a>
-                    <a href="{{ route('teams.index') }}" class="text-sm font-semibold text-white hover:opacity-80 transition">Teams</a>
-                    <a href="{{ route('admin.index') }}" class="text-sm font-semibold text-white hover:opacity-80 transition">Managers</a>
-                    <a href="{{ route('transfers.index') }}" class="text-sm font-semibold text-white hover:opacity-80 transition">Transfers</a>
+                    <a href="{{ route('dashboard') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Home</a>
+                    <a href="{{ route('news.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">News</a>
+                    <a href="{{ route('teams.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Teams</a>
+                    <a href="{{ route('admin.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Managers</a>
+                    <a href="{{ route('transfers.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Transfers</a>
                 </nav>
 
                 {{-- Sign In Button --}}
                 <div class="hidden sm:flex items-center gap-3">
                     @auth
-                        <a href="{{ route('manager.dashboard') }}" class="btn-accent px-4 py-2 text-sm font-bold">
-                            🏠 Manager Portal
+                        <a href="{{ route('manager.dashboard') }}" class="btn-accent px-5 py-2.5">
+                            Manager Portal
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="btn-accent px-4 py-2 text-sm font-bold">
-                            🔐 Sign In
+                        <a href="{{ route('login') }}" class="btn-ghost px-5 py-2.5">
+                            Manager Sign In
                         </a>
                     @endauth
                 </div>
@@ -58,25 +58,26 @@
 
             {{-- Mobile Nav --}}
             <nav class="md:hidden flex gap-2 overflow-x-auto pb-3 text-xs font-semibold">
-                <a href="{{ route('dashboard') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Home</a>
-                <a href="{{ route('news.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">News</a>
-                <a href="{{ route('teams.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Teams</a>
-                <a href="{{ route('admin.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Managers</a>
-                <a href="{{ route('transfers.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Transfers</a>
+                <a href="{{ route('dashboard') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Home</a>
+                <a href="{{ route('news.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">News</a>
+                <a href="{{ route('teams.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Teams</a>
+                <a href="{{ route('admin.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Managers</a>
+                <a href="{{ route('transfers.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Transfers</a>
                 @auth
-                    <a href="{{ route('manager.dashboard') }}" class="whitespace-nowrap px-3 py-1.5 rounded font-bold" style="background-color: var(--accent); color: var(--primary);">Portal</a>
+                    <a href="{{ route('manager.dashboard') }}" class="whitespace-nowrap px-3 py-1.5 font-bold" style="background-color: var(--gold); color: var(--ink);">Portal</a>
                 @else
-                    <a href="{{ route('login') }}" class="whitespace-nowrap px-3 py-1.5 rounded font-bold" style="background-color: var(--accent); color: var(--primary);">Sign In</a>
+                    <a href="{{ route('login') }}" class="whitespace-nowrap px-3 py-1.5 font-bold" style="background-color: var(--gold); color: var(--ink);">Sign In</a>
                 @endauth
             </nav>
         </div>
+        <div class="brand-rule"></div>
     </header>
 
     {{-- Main Content --}}
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         @if (session('status'))
-            <div class="mb-6 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 text-sm font-medium">
-                ✓ {{ session('status') }}
+            <div class="mb-6 p-4 card-section" style="border-left: 2px solid var(--up);">
+                <p class="text-sm font-medium" style="color: var(--paper);">{{ session('status') }}</p>
             </div>
         @endif
 
@@ -84,10 +85,10 @@
     </main>
 
     {{-- Footer --}}
-    <footer class="mt-20 border-t border-emerald-500/10 bg-slate-950/50 py-10">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
-            <p class="font-semibold text-slate-400 mb-2">🏏 ESL Cricket</p>
-            <p>&copy; {{ date('Y') }} Elite Series League. Live Cricket, Live Drama, Live Champions.</p>
+    <footer class="mt-20 py-10" style="background-color: var(--surface); border-top: var(--rule);">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+            <p class="font-display text-lg font-semibold mb-2" style="color: var(--paper);">ESL CRICKET</p>
+            <p class="text-sm" style="color: var(--paper-faint);">&copy; {{ date('Y') }} Elite Series League</p>
         </div>
     </footer>
 

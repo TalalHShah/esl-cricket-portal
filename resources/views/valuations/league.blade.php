@@ -4,14 +4,14 @@
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-4xl font-black text-white">💰 League Valuations</h1>
+        <h1 class="text-4xl font-black text-white">League Valuations</h1>
         <p class="mt-2 text-slate-400">Current market values across all active players</p>
     </div>
 
     {{-- Quick Links --}}
     <div class="flex gap-3 mb-8">
         <a href="{{ route('valuations.league') }}" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold text-sm">
-            📊 League View
+            League View
         </a>
         <a href="{{ route('valuations.tiers') }}" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">
             ⭐ By Tier
@@ -48,7 +48,7 @@
                                     {{ $player->team->name }}
                                 </a>
                             @else
-                                <span class="text-amber-400">🔓 Free Agent</span>
+                                <span class="text-amber-400">Free Agent</span>
                             @endif
                         </td>
                         <td class="px-6 py-4">

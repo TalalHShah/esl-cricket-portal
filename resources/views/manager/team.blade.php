@@ -4,77 +4,62 @@
 
 @section('content')
     @if(!$team)
-        <div class="card-section rounded p-12 text-center text-slate-500">You are not assigned to manage a team.</div>
+        <div class="card-section p-12 text-center" style="color: var(--paper-faint);">You are not assigned to manage a team.</div>
     @else
-        <div class="featured-story rounded mb-8">
+        <div class="masthead mb-10">
             <div class="flex items-start gap-8">
                 @if($team->logo)
-                    <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}"
-                         class="w-20 h-20 rounded object-cover flex-shrink-0" style="border: 3px solid var(--accent);">
+                    <div class="crest" style="width:88px;height:88px;">
+                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}" class="w-full h-full object-cover">
+                    </div>
                 @else
-                    <div class="team-badge-placeholder text-2xl flex-shrink-0" style="background-color: var(--primary); border-color: var(--accent); width: 80px; height: 80px;">
+                    <div class="crest" style="width:88px;height:88px; font-size: 2rem;">
                         {{ strtoupper(substr($team->name, 0, 1)) }}
                     </div>
                 @endif
                 <div class="flex-1">
-                    <h1 class="text-4xl font-black text-white mb-2">{{ $team->name }}</h1>
-                    <p class="text-lg text-blue-100 mb-2">{{ $team->short_name }}</p>
+                    <p class="eyebrow gold mb-2">{{ $team->short_name }}</p>
+                    <h1 class="font-display text-4xl md:text-5xl font-semibold mb-3" style="color: var(--paper);">{{ $team->name }}</h1>
                     @if($team->description)
-                        <p class="text-blue-100">{{ $team->description }}</p>
+                        <p class="text-lg" style="color: var(--paper-dim); max-width: 46rem;">{{ $team->description }}</p>
                     @endif
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4 mb-8">
-            <div class="stat-box">
-                <div class="stat-value">{{ number_format((float) $team->budget, 0) }}</div>
-                <div class="stat-label">Total Budget</div>
+        <div class="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-3">
+            <div class="stat">
+                <p class="stat-figure gold">{{ number_format((float) $team->budget, 0) }}</p>
+                <p class="stat-caption">Total Budget</p>
             </div>
-            <div class="stat-box">
-                <div class="stat-value">{{ number_format((float) $team->spent, 0) }}</div>
-                <div class="stat-label">Spent</div>
+            <div class="stat">
+                <p class="stat-figure">{{ number_format((float) $team->spent, 0) }}</p>
+                <p class="stat-caption">Spent</p>
             </div>
-            <div class="stat-box">
-                <div class="stat-value" style="color: var(--success);">{{ number_format($team->remainingBudget(), 0) }}</div>
-                <div class="stat-label">Remaining</div>
+            <div class="stat">
+                <p class="stat-figure up">{{ number_format($team->remainingBudget(), 0) }}</p>
+                <p class="stat-caption">Remaining</p>
             </div>
         </div>
 
-        <div class="card-section rounded">
-            <div class="card-header flex items-center gap-2">
-                <span>👥</span>
-                <h2>Full Squad ({{ $players->count() }})</h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead style="background-color: var(--bg-tertiary); border-bottom: 1px solid var(--border);">
-                        <tr>
-                            <th class="px-6 py-3 text-left font-bold text-slate-300 uppercase text-xs">Player</th>
-                            <th class="px-6 py-3 text-left font-bold text-slate-300 uppercase text-xs">Role</th>
-                            <th class="px-6 py-3 text-left font-bold text-slate-300 uppercase text-xs">Tier</th>
-                            <th class="px-6 py-3 text-left font-bold text-slate-300 uppercase text-xs">Age</th>
-                            <th class="px-6 py-3 text-right font-bold text-slate-300 uppercase text-xs">Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($players as $player)
-                            <tr class="border-b hover:opacity-80 transition" style="border-color: var(--border);">
-                                <td class="px-6 py-4">
-                                    <p class="font-semibold text-white">{{ $player->name }}</p>
-                                    <p class="text-xs text-slate-400">{{ $player->country }}</p>
-                                </td>
-                                <td class="px-6 py-4 text-slate-400">{{ $player->role }}</td>
-                                <td class="px-6 py-4 text-slate-400">{{ $player->tier }}</td>
-                                <td class="px-6 py-4 text-slate-400">{{ $player->age ?? '—' }}</td>
-                                <td class="px-6 py-4 text-right stat-value">{{ number_format((float) $player->current_value, 0) }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-500">No players in squad yet</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+        <p class="eyebrow gold mb-4">Full Squad ({{ $players->count() }})</p>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            @forelse ($players as $player)
+                <div class="card-section lift-on-hover p-4">
+                    <div class="player-portrait mb-3" style="aspect-ratio: 3/4;">
+                        @if($player->image)
+                            <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                        @else
+                            <div class="initials">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+                        @endif
+                    </div>
+                    <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
+                    <p class="text-xs" style="color: var(--paper-faint);">{{ $player->role }} &nbsp;—&nbsp; {{ $player->tier }}</p>
+                    <p class="text-sm font-semibold mt-2" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
+                </div>
+            @empty
+                <div class="col-span-full card-section p-12 text-center" style="color: var(--paper-faint);">No players in squad yet</div>
+            @endforelse
         </div>
     @endif
 @endsection

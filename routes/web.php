@@ -66,6 +66,8 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::post('/transfers/{player}/offer', [TransferMarketController::class, 'makeOffer'])->name('transfers.offer');
 
     Route::get('/auction', [AuctionController::class, 'index'])->name('auction');
+    Route::get('/auction/{auctionSession}/room', [AuctionController::class, 'room'])->name('auction.room');
+    Route::post('/auction/{auctionSession}/join', [AuctionController::class, 'join'])->name('auction.join');
     Route::post('/auction/{auctionSession}/bid', [AuctionController::class, 'bid'])->name('auction.bid');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');

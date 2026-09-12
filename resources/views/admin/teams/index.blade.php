@@ -5,7 +5,7 @@
 @section('content')
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <h1 class="text-4xl font-black text-white">🏏 Teams</h1>
+            <h1 class="text-4xl font-black text-white">Teams</h1>
             <p class="mt-2 text-slate-400">{{ $teams->total() }} teams in the league</p>
         </div>
         <a href="{{ route('admin.teams.create') }}" class="px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition">

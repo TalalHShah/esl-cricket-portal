@@ -4,19 +4,17 @@
 
 @section('content')
     <div class="max-w-md mx-auto mt-8">
-        <div class="text-center mb-8">
-            <div class="logo-badge w-16 h-16 rounded flex items-center justify-center mx-auto mb-4">
-                <span class="text-white font-black text-2xl">🏏</span>
-            </div>
-            <h1 class="text-3xl font-black text-white">Manager Sign In</h1>
-            <p class="text-slate-400 mt-2">Access your team's transfer market, auction room, and squad</p>
+        <div class="text-center mb-10">
+            <p class="eyebrow gold mb-3">Manager Portal</p>
+            <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Sign In</h1>
+            <p class="mt-3 text-sm" style="color: var(--paper-faint);">Access your team's transfer market, auction room, and squad</p>
         </div>
 
-        <div class="card-section rounded p-8">
+        <div class="card-section p-8">
             @if ($errors->any())
-                <div class="mb-6 p-4 rounded border-l-4" style="background-color: var(--bg-tertiary); border-left-color: #DC2626;">
+                <div class="mb-6 p-4" style="border-left: 2px solid var(--live); background-color: var(--surface-raised);">
                     @foreach ($errors->all() as $error)
-                        <p class="text-sm font-medium text-white">⚠ {{ $error }}</p>
+                        <p class="text-sm font-medium" style="color: var(--paper);">{{ $error }}</p>
                     @endforeach
                 </div>
             @endif
@@ -24,35 +22,26 @@
             <form method="POST" action="{{ route('login') }}" class="space-y-5">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Email Address</label>
+                    <label class="eyebrow block mb-2">Email Address</label>
                     <input type="email" name="email" value="{{ old('email') }}" required autofocus
-                           class="w-full rounded px-4 py-3 text-white border focus:outline-none"
-                           style="background-color: var(--bg-tertiary); border-color: var(--border);"
-                           placeholder="manager@esl.test">
+                           class="field w-full px-4 py-3" placeholder="manager@esl.test">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Password</label>
-                    <input type="password" name="password" required
-                           class="w-full rounded px-4 py-3 text-white border focus:outline-none"
-                           style="background-color: var(--bg-tertiary); border-color: var(--border);"
-                           placeholder="••••••••">
+                    <label class="eyebrow block mb-2">Password</label>
+                    <input type="password" name="password" required class="field w-full px-4 py-3" placeholder="••••••••">
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center gap-2 text-sm text-slate-400">
-                        <input type="checkbox" name="remember" class="rounded">
-                        Remember me
-                    </label>
-                </div>
+                <label class="flex items-center gap-2 text-sm" style="color: var(--paper-faint);">
+                    <input type="checkbox" name="remember">
+                    Remember me
+                </label>
 
-                <button type="submit" class="w-full btn-accent py-3 text-sm font-bold rounded">
-                    Sign In to Manager Portal
-                </button>
+                <button type="submit" class="btn-accent w-full py-3">Sign In</button>
             </form>
         </div>
 
-        <p class="text-center text-xs text-slate-500 mt-6">
+        <p class="text-center text-xs mt-6" style="color: var(--paper-faint);">
             Forgot your credentials? Contact the league administrator.
         </p>
     </div>

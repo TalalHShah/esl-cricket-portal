@@ -3,149 +3,120 @@
 @section('title', 'Home')
 
 @section('content')
-    {{-- Featured Story Section --}}
+    {{-- Masthead --}}
     @if($latestNews->first())
-        <div class="mb-8 featured-story rounded">
-            <div class="flex items-start gap-6">
-                <div class="flex-1">
-                    <span class="news-badge urgent">BREAKING</span>
-                    <h1 class="text-4xl font-black text-white mt-4 mb-3">{{ $latestNews->first()->title }}</h1>
-                    <p class="text-lg text-blue-100 mb-4">{{ $latestNews->first()->excerpt }}</p>
-                    <p class="text-sm text-blue-200">{{ $latestNews->first()->created_at->format('d M Y, H:i') }}</p>
-                </div>
-            </div>
+        <div class="masthead mb-10">
+            <p class="eyebrow live mb-3">Breaking</p>
+            <h1 class="font-display text-4xl md:text-5xl font-semibold mb-4" style="color: var(--paper);">{{ $latestNews->first()->title }}</h1>
+            <p class="text-lg mb-4" style="color: var(--paper-dim); max-width: 46rem;">{{ $latestNews->first()->excerpt }}</p>
+            <p class="eyebrow">{{ $latestNews->first()->created_at->format('d M Y — H:i') }}</p>
         </div>
     @endif
 
-    {{-- Main Grid: News (Left) + Live Streams (Right) --}}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
-        {{-- Breaking News (2 cols) - Image Card Style --}}
+    {{-- Main Grid: News (Left) + Live (Right) --}}
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-3 mb-14">
+        {{-- Breaking News --}}
         <div class="lg:col-span-2">
-            <div class="space-y-4">
-                @forelse ($latestNews->skip(1)->take(4) as $article)
-                    <div class="rounded overflow-hidden cursor-pointer hover:shadow-lg transition relative h-32"
-                         style="background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-dark) 100%);">
-                        {{-- Background with low opacity text --}}
-                        <div class="absolute inset-0 opacity-10 text-white overflow-hidden">
-                            <p class="text-4xl font-black">{{ strtoupper(substr($article->title, 0, 3)) }}</p>
-                        </div>
-
-                        {{-- Content overlay --}}
-                        <div class="relative h-full p-6 flex flex-col justify-between border-l-4" style="border-left-color: var(--accent);">
-                            <div>
-                                <span class="news-badge text-xs">{{ $article->category ?? 'News' }}</span>
-                                <h3 class="text-lg font-black text-white mt-2 line-clamp-2">{{ $article->title }}</h3>
+            <p class="eyebrow gold mb-4">Latest</p>
+            <div class="space-y-0">
+                @forelse ($latestNews->skip(1)->take(5) as $article)
+                    <div class="news-row row-hover cursor-pointer">
+                        <div class="flex items-start justify-between gap-6">
+                            <div class="flex-1">
+                                <span class="tag mb-2">{{ strtoupper($article->category ?? 'News') }}</span>
+                                <h3 class="text-lg font-semibold mt-2" style="color: var(--paper);">{{ $article->title }}</h3>
+                                <p class="text-sm mt-1" style="color: var(--paper-faint);">{{ $article->excerpt }}</p>
                             </div>
-                            <p class="text-xs text-slate-400">{{ $article->created_at->format('d M Y') }}</p>
+                            <p class="eyebrow whitespace-nowrap">{{ $article->created_at->format('d M') }}</p>
                         </div>
                     </div>
                 @empty
-                    <div class="rounded p-8 text-center text-slate-500" style="background-color: var(--bg-secondary);">
-                        No news available
-                    </div>
+                    <div class="card-section p-10 text-center" style="color: var(--paper-faint);">No news available</div>
                 @endforelse
             </div>
         </div>
 
-        {{-- Live Streams (1 col) - Video Section --}}
+        {{-- Live / Stream --}}
         <div>
-            <div class="card-section rounded overflow-hidden">
-                <div class="card-header flex items-center gap-2">
-                    <span class="text-2xl">🔴</span>
+            <p class="eyebrow gold mb-4">Watch</p>
+            <div class="card-section">
+                <div class="card-header">
                     <h2>Live Now</h2>
                 </div>
                 <div class="p-6 space-y-4">
-                    {{-- Placeholder for live stream --}}
-                    <div class="aspect-video rounded-lg flex items-center justify-center text-slate-500 text-center" style="background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-dark) 100%);">
+                    <div class="aspect-video flex items-center justify-center text-center" style="background-color: var(--surface-raised); border: 1px solid var(--line);">
                         <div>
-                            <p class="text-sm font-semibold mb-2">📺 Live Stream</p>
-                            <p class="text-xs">YouTube/Stream embed here</p>
+                            <p class="eyebrow gold mb-1">Stream</p>
+                            <p class="text-sm" style="color: var(--paper-faint);">No broadcast in progress</p>
                         </div>
                     </div>
-                    {{-- YouTube Video Placeholder --}}
-                    <div class="aspect-video rounded-lg flex items-center justify-center text-slate-500 text-center" style="background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-dark) 100%);">
+                    <div class="aspect-video flex items-center justify-center text-center" style="background-color: var(--surface-raised); border: 1px solid var(--line);">
                         <div>
-                            <p class="text-sm font-semibold mb-2">▶️ Latest Video</p>
-                            <p class="text-xs">Match highlights</p>
+                            <p class="eyebrow gold mb-1">Highlights</p>
+                            <p class="text-sm" style="color: var(--paper-faint);">Latest match recap</p>
                         </div>
                     </div>
-                    <button class="w-full btn-accent px-4 py-2 text-sm font-bold rounded">
-                        Watch All
-                    </button>
+                    <a href="#" class="btn-accent w-full py-3">View All Streams</a>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Upcoming Fixtures - Bold Section --}}
-    <div class="card-section rounded mb-8">
-        <div class="card-header flex items-center gap-2">
-            <span class="text-2xl">🏟️</span>
-            <h2>Upcoming Fixtures</h2>
-        </div>
-        <div class="divide-y" style="border-color: var(--border);">
+    {{-- Upcoming Fixtures --}}
+    <div class="mb-14">
+        <p class="eyebrow gold mb-4">Schedule</p>
+        <div class="card-section">
             @forelse ($recentMatches as $match)
-                <div class="p-6 hover:bg-blue-900/10 transition cursor-pointer border-l-4" style="border-left-color: var(--accent);">
-                    <p class="text-sm text-slate-400 mb-2" style="font-weight: 600;">{{ $match->match_date?->format('d M Y') }} • {{ $match->venue }}</p>
-                    <h3 class="text-3xl font-black text-white mb-3">
-                        {{ $match->homeTeam?->name ?? 'TBD' }}
-                        <span class="text-slate-500 font-normal text-lg">vs</span>
-                        {{ $match->awayTeam?->name ?? 'TBD' }}
-                    </h3>
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm text-slate-400">{{ $match->match_date?->format('H:i') }}</p>
-                        <span class="px-3 py-1 text-xs font-bold text-white rounded" style="background-color: var(--primary);">
-                            {{ ucfirst(str_replace('_', ' ', $match->status)) }}
-                        </span>
-                    </div>
+                <div class="fixture-row">
+                    <p class="eyebrow mb-2">{{ $match->match_date?->format('d M Y') }} &nbsp;—&nbsp; {{ $match->venue }}</p>
+                    <p class="fixture-teams mb-3">
+                        {{ $match->homeTeam?->name ?? 'TBD' }}<span class="vs">vs</span>{{ $match->awayTeam?->name ?? 'TBD' }}
+                    </p>
+                    <span class="status-pill {{ $match->status === 'confirmed' ? 'confirmed' : 'pending' }}">
+                        {{ ucfirst(str_replace('_', ' ', $match->status)) }}
+                    </span>
                 </div>
             @empty
-                <div class="p-8 text-center text-slate-500">No fixtures scheduled</div>
+                <div class="p-10 text-center" style="color: var(--paper-faint);">No fixtures scheduled</div>
             @endforelse
         </div>
     </div>
 
-    {{-- Teams Overview - Grid Section --}}
+    {{-- Teams Overview --}}
     <div>
-        <h2 class="text-3xl font-black text-white mb-6 flex items-center gap-2">
-            <span>🏏</span> Teams
-        </h2>
+        <p class="eyebrow gold mb-4">The League</p>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($topTeams as $team)
-                <div class="card-section rounded p-6 hover:shadow-lg transition cursor-pointer">
+                <a href="{{ route('teams.show', $team) }}" class="card-section lift-on-hover p-6 block">
                     <div class="flex items-center gap-4 mb-6">
                         @if($team->logo)
-                            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}"
-                                 class="w-12 h-12 rounded object-cover" style="border: 2px solid var(--accent);">
+                            <div class="crest lift-on-hover" style="width:52px;height:52px;">
+                                <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}" class="w-full h-full object-cover">
+                            </div>
                         @else
-                            <div class="team-badge-placeholder" style="background-color: var(--primary); border-color: var(--accent); color: white;">
+                            <div class="crest" style="width:52px;height:52px; font-size: 1.1rem;">
                                 {{ substr($team->name, 0, 1) }}
                             </div>
                         @endif
                         <div>
-                            <h3 class="text-lg font-black text-white">{{ $team->name }}</h3>
-                            <p class="text-xs text-slate-400">{{ $team->short_name }}</p>
+                            <h3 class="font-display text-lg font-semibold" style="color: var(--paper);">{{ $team->name }}</h3>
+                            <p class="text-xs" style="color: var(--paper-faint);">{{ $team->manager?->name ?? 'Unmanaged' }}</p>
                         </div>
                     </div>
-                    <div class="space-y-3 border-t pt-4" style="border-color: var(--border);">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-slate-400">Manager</span>
-                            <span class="text-sm font-semibold text-white">{{ $team->manager?->name ?? '—' }}</span>
+                    <div class="flex items-center justify-between pt-4" style="border-top: var(--rule);">
+                        <div>
+                            <p class="stat-caption mb-0">Players</p>
+                            <p class="text-sm font-semibold" style="color: var(--paper);">{{ $team->players_count ?? 0 }}</p>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-slate-400">Players</span>
-                            <span class="text-sm font-semibold text-white">{{ $team->players_count ?? 0 }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-slate-400">Budget</span>
-                            <span class="stat-value text-base">PKR {{ number_format($team->budget, 0) }}</span>
+                        <div class="text-right">
+                            <p class="stat-caption mb-0">Budget</p>
+                            <p class="text-sm font-semibold" style="color: var(--gold);">{{ number_format($team->budget, 0) }}</p>
                         </div>
                     </div>
-                </div>
+                </a>
             @empty
-                <div class="text-slate-500">No teams available</div>
+                <div class="text-sm" style="color: var(--paper-faint);">No teams available</div>
             @endforelse
         </div>
     </div>
-
 @endsection

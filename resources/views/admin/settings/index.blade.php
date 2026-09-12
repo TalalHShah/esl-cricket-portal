@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-4xl font-black text-white">⚡ League Settings</h1>
+        <h1 class="text-4xl font-black text-white">League Settings</h1>
         <p class="mt-2 text-slate-400">Configure transfer windows, valuation rules, and standout thresholds</p>
     </div>
 
@@ -13,7 +13,7 @@
             @csrf
 
             <div class="space-y-4 border-b border-slate-700 pb-6">
-                <h3 class="text-lg font-bold text-white">📅 Transfer Window</h3>
+                <h3 class="text-lg font-bold text-white">Transfer Window</h3>
 
                 <div>
                     <label class="block text-sm font-bold text-white mb-2">Transfer Window Duration (days)</label>
@@ -29,7 +29,7 @@
             </div>
 
             <div class="space-y-4 border-b border-slate-700 pb-6">
-                <h3 class="text-lg font-bold text-white">📊 Valuation Rules</h3>
+                <h3 class="text-lg font-bold text-white">Valuation Rules</h3>
 
                 <div>
                     <label class="block text-sm font-bold text-white mb-2">Win Bonus (%)</label>
@@ -45,7 +45,7 @@
             </div>
 
             <div class="space-y-4">
-                <h3 class="text-lg font-bold text-white">🌟 Standout Thresholds</h3>
+                <h3 class="text-lg font-bold text-white">Standout Thresholds</h3>
                 <p class="text-xs text-slate-400">If a losing player hits these, they get a BONUS instead of a penalty</p>
 
                 <div>

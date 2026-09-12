@@ -14,10 +14,10 @@ class AuctionController extends Controller
 {
     public function index(): View
     {
-        $activeSession = AuctionSession::with(['player', 'currentTeam', 'highestBidder'])
+        $liveSessions = AuctionSession::with(['player', 'currentTeam', 'highestBidder'])
             ->whereIn('status', ['live', 'paused'])
-            ->latest('started_at')
-            ->first();
+            ->orderByDesc('started_at')
+            ->get();
 
         $upcomingSessions = AuctionSession::with('player')
             ->where('status', 'scheduled')
@@ -33,7 +33,23 @@ class AuctionController extends Controller
 
         $team = Auth::user()->managedTeam;
 
-        return view('manager.auction', compact('activeSession', 'upcomingSessions', 'completedSessions', 'team'));
+        return view('manager.auction', compact('liveSessions', 'upcomingSessions', 'completedSessions', 'team'));
+    }
+
+    public function room(AuctionSession $auctionSession): View
+    {
+        $auctionSession->load(['player', 'currentTeam', 'highestBidder']);
+        $team = Auth::user()->managedTeam;
+        $joined = session('auction_room_joined_' . $auctionSession->id, false);
+
+        return view('manager.auction-room', compact('auctionSession', 'team', 'joined'));
+    }
+
+    public function join(AuctionSession $auctionSession): RedirectResponse
+    {
+        session(['auction_room_joined_' . $auctionSession->id => true]);
+
+        return redirect()->route('manager.auction.room', $auctionSession);
     }
 
     public function bid(Request $request, AuctionSession $auctionSession): RedirectResponse
@@ -66,6 +82,6 @@ class AuctionController extends Controller
             ]);
         });
 
-        return back()->with('status', "Bid placed: PKR " . number_format($minimumBid, 0));
+        return back()->with('status', 'Bid placed: PKR ' . number_format($minimumBid, 0));
     }
 }

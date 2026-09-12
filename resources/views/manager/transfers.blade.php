@@ -3,62 +3,67 @@
 @section('title', 'Transfer Market')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-4xl font-black text-white mb-2 flex items-center gap-2"><span>🔄</span> Transfer Market</h1>
-        <p class="text-lg text-slate-400">Make offers for players currently signed with other teams</p>
+    <div class="mb-10">
+        <p class="eyebrow gold mb-2">Player Movement</p>
+        <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Transfer Market</h1>
+        <p class="text-sm mt-2" style="color: var(--paper-faint);">Make offers for players currently signed with other teams</p>
     </div>
 
     @if($team)
-        <div class="stat-box mb-8 inline-block">
-            <div class="stat-value">{{ number_format($team->remainingBudget(), 0) }}</div>
-            <div class="stat-label">Available Budget</div>
+        <div class="stat mb-10">
+            <p class="stat-figure up">{{ number_format($team->remainingBudget(), 0) }}</p>
+            <p class="stat-caption">Available Budget</p>
         </div>
     @endif
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {{-- Listed Players --}}
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div class="lg:col-span-2">
-            <div class="card-section rounded mb-6 p-6">
+            <div class="card-section mb-6 p-6">
                 <form method="GET" action="{{ route('manager.transfers') }}" class="flex flex-wrap items-end gap-3">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Search</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name..."
-                               class="rounded px-3 py-2 text-sm text-white border" style="background-color: var(--bg-tertiary); border-color: var(--border);">
+                        <label class="eyebrow block mb-2">Search</label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name" class="field px-3 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Role</label>
-                        <select name="role" class="rounded px-3 py-2 text-sm text-white border" style="background-color: var(--bg-tertiary); border-color: var(--border);">
+                        <label class="eyebrow block mb-2">Role</label>
+                        <select name="role" class="field px-3 py-2 text-sm">
                             <option value="">All Roles</option>
                             @foreach ($roles as $role)
                                 <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="btn-accent px-4 py-2 text-sm font-bold rounded">Search</button>
+                    <button type="submit" class="btn-accent px-5 py-2.5">Search</button>
                 </form>
             </div>
 
-            <div class="space-y-4">
+            <div class="card-section">
                 @forelse ($listedPlayers as $player)
-                    <div class="card-section rounded p-6">
-                        <div class="flex items-center justify-between gap-4">
+                    <div class="news-row px-6">
+                        <div class="flex items-center gap-4">
+                            <div class="player-portrait" style="width: 56px; height: 72px; flex-shrink: 0;">
+                                @if($player->image)
+                                    <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                                @else
+                                    <div class="initials" style="font-size: 0.9rem;">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+                                @endif
+                            </div>
                             <div class="flex-1">
-                                <h3 class="text-lg font-black text-white">{{ $player->name }}</h3>
-                                <p class="text-xs text-slate-400 mb-2">{{ $player->role }} • {{ $player->tier }} • {{ $player->team?->name }}</p>
-                                <p class="stat-value text-base">{{ number_format((float) $player->current_value, 0) }}</p>
+                                <h3 class="text-base font-semibold" style="color: var(--paper);">{{ $player->name }}</h3>
+                                <p class="text-xs mb-2" style="color: var(--paper-faint);">{{ $player->role }} — {{ $player->tier }} — {{ $player->team?->name }}</p>
+                                <p class="text-base font-semibold" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
                             </div>
                             @if($team)
                                 <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
                                     @csrf
-                                    <input type="number" name="fee" required min="1" placeholder="Offer amount"
-                                           class="w-36 rounded px-3 py-2 text-sm text-white border" style="background-color: var(--bg-tertiary); border-color: var(--border);">
-                                    <button type="submit" class="btn-accent px-4 py-2 text-sm font-bold rounded whitespace-nowrap">Make Offer</button>
+                                    <input type="number" name="fee" required min="1" placeholder="Offer" class="field px-3 py-2 text-sm" style="width: 9rem;">
+                                    <button type="submit" class="btn-accent px-4 py-2 text-xs whitespace-nowrap">Make Offer</button>
                                 </form>
                             @endif
                         </div>
                     </div>
                 @empty
-                    <div class="card-section rounded p-12 text-center text-slate-500">No players available in the market</div>
+                    <div class="p-12 text-center" style="color: var(--paper-faint);">No players available in the market</div>
                 @endforelse
             </div>
 
@@ -67,32 +72,25 @@
             </div>
         </div>
 
-        {{-- My Transfer Activity --}}
         <div>
-            <div class="card-section rounded">
-                <div class="card-header flex items-center gap-2">
-                    <span>📋</span>
-                    <h2>My Activity</h2>
-                </div>
-                <div class="divide-y" style="border-color: var(--border);">
-                    @forelse ($myTransfers as $transfer)
-                        <div class="p-5">
-                            <p class="font-bold text-white text-sm">{{ $transfer->player?->name }}</p>
-                            <p class="text-xs text-slate-400 mb-2">
-                                {{ $transfer->fromTeam?->short_name ?? '—' }} → {{ $transfer->toTeam?->short_name ?? '—' }}
-                            </p>
-                            <div class="flex items-center justify-between">
-                                <span class="stat-value text-sm">{{ number_format((float) $transfer->fee, 0) }}</span>
-                                <span class="px-2 py-1 text-xs font-bold rounded"
-                                      style="background-color: {{ $transfer->status === 'approved' ? 'var(--success)' : ($transfer->status === 'rejected' ? '#DC2626' : 'var(--accent)') }}; color: {{ $transfer->status === 'pending' ? 'var(--primary)' : 'white' }};">
-                                    {{ ucfirst($transfer->status) }}
-                                </span>
-                            </div>
+            <p class="eyebrow gold mb-4">My Activity</p>
+            <div class="card-section">
+                @forelse ($myTransfers as $transfer)
+                    <div class="news-row px-6">
+                        <p class="font-semibold text-sm" style="color: var(--paper);">{{ $transfer->player?->name }}</p>
+                        <p class="text-xs mb-3" style="color: var(--paper-faint);">
+                            {{ $transfer->fromTeam?->short_name ?? '—' }} &rarr; {{ $transfer->toTeam?->short_name ?? '—' }}
+                        </p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-semibold" style="color: var(--gold);">{{ number_format((float) $transfer->fee, 0) }}</span>
+                            <span class="status-pill {{ $transfer->status === 'approved' ? 'confirmed' : ($transfer->status === 'rejected' ? 'live' : 'pending') }}">
+                                {{ ucfirst($transfer->status) }}
+                            </span>
                         </div>
-                    @empty
-                        <div class="p-8 text-center text-slate-500 text-sm">No transfer activity yet</div>
-                    @endforelse
-                </div>
+                    </div>
+                @empty
+                    <div class="p-10 text-center" style="color: var(--paper-faint);">No transfer activity yet</div>
+                @endforelse
             </div>
         </div>
     </div>

@@ -5,7 +5,7 @@
 @section('content')
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <h1 class="text-4xl font-black text-white">👥 Managers</h1>
+            <h1 class="text-4xl font-black text-white">Managers</h1>
             <p class="mt-2 text-slate-400">{{ $managers->total() }} managers in the league</p>
         </div>
         <a href="{{ route('admin.managers.create') }}" class="px-5 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition">

@@ -9,36 +9,35 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/themes.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { font-family: 'Inter', sans-serif; }
+        body, input, select, button { font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    {{-- Manager Top Bar --}}
     <header class="sticky top-0 z-50">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-20 items-center justify-between">
-                <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-2">
-                    <div class="logo-badge w-12 h-12 rounded flex items-center justify-center">
-                        <span class="text-white font-black text-xl">🏏</span>
+                <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-3">
+                    <div class="logo-badge w-10 h-10 flex items-center justify-center">
+                        <span class="font-display font-semibold text-lg" style="color: var(--paper);">EC</span>
                     </div>
-                    <div class="hidden sm:block">
-                        <h1 class="text-xl font-black text-white tracking-tight">ESL CRICKET</h1>
-                        <p class="text-xs font-bold" style="color: var(--accent);">MANAGER PORTAL</p>
+                    <div class="hidden sm:block leading-none">
+                        <h1 class="font-display text-xl font-semibold tracking-wide" style="color: var(--paper);">ESL CRICKET</h1>
+                        <p class="eyebrow gold mt-1">Manager Portal</p>
                     </div>
                 </a>
 
-                <div class="hidden sm:flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-4">
                     @if(auth()->user()->managedTeam)
-                        <span class="text-sm text-slate-300">{{ auth()->user()->managedTeam->name }}</span>
+                        <span class="text-sm" style="color: var(--paper-dim);">{{ auth()->user()->managedTeam->name }}</span>
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="px-4 py-2 text-sm font-bold text-white rounded" style="background-color: var(--bg-tertiary); border: 1px solid var(--border);">
+                        <button type="submit" class="btn-ghost px-5 py-2.5">
                             Sign Out
                         </button>
                     </form>
@@ -46,27 +45,24 @@
             </div>
         </div>
 
-        {{-- Manager Nav --}}
-        <div style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border);">
+        <div style="background-color: var(--surface); border-top: var(--rule); border-bottom: var(--rule);">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <nav class="flex items-center gap-1 overflow-x-auto py-2 text-sm font-bold">
+                <nav class="manager-nav flex items-center overflow-x-auto">
                     @php
                         $navItems = [
-                            ['route' => 'manager.dashboard', 'label' => 'Home', 'icon' => '🏠'],
-                            ['route' => 'manager.transfers', 'label' => 'Transfer Market', 'icon' => '🔄'],
-                            ['route' => 'manager.auction', 'label' => 'Auction', 'icon' => '🔨'],
-                            ['route' => 'manager.scouts', 'label' => 'Scouts', 'icon' => '🔍'],
-                            ['route' => 'manager.fixtures', 'label' => 'Fixtures', 'icon' => '🏟️'],
-                            ['route' => 'manager.livestream', 'label' => 'Live Stream', 'icon' => '🔴'],
-                            ['route' => 'manager.team', 'label' => 'Team Profile', 'icon' => '🛡️'],
-                            ['route' => 'manager.profile', 'label' => 'Manager Profile', 'icon' => '👤'],
+                            ['route' => 'manager.dashboard', 'label' => 'Home'],
+                            ['route' => 'manager.transfers', 'label' => 'Transfer Market'],
+                            ['route' => 'manager.auction', 'label' => 'Auction'],
+                            ['route' => 'manager.scouts', 'label' => 'Scouts'],
+                            ['route' => 'manager.fixtures', 'label' => 'Fixtures'],
+                            ['route' => 'manager.livestream', 'label' => 'Live Stream'],
+                            ['route' => 'manager.team', 'label' => 'Team Profile'],
+                            ['route' => 'manager.profile', 'label' => 'Manager Profile'],
                         ];
                     @endphp
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}"
-                           class="whitespace-nowrap px-4 py-2 rounded transition {{ request()->routeIs($item['route']) ? 'text-white' : 'text-slate-400 hover:text-white' }}"
-                           style="{{ request()->routeIs($item['route']) ? 'background-color: var(--primary);' : '' }}">
-                            {{ $item['icon'] }} {{ $item['label'] }}
+                        <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
+                            {{ $item['label'] }}
                         </a>
                     @endforeach
                 </nav>
@@ -74,17 +70,16 @@
         </div>
     </header>
 
-    {{-- Main Content --}}
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         @if (session('status'))
-            <div class="mb-6 p-4 rounded border-l-4" style="background-color: var(--bg-secondary); border-left-color: var(--success);">
-                <p class="text-sm font-medium text-white">✓ {{ session('status') }}</p>
+            <div class="mb-6 p-4 card-section" style="border-left: 2px solid var(--up);">
+                <p class="text-sm font-medium" style="color: var(--paper);">{{ session('status') }}</p>
             </div>
         @endif
         @if ($errors->any())
-            <div class="mb-6 p-4 rounded border-l-4" style="background-color: var(--bg-secondary); border-left-color: #DC2626;">
+            <div class="mb-6 p-4 card-section" style="border-left: 2px solid var(--live);">
                 @foreach ($errors->all() as $error)
-                    <p class="text-sm font-medium text-white">⚠ {{ $error }}</p>
+                    <p class="text-sm font-medium" style="color: var(--paper);">{{ $error }}</p>
                 @endforeach
             </div>
         @endif
@@ -92,11 +87,10 @@
         @yield('content')
     </main>
 
-    {{-- Footer --}}
-    <footer class="mt-20 py-10" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border);">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
-            <p class="font-semibold text-slate-400 mb-2">🏏 ESL Cricket — Manager Portal</p>
-            <p>&copy; {{ date('Y') }} Elite Series League</p>
+    <footer class="mt-20 py-10" style="background-color: var(--surface); border-top: var(--rule);">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+            <p class="font-display text-lg font-semibold mb-2" style="color: var(--paper);">ESL CRICKET — MANAGER PORTAL</p>
+            <p class="text-sm" style="color: var(--paper-faint);">&copy; {{ date('Y') }} Elite Series League</p>
         </div>
     </footer>
 

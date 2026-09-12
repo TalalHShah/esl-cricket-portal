@@ -42,6 +42,20 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="eyebrow block mb-2">Sort</label>
+                <select name="sort" class="field px-3 py-2 text-sm">
+                    <option value="value_desc" @selected($sort === 'value_desc')>Value — High to Low</option>
+                    <option value="value_asc" @selected($sort === 'value_asc')>Value — Low to High</option>
+                    <option value="name_asc" @selected($sort === 'name_asc')>Name — A to Z</option>
+                    <option value="name_desc" @selected($sort === 'name_desc')>Name — Z to A</option>
+                    <option value="role" @selected($sort === 'role')>Category</option>
+                    <option value="tier" @selected($sort === 'tier')>Tier</option>
+                    <option value="age_asc" @selected($sort === 'age_asc')>Age — Youngest First</option>
+                    <option value="age_desc" @selected($sort === 'age_desc')>Age — Oldest First</option>
+                    <option value="country_asc" @selected($sort === 'country_asc')>Country</option>
+                </select>
+            </div>
             <button type="submit" class="btn-accent px-5 py-2.5">Filter</button>
             <a href="{{ route('players.index') }}" class="btn-ghost px-5 py-2.5">Reset</a>
         </form>

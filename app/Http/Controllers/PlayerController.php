@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\Sortable;
 use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Contracts\View\View;
@@ -9,23 +10,36 @@ use Illuminate\Http\Request;
 
 class PlayerController extends Controller
 {
+    use Sortable;
+
     /**
      * Display a listing of players with optional filters.
      */
     public function index(Request $request): View
     {
-        $players = Player::with('team')
-            ->when($request->filled('role'), fn ($query) => $query->where('role', $request->string('role')))
-            ->when($request->filled('tier'), fn ($query) => $query->where('tier', $request->string('tier')))
-            ->when($request->filled('team'), fn ($query) => $query->where('team_id', $request->integer('team')))
-            ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%' . $request->string('search') . '%'))
-            ->orderByDesc('current_value')
-            ->paginate(20)
-            ->withQueryString();
+        $query = Player::with('team')
+            ->when($request->filled('role'), fn ($q) => $q->where('role', $request->string('role')))
+            ->when($request->filled('tier'), fn ($q) => $q->where('tier', $request->string('tier')))
+            ->when($request->filled('team'), fn ($q) => $q->where('team_id', $request->integer('team')))
+            ->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%' . $request->string('search') . '%'));
+
+        $sort = $this->applySort($query, $request, [
+            'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
+            'value_asc' => fn ($q) => $q->orderBy('current_value'),
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'name_desc' => fn ($q) => $q->orderByDesc('name'),
+            'role' => fn ($q) => $q->orderBy('role')->orderByDesc('current_value'),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'age_asc' => fn ($q) => $q->orderBy('age'),
+            'age_desc' => fn ($q) => $q->orderByDesc('age'),
+            'country_asc' => fn ($q) => $q->orderBy('country'),
+        ], 'value_desc');
+
+        $players = $query->paginate(20)->withQueryString();
 
         $teams = Team::orderBy('name')->get(['id', 'name']);
 
-        return view('players.index', compact('players', 'teams'));
+        return view('players.index', compact('players', 'teams', 'sort'));
     }
 
     /**

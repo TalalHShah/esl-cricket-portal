@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\Sortable;
 use App\Models\Player;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ValuationController extends Controller
 {
+    use Sortable;
+
     /**
      * Show player valuations for a team.
      */
@@ -28,15 +32,24 @@ class ValuationController extends Controller
     /**
      * Show all player valuations across league.
      */
-    public function league(): View
+    public function league(Request $request): View
     {
-        $players = Player::with('team')
+        $query = Player::with('team')
             ->where('is_active', true)
-            ->select('id', 'name', 'role', 'tier', 'base_value', 'current_value', 'team_id')
-            ->orderByDesc('current_value')
-            ->paginate(20);
+            ->select('id', 'name', 'role', 'tier', 'base_value', 'current_value', 'team_id');
 
-        return view('valuations.league', compact('players'));
+        $sort = $this->applySort($query, $request, [
+            'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
+            'value_asc' => fn ($q) => $q->orderBy('current_value'),
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'change_desc' => fn ($q) => $q->orderByRaw('(current_value - base_value) desc'),
+            'change_asc' => fn ($q) => $q->orderByRaw('(current_value - base_value) asc'),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+        ], 'value_desc');
+
+        $players = $query->paginate(20)->withQueryString();
+
+        return view('valuations.league', compact('players', 'sort'));
     }
 
     /**

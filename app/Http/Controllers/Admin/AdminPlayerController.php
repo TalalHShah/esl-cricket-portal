@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\Sortable;
 use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use App\Http\Controllers\Controller;
 
 class AdminPlayerController extends Controller
 {
+    use Sortable;
+
     private const ROLES = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
     private const TIERS = ['Superstar', 'Star', 'Normal', 'Low-value'];
 
@@ -27,10 +30,23 @@ class AdminPlayerController extends Controller
         'Left-arm Chinaman',
     ];
 
-    public function index()
+    public function index(Request $request)
     {
-        $players = Player::with('team')->paginate(15);
-        return view('admin.players.index', compact('players'));
+        $query = Player::with('team');
+
+        $sort = $this->applySort($query, $request, [
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'name_desc' => fn ($q) => $q->orderByDesc('name'),
+            'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
+            'value_asc' => fn ($q) => $q->orderBy('current_value'),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'role' => fn ($q) => $q->orderBy('role'),
+            'status' => fn ($q) => $q->orderByDesc('is_active'),
+        ], 'name_asc');
+
+        $players = $query->paginate(15)->withQueryString();
+
+        return view('admin.players.index', compact('players', 'sort'));
     }
 
     public function create()

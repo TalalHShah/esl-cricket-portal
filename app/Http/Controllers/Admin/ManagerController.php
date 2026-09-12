@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\Sortable;
 use App\Models\User;
 use App\Models\Team;
 use Illuminate\Http\Request;
@@ -9,10 +10,23 @@ use App\Http\Controllers\Controller;
 
 class ManagerController extends Controller
 {
-    public function index()
+    use Sortable;
+
+    public function index(Request $request)
     {
-        $managers = User::where('role', 'manager')->orWhere('role', 'admin')->paginate(10);
-        return view('admin.managers.index', compact('managers'));
+        $query = User::where('role', 'manager')->orWhere('role', 'admin');
+
+        $sort = $this->applySort($query, $request, [
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'name_desc' => fn ($q) => $q->orderByDesc('name'),
+            'email_asc' => fn ($q) => $q->orderBy('email'),
+            'role' => fn ($q) => $q->orderBy('role'),
+            'status' => fn ($q) => $q->orderByDesc('is_active'),
+        ], 'name_asc');
+
+        $managers = $query->paginate(10)->withQueryString();
+
+        return view('admin.managers.index', compact('managers', 'sort'));
     }
 
     public function create()

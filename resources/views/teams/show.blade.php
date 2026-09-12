@@ -42,7 +42,19 @@
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {{-- Squad --}}
         <div class="lg:col-span-2">
-            <p class="eyebrow gold mb-4">Squad ({{ $players->count() }})</p>
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+                <p class="eyebrow gold">Squad ({{ $players->count() }})</p>
+                @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'squad', 'options' => [
+                    'value_desc' => 'Value — High to Low',
+                    'value_asc' => 'Value — Low to High',
+                    'name_asc' => 'Name — A to Z',
+                    'name_desc' => 'Name — Z to A',
+                    'role' => 'Category',
+                    'tier' => 'Tier',
+                    'age_asc' => 'Age — Youngest First',
+                    'age_desc' => 'Age — Oldest First',
+                ]])
+            </div>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 @forelse ($players as $player)
                     <a href="{{ route('players.show', $player) }}" class="card-section lift-on-hover p-3">

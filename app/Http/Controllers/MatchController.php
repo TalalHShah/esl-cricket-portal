@@ -2,24 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\Sortable;
 use App\Models\CricketMatch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class MatchController extends Controller
 {
+    use Sortable;
+
     /**
      * Display a listing of matches with optional status filter.
      */
     public function index(Request $request): View
     {
-        $matches = CricketMatch::with(['homeTeam', 'awayTeam', 'winnerTeam'])
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
-            ->orderByDesc('match_date')
-            ->paginate(15)
-            ->withQueryString();
+        $query = CricketMatch::with(['homeTeam', 'awayTeam', 'winnerTeam'])
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')));
 
-        return view('matches.index', compact('matches'));
+        $sort = $this->applySort($query, $request, [
+            'date_desc' => fn ($q) => $q->orderByDesc('match_date'),
+            'date_asc' => fn ($q) => $q->orderBy('match_date'),
+            'status' => fn ($q) => $q->orderBy('status'),
+        ], 'date_desc');
+
+        $matches = $query->paginate(15)->withQueryString();
+
+        return view('matches.index', compact('matches', 'sort'));
     }
 
     /**

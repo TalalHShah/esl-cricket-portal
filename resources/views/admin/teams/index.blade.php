@@ -3,14 +3,24 @@
 @section('title', 'Manage Teams')
 
 @section('content')
-    <div class="mb-8 flex items-center justify-between">
+    <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
             <h1 class="text-4xl font-black text-white">Teams</h1>
             <p class="mt-2 text-slate-400">{{ $teams->total() }} teams in the league</p>
         </div>
-        <a href="{{ route('admin.teams.create') }}" class="px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition">
-            + Add Team
-        </a>
+        <div class="flex items-center gap-3">
+            @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'teams', 'options' => [
+                'name_asc' => 'Name — A to Z',
+                'name_desc' => 'Name — Z to A',
+                'budget_desc' => 'Budget — High to Low',
+                'budget_asc' => 'Budget — Low to High',
+                'spent_desc' => 'Spent — High to Low',
+                'remaining_desc' => 'Remaining — High to Low',
+            ]])
+            <a href="{{ route('admin.teams.create') }}" class="px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition whitespace-nowrap">
+                + Add Team
+            </a>
+        </div>
     </div>
 
     {{-- Teams Grid --}}

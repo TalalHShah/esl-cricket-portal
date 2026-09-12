@@ -36,6 +36,16 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="eyebrow block mb-2">Sort</label>
+                <select name="sort" class="field px-3 py-2 text-sm">
+                    <option value="date_desc" @selected($sort === 'date_desc')>Date — Newest First</option>
+                    <option value="date_asc" @selected($sort === 'date_asc')>Date — Oldest First</option>
+                    <option value="fee_desc" @selected($sort === 'fee_desc')>Fee — High to Low</option>
+                    <option value="fee_asc" @selected($sort === 'fee_asc')>Fee — Low to High</option>
+                    <option value="status" @selected($sort === 'status')>Status</option>
+                </select>
+            </div>
             <button type="submit" class="btn-accent px-5 py-2.5">Filter</button>
             <a href="{{ route('transfers.index') }}" class="btn-ghost px-5 py-2.5">Reset</a>
         </form>

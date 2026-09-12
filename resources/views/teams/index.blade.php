@@ -3,10 +3,20 @@
 @section('title', 'Teams')
 
 @section('content')
-    <div class="mb-10">
-        <p class="eyebrow gold mb-2">The League</p>
-        <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Teams</h1>
-        <p class="text-sm mt-2" style="color: var(--paper-faint);">{{ $teams->total() }} team{{ $teams->total() !== 1 ? 's' : '' }} competing this season</p>
+    <div class="mb-6 flex items-end justify-between flex-wrap gap-4">
+        <div>
+            <p class="eyebrow gold mb-2">The League</p>
+            <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Teams</h1>
+            <p class="text-sm mt-2" style="color: var(--paper-faint);">{{ $teams->total() }} team{{ $teams->total() !== 1 ? 's' : '' }} competing this season</p>
+        </div>
+        @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'teams', 'options' => [
+            'name_asc' => 'Name — A to Z',
+            'name_desc' => 'Name — Z to A',
+            'budget_desc' => 'Budget — High to Low',
+            'budget_asc' => 'Budget — Low to High',
+            'remaining_desc' => 'Remaining — High to Low',
+            'players_desc' => 'Squad Size — Most Players',
+        ]])
     </div>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

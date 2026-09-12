@@ -3,12 +3,21 @@
 @section('title', 'Fixtures')
 
 @section('content')
-    <div class="mb-10">
-        <p class="eyebrow gold mb-2">Schedule</p>
-        <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Fixtures</h1>
-        <p class="text-sm mt-2" style="color: var(--paper-faint);">
-            @if($team) {{ $team->name }}'s matches @else No team assigned @endif
-        </p>
+    <div class="mb-6 flex items-end justify-between flex-wrap gap-4">
+        <div>
+            <p class="eyebrow gold mb-2">Schedule</p>
+            <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">Fixtures</h1>
+            <p class="text-sm mt-2" style="color: var(--paper-faint);">
+                @if($team) {{ $team->name }}'s matches @else No team assigned @endif
+            </p>
+        </div>
+        @if($team)
+            @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'fixtures', 'options' => [
+                'date_desc' => 'Date — Newest First',
+                'date_asc' => 'Date — Oldest First',
+                'status' => 'Status',
+            ]])
+        @endif
     </div>
 
     <div class="card-section">

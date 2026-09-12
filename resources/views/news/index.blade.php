@@ -19,6 +19,16 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="eyebrow block mb-2">Sort</label>
+                <select name="sort" class="field px-3 py-2 text-sm">
+                    <option value="featured" @selected($sort === 'featured')>Featured First</option>
+                    <option value="date_desc" @selected($sort === 'date_desc')>Newest First</option>
+                    <option value="date_asc" @selected($sort === 'date_asc')>Oldest First</option>
+                    <option value="title_asc" @selected($sort === 'title_asc')>Title — A to Z</option>
+                    <option value="views_desc" @selected($sort === 'views_desc')>Most Viewed</option>
+                </select>
+            </div>
             <button type="submit" class="btn-accent px-5 py-2.5">Filter</button>
             <a href="{{ route('news.index') }}" class="btn-ghost px-5 py-2.5">Reset</a>
         </form>

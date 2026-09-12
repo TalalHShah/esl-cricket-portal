@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\Sortable;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,10 +10,24 @@ use App\Http\Controllers\Controller;
 
 class AdminTeamController extends Controller
 {
-    public function index()
+    use Sortable;
+
+    public function index(Request $request)
     {
-        $teams = Team::with('manager')->paginate(10);
-        return view('admin.teams.index', compact('teams'));
+        $query = Team::with('manager');
+
+        $sort = $this->applySort($query, $request, [
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'name_desc' => fn ($q) => $q->orderByDesc('name'),
+            'budget_desc' => fn ($q) => $q->orderByDesc('budget'),
+            'budget_asc' => fn ($q) => $q->orderBy('budget'),
+            'spent_desc' => fn ($q) => $q->orderByDesc('spent'),
+            'remaining_desc' => fn ($q) => $q->orderByRaw('(budget - spent) desc'),
+        ], 'name_asc');
+
+        $teams = $query->paginate(10)->withQueryString();
+
+        return view('admin.teams.index', compact('teams', 'sort'));
     }
 
     public function create()

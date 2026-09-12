@@ -9,9 +9,19 @@
         'subtitle' => 'Current market values across all active players',
     ])
 
-    <div class="flex gap-3 mb-10">
-        <a href="{{ route('valuations.league') }}" class="btn-accent px-5 py-2.5">League View</a>
-        <a href="{{ route('valuations.tiers') }}" class="btn-ghost px-5 py-2.5">By Tier</a>
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-10">
+        <div class="flex gap-3">
+            <a href="{{ route('valuations.league') }}" class="btn-accent px-5 py-2.5">League View</a>
+            <a href="{{ route('valuations.tiers') }}" class="btn-ghost px-5 py-2.5">By Tier</a>
+        </div>
+        @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'valuations', 'options' => [
+            'value_desc' => 'Value — High to Low',
+            'value_asc' => 'Value — Low to High',
+            'name_asc' => 'Name — A to Z',
+            'change_desc' => 'Change — Biggest Gain',
+            'change_asc' => 'Change — Biggest Loss',
+            'tier' => 'Tier',
+        ]])
     </div>
 
     <div class="card-section overflow-x-auto">

@@ -3,14 +3,23 @@
 @section('title', 'Manage Managers')
 
 @section('content')
-    <div class="mb-8 flex items-center justify-between">
+    <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
             <h1 class="text-4xl font-black text-white">Managers</h1>
             <p class="mt-2 text-slate-400">{{ $managers->total() }} managers in the league</p>
         </div>
-        <a href="{{ route('admin.managers.create') }}" class="px-5 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition">
-            + Add Manager
-        </a>
+        <div class="flex items-center gap-3">
+            @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'managers', 'options' => [
+                'name_asc' => 'Name — A to Z',
+                'name_desc' => 'Name — Z to A',
+                'email_asc' => 'Email',
+                'role' => 'Role',
+                'status' => 'Status',
+            ]])
+            <a href="{{ route('admin.managers.create') }}" class="px-5 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition whitespace-nowrap">
+                + Add Manager
+            </a>
+        </div>
     </div>
 
     {{-- Table --}}

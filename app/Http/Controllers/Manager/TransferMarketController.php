@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Manager;
 
+use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Setting;
@@ -13,20 +14,30 @@ use Illuminate\Support\Facades\Auth;
 
 class TransferMarketController extends Controller
 {
+    use Sortable;
+
     public function index(Request $request): View
     {
         $team = Auth::user()->managedTeam;
         $windowOpen = Setting::getValue('transfer_window.open', true);
 
-        $listedPlayers = Player::with('team')
+        $query = Player::with('team')
             ->whereNotNull('team_id')
             ->where('is_active', true)
             ->when($team, fn ($q) => $q->where('team_id', '!=', $team->id))
             ->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%' . $request->input('search') . '%'))
-            ->when($request->filled('role'), fn ($q) => $q->where('role', $request->input('role')))
-            ->orderByDesc('current_value')
-            ->paginate(12)
-            ->withQueryString();
+            ->when($request->filled('role'), fn ($q) => $q->where('role', $request->input('role')));
+
+        $sort = $this->applySort($query, $request, [
+            'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
+            'value_asc' => fn ($q) => $q->orderBy('current_value'),
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'name_desc' => fn ($q) => $q->orderByDesc('name'),
+            'role' => fn ($q) => $q->orderBy('role')->orderByDesc('current_value'),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+        ], 'value_desc');
+
+        $listedPlayers = $query->paginate(12)->withQueryString();
 
         $myTransfers = collect();
         if ($team) {
@@ -40,7 +51,7 @@ class TransferMarketController extends Controller
 
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
 
-        return view('manager.transfers', compact('listedPlayers', 'myTransfers', 'team', 'roles', 'windowOpen'));
+        return view('manager.transfers', compact('listedPlayers', 'myTransfers', 'team', 'roles', 'windowOpen', 'sort'));
     }
 
     public function makeOffer(Request $request, Player $player): RedirectResponse

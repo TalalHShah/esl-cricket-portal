@@ -3,14 +3,25 @@
 @section('title', 'Manage Players')
 
 @section('content')
-    <div class="mb-8 flex items-center justify-between">
+    <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
-            <h1 class="text-4xl font-black text-white">⭐ Players</h1>
+            <h1 class="text-4xl font-black text-white">Players</h1>
             <p class="mt-2 text-slate-400">{{ $players->total() }} players in the league</p>
         </div>
-        <a href="{{ route('admin.players.create') }}" class="px-5 py-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold transition">
-            + Add Player
-        </a>
+        <div class="flex items-center gap-3">
+            @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'players', 'options' => [
+                'name_asc' => 'Name — A to Z',
+                'name_desc' => 'Name — Z to A',
+                'value_desc' => 'Value — High to Low',
+                'value_asc' => 'Value — Low to High',
+                'tier' => 'Tier',
+                'role' => 'Category',
+                'status' => 'Status',
+            ]])
+            <a href="{{ route('admin.players.create') }}" class="px-5 py-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold transition whitespace-nowrap">
+                + Add Player
+            </a>
+        </div>
     </div>
 
     {{-- Table --}}

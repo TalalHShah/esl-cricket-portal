@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Manager;
 
+use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Setting;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class ScoutController extends Controller
 {
+    use Sortable;
+
     public function index(Request $request): View
     {
         $ownTeam = Auth::user()->managedTeam;
@@ -49,12 +52,25 @@ class ScoutController extends Controller
             $query->whereNotNull('team_id');
         }
 
-        $players = $query->orderByRaw('team_id IS NULL DESC')->orderByDesc('current_value')->paginate(12)->withQueryString();
+        $sort = $this->applySort($query, $request, [
+            'default' => fn ($q) => $q->orderByRaw('team_id IS NULL DESC')->orderByDesc('current_value'),
+            'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
+            'value_asc' => fn ($q) => $q->orderBy('current_value'),
+            'name_asc' => fn ($q) => $q->orderBy('name'),
+            'name_desc' => fn ($q) => $q->orderByDesc('name'),
+            'role' => fn ($q) => $q->orderBy('role')->orderByDesc('current_value'),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'age_asc' => fn ($q) => $q->orderBy('age'),
+            'age_desc' => fn ($q) => $q->orderByDesc('age'),
+            'country_asc' => fn ($q) => $q->orderBy('country'),
+        ], 'default');
+
+        $players = $query->paginate(12)->withQueryString();
 
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
         $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
 
-        return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen'));
+        return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen', 'sort'));
     }
 
     public function sign(Player $player): RedirectResponse

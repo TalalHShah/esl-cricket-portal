@@ -70,19 +70,29 @@ class AuctionSessionController extends Controller
 
     public function start(AuctionSession $auction): RedirectResponse
     {
-        if ($auction->status !== 'scheduled') {
-            return back()->withErrors(['auction' => 'Only scheduled auctions can be started.']);
-        }
+        $error = DB::transaction(function () use ($auction) {
+            $locked = AuctionSession::whereKey($auction->id)->lockForUpdate()->first();
 
-        if (AuctionSession::where('status', 'live')->where('id', '!=', $auction->id)->exists()) {
-            return back()->withErrors(['auction' => 'Another auction is already live. Complete or pause it first.']);
-        }
+            if ($locked->status !== 'scheduled') {
+                return 'Only scheduled auctions can be started.';
+            }
 
-        $auction->update([
-            'status' => 'live',
-            'started_at' => now(),
-            'started_by_user_id' => Auth::id(),
-        ]);
+            if (AuctionSession::where('status', 'live')->where('id', '!=', $locked->id)->lockForUpdate()->exists()) {
+                return 'Another auction is already live. Complete or pause it first.';
+            }
+
+            $locked->update([
+                'status' => 'live',
+                'started_at' => now(),
+                'started_by_user_id' => Auth::id(),
+            ]);
+
+            return null;
+        });
+
+        if ($error) {
+            return back()->withErrors(['auction' => $error]);
+        }
 
         return back()->with('status', "Auction for {$auction->player?->name} is now live.");
     }

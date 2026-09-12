@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\AdminTeamController;
 use App\Http\Controllers\Admin\AdminPlayerController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\AdminMatchController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Manager\AuctionController;
@@ -108,6 +109,15 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
 
     // Player CRUD
     Route::resource('players', AdminPlayerController::class);
+
+    // Match CRUD + result confirmation
+    Route::get('matches', [AdminMatchController::class, 'index'])->name('matches.index');
+    Route::get('matches/create', [AdminMatchController::class, 'create'])->name('matches.create');
+    Route::post('matches', [AdminMatchController::class, 'store'])->name('matches.store');
+    Route::get('matches/{match}/edit', [AdminMatchController::class, 'edit'])->name('matches.edit');
+    Route::put('matches/{match}', [AdminMatchController::class, 'update'])->name('matches.update');
+    Route::post('matches/{match}/confirm', [AdminMatchController::class, 'confirm'])->name('matches.confirm');
+    Route::delete('matches/{match}', [AdminMatchController::class, 'destroy'])->name('matches.destroy');
 
     // Auction Session management
     Route::get('auctions', [AuctionSessionController::class, 'index'])->name('auctions.index');

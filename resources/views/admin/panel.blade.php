@@ -79,6 +79,21 @@
             </div>
         </div>
 
+        {{-- Match Management --}}
+        <div class="cricket-card rounded-2xl overflow-hidden">
+            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-cyan-500/10">
+                <h2 class="text-lg font-bold text-white">Matches</h2>
+            </div>
+            <div class="p-6 space-y-3">
+                <a href="{{ route('admin.matches.index') }}" class="block w-full px-4 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-center transition">
+                    View All Matches
+                </a>
+                <a href="{{ route('admin.matches.create') }}" class="block w-full px-4 py-3 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-bold text-center transition border border-cyan-500/30">
+                    + Schedule Match
+                </a>
+            </div>
+        </div>
+
         {{-- Auction Management --}}
         <div class="cricket-card rounded-2xl overflow-hidden">
             <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-orange-500/10">

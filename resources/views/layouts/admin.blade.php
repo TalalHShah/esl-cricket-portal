@@ -67,6 +67,7 @@
                             ['route' => 'admin.managers.index', 'label' => 'Managers', 'active' => 'admin.managers.*'],
                             ['route' => 'admin.teams.index', 'label' => 'Teams', 'active' => 'admin.teams.*'],
                             ['route' => 'admin.players.index', 'label' => 'Players', 'active' => 'admin.players.*'],
+                            ['route' => 'admin.matches.index', 'label' => 'Matches', 'active' => 'admin.matches.*'],
                             ['route' => 'admin.auctions.index', 'label' => 'Auctions', 'active' => 'admin.auctions.*'],
                             ['route' => 'admin.settings.index', 'label' => 'Settings'],
                         ];

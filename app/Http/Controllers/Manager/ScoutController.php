@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Models\Setting;
 use App\Models\Transfer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,7 @@ class ScoutController extends Controller
     public function index(Request $request): View
     {
         $ownTeam = Auth::user()->managedTeam;
+        $windowOpen = Setting::getValue('transfer_window.open', true);
 
         $query = Player::query()->with('team')->where('is_active', true);
 
@@ -52,7 +54,7 @@ class ScoutController extends Controller
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
         $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
 
-        return view('manager.scouts', compact('players', 'roles', 'tiers'));
+        return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen'));
     }
 
     public function sign(Player $player): RedirectResponse
@@ -61,6 +63,10 @@ class ScoutController extends Controller
 
         if (! $team) {
             return back()->withErrors(['sign' => 'You are not assigned to manage a team.']);
+        }
+
+        if (! Setting::getValue('transfer_window.open', true)) {
+            return back()->withErrors(['sign' => 'The transfer window is currently closed. Free agents are being signed through the Auction instead.']);
         }
 
         if ($player->team_id !== null) {

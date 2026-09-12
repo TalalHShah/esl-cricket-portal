@@ -9,6 +9,13 @@
         <p class="text-sm mt-2" style="color: var(--paper-faint);">{{ $players->total() }} player{{ $players->total() !== 1 ? 's' : '' }} across the league — everyone outside your own squad</p>
     </div>
 
+    @if(!$windowOpen)
+        <div class="card-section mb-10 p-6" style="border-left: 2px solid var(--live);">
+            <p class="eyebrow live mb-1">Transfer Window Closed</p>
+            <p class="text-sm" style="color: var(--paper-dim);">Free agent signing and direct offers are suspended while the auction is in progress. Head to the Auction to bid on players instead.</p>
+        </div>
+    @endif
+
     <div class="card-section mb-10 p-6">
         <form method="GET" action="{{ route('manager.scouts') }}" class="flex flex-wrap items-end gap-3">
             <div>
@@ -49,7 +56,7 @@
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @forelse ($players as $player)
             <x-player-card :player="$player" :href="route('manager.players.show', $player)">
-                @if(auth()->user()->managedTeam)
+                @if(auth()->user()->managedTeam && $windowOpen)
                     @if($player->team)
                         <a href="{{ route('manager.transfers', ['search' => $player->name]) }}"
                            class="block w-full text-center py-2 text-xs font-semibold uppercase tracking-wide"

@@ -9,6 +9,13 @@
         <p class="text-sm mt-2" style="color: var(--paper-faint);">Make offers for players currently signed with other teams</p>
     </div>
 
+    @if(!$windowOpen)
+        <div class="card-section mb-10 p-6" style="border-left: 2px solid var(--live);">
+            <p class="eyebrow live mb-1">Transfer Window Closed</p>
+            <p class="text-sm" style="color: var(--paper-dim);">Direct offers are suspended while the auction is in progress. Head to the Auction to bid on players instead.</p>
+        </div>
+    @endif
+
     @if($team)
         <div class="stat mb-10">
             <p class="stat-figure up"><x-money :amount="$team->remainingBudget()" :size="18" /></p>
@@ -41,7 +48,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 @forelse ($listedPlayers as $player)
                     <x-player-card :player="$player" :href="route('manager.players.show', $player)">
-                        @if($team)
+                        @if($team && $windowOpen)
                             <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
                                 @csrf
                                 <input type="number" name="fee" required min="1" placeholder="Offer amount"

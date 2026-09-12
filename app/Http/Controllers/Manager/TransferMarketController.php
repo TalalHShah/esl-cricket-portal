@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Models\Setting;
 use App\Models\Transfer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,7 @@ class TransferMarketController extends Controller
     public function index(Request $request): View
     {
         $team = Auth::user()->managedTeam;
+        $windowOpen = Setting::getValue('transfer_window.open', true);
 
         $listedPlayers = Player::with('team')
             ->whereNotNull('team_id')
@@ -38,7 +40,7 @@ class TransferMarketController extends Controller
 
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
 
-        return view('manager.transfers', compact('listedPlayers', 'myTransfers', 'team', 'roles'));
+        return view('manager.transfers', compact('listedPlayers', 'myTransfers', 'team', 'roles', 'windowOpen'));
     }
 
     public function makeOffer(Request $request, Player $player): RedirectResponse
@@ -47,6 +49,10 @@ class TransferMarketController extends Controller
 
         if (! $team) {
             return back()->withErrors(['offer' => 'You are not assigned to manage a team.']);
+        }
+
+        if (! Setting::getValue('transfer_window.open', true)) {
+            return back()->withErrors(['offer' => 'The transfer window is currently closed. Players are being signed through the Auction instead.']);
         }
 
         $validated = $request->validate([

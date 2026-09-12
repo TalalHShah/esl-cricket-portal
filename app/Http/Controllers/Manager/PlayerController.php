@@ -29,6 +29,11 @@ class PlayerController extends Controller
             'stumpings' => $stats->sum('stumpings'),
         ];
 
-        return view('manager.player-show', compact('player', 'stats', 'totals'));
+        $transfers = $player->transfers()
+            ->with(['fromTeam', 'toTeam'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('manager.player-show', compact('player', 'stats', 'totals', 'transfers'));
     }
 }

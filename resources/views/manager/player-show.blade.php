@@ -97,6 +97,8 @@
         </div>
     </div>
 
+    @include('partials.player-transfer-history', ['transfers' => $transfers])
+
     {{-- Match stats --}}
     <div class="mt-10">
         <p class="eyebrow gold mb-4">Match Statistics</p>

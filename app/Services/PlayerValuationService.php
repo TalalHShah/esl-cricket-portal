@@ -6,6 +6,7 @@ use App\Models\CricketMatch;
 use App\Models\MatchStat;
 use App\Models\Player;
 use App\Models\Setting;
+use Illuminate\Support\Facades\DB;
 
 class PlayerValuationService
 {
@@ -18,18 +19,16 @@ class PlayerValuationService
             return;
         }
 
-        $winBonusPercent = (float) Setting::where('key', 'win_bonus_percentage')->value('value') ?? 5;
-        $lossPenaltyPercent = (float) Setting::where('key', 'loss_penalty_percentage')->value('value') ?? 3;
-        $standoutRuns = (int) Setting::where('key', 'standout_threshold_runs')->value('value') ?? 50;
-        $standoutWickets = (int) Setting::where('key', 'standout_threshold_wickets')->value('value') ?? 3;
+        $winBonusPercent = (float) (Setting::where('key', 'win_bonus_percentage')->value('value') ?? 5);
+        $lossPenaltyPercent = (float) (Setting::where('key', 'loss_penalty_percentage')->value('value') ?? 3);
+        $standoutRuns = (int) (Setting::where('key', 'standout_threshold_runs')->value('value') ?? 50);
+        $standoutWickets = (int) (Setting::where('key', 'standout_threshold_wickets')->value('value') ?? 3);
 
-        // Get winning team (assume match has a result)
-        $winningTeamId = $match->winning_team_id;
+        $winningTeamId = $match->winner_team_id;
         if (!$winningTeamId) {
             return;
         }
 
-        // Get all match stats
         $stats = $match->stats()->with('player')->get();
 
         foreach ($stats as $stat) {
@@ -61,7 +60,7 @@ class PlayerValuationService
     private function isStandoutPerformance(MatchStat $stat, int $runsThreshold, int $wicketsThreshold): bool
     {
         $runs = (int) ($stat->runs_scored ?? 0);
-        $wickets = (int) ($stat->overs_bowled ?? 0); // Simplified: using overs as proxy for wickets count
+        $wickets = (int) ($stat->wickets_taken ?? 0);
 
         return $runs >= $runsThreshold || $wickets >= $wicketsThreshold;
     }
@@ -107,6 +106,6 @@ class PlayerValuationService
      */
     public function resetAllToBase(): void
     {
-        Player::query()->update(['current_value' => \DB::raw('base_value')]);
+        Player::query()->update(['current_value' => DB::raw('base_value')]);
     }
 }

@@ -7,7 +7,7 @@
     @if($latestNews->first())
         <div class="masthead mb-10">
             <p class="eyebrow live mb-3">Breaking</p>
-            <h1 class="font-display text-4xl md:text-5xl font-semibold mb-4" style="color: var(--paper);">{{ $latestNews->first()->title }}</h1>
+            <a href="{{ route('news.show', $latestNews->first()) }}" class="font-display text-4xl md:text-5xl font-semibold mb-4 block hover:opacity-80 transition" style="color: var(--paper);">{{ $latestNews->first()->title }}</a>
             <p class="text-lg mb-4" style="color: var(--paper-dim); max-width: 46rem;">{{ $latestNews->first()->excerpt }}</p>
             <p class="eyebrow">{{ $latestNews->first()->created_at->format('d M Y — H:i') }}</p>
         </div>
@@ -20,7 +20,7 @@
             <p class="eyebrow gold mb-4">Latest</p>
             <div class="space-y-0">
                 @forelse ($latestNews->skip(1)->take(5) as $article)
-                    <div class="news-row row-hover cursor-pointer">
+                    <a href="{{ route('news.show', $article) }}" class="news-row row-hover cursor-pointer block">
                         <div class="flex items-start justify-between gap-6">
                             <div class="flex-1">
                                 <span class="tag mb-2">{{ strtoupper($article->category ?? 'News') }}</span>
@@ -29,7 +29,7 @@
                             </div>
                             <p class="eyebrow whitespace-nowrap">{{ $article->created_at->format('d M') }}</p>
                         </div>
-                    </div>
+                    </a>
                 @empty
                     <div class="card-section p-10 text-center" style="color: var(--paper-faint);">No news available</div>
                 @endforelse
@@ -56,7 +56,11 @@
                             <p class="text-sm" style="color: var(--paper-faint);">Latest match recap</p>
                         </div>
                     </div>
-                    <a href="#" class="btn-accent w-full py-3">View All Streams</a>
+                    @auth
+                        @if(auth()->user()->managedTeam)
+                            <a href="{{ route('manager.livestream') }}" class="btn-accent w-full py-3">View All Streams</a>
+                        @endif
+                    @endauth
                 </div>
             </div>
         </div>

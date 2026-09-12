@@ -12,6 +12,20 @@ class NewsController extends Controller
     use Sortable;
 
     /**
+     * Display a single published news article.
+     */
+    public function show(NewsArticle $newsArticle): View
+    {
+        if ($newsArticle->status !== 'published' || ! $newsArticle->published_at || $newsArticle->published_at->isFuture()) {
+            abort(404);
+        }
+
+        $newsArticle->increment('views');
+
+        return view('news.show', ['article' => $newsArticle]);
+    }
+
+    /**
      * Display a listing of published news articles.
      */
     public function index(Request $request): View

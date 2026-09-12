@@ -40,7 +40,7 @@
             @if($articles->first()->is_featured)
                 <span class="tag mb-3 ml-2">Featured</span>
             @endif
-            <h2 class="font-display text-3xl md:text-4xl font-semibold mt-4 mb-4" style="color: var(--paper);">{{ $articles->first()->title }}</h2>
+            <a href="{{ route('news.show', $articles->first()) }}" class="font-display text-3xl md:text-4xl font-semibold mt-4 mb-4 block hover:opacity-80 transition" style="color: var(--paper);">{{ $articles->first()->title }}</a>
             <p class="text-lg mb-4" style="color: var(--paper-dim); max-width: 46rem;">{{ $articles->first()->excerpt }}</p>
             <p class="eyebrow">{{ $articles->first()->author?->name ?? 'Editorial' }} &nbsp;—&nbsp; {{ optional($articles->first()->published_at)->format('d M Y') }}</p>
         </div>
@@ -48,7 +48,7 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         @forelse ($articles->skip($articles->first() ? 1 : 0) as $article)
-            <a href="#" class="card-section lift-on-hover p-6 flex flex-col h-full">
+            <a href="{{ route('news.show', $article) }}" class="card-section lift-on-hover p-6 flex flex-col h-full">
                 <span class="tag mb-3" style="align-self: flex-start;">{{ strtoupper($article->category ?? 'News') }}</span>
                 <h3 class="text-lg font-semibold mb-2 flex-1" style="color: var(--paper);">{{ $article->title }}</h3>
                 @if($article->excerpt)

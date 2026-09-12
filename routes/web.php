@@ -53,6 +53,7 @@ Route::get('/matches/{match}', [MatchController::class, 'show'])->name('matches.
 
 // News
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{newsArticle}', [NewsController::class, 'show'])->name('news.show');
 
 // Transfers
 Route::get('/transfers', [TransferController::class, 'index'])->name('transfers.index');

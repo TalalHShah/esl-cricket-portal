@@ -11,7 +11,8 @@ class SettingController extends Controller
     public function index()
     {
         $settings = Setting::all()->keyBy('key')->toArray();
-        return view('admin.settings.index', compact('settings'));
+        $transferWindowOpen = Setting::getValue('transfer_window.open', true);
+        return view('admin.settings.index', compact('settings', 'transferWindowOpen'));
     }
 
     public function update(Request $request)
@@ -33,5 +34,19 @@ class SettingController extends Controller
         }
 
         return redirect()->back()->with('status', 'League settings updated successfully.');
+    }
+
+    public function toggleTransferWindow(Request $request)
+    {
+        $current = Setting::getValue('transfer_window.open', true);
+
+        Setting::updateOrCreate(
+            ['key' => 'transfer_window.open'],
+            ['value' => $current ? '0' : '1', 'type' => 'boolean', 'updated_by_user_id' => auth()->id()]
+        );
+
+        $status = $current ? 'closed' : 'opened';
+
+        return redirect()->back()->with('status', "Transfer window {$status} successfully.");
     }
 }

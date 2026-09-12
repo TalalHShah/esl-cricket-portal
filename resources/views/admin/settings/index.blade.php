@@ -8,6 +8,27 @@
         <p class="mt-2 text-slate-400">Configure transfer windows, valuation rules, and standout thresholds</p>
     </div>
 
+    <div class="cricket-card rounded-2xl p-8 max-w-2xl mb-6">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+                <h3 class="text-lg font-bold text-white">Transfer Window Status</h3>
+                <p class="text-xs text-slate-500 mt-1">
+                    Currently
+                    <span class="font-bold {{ $transferWindowOpen ? 'text-emerald-400' : 'text-red-400' }}">{{ $transferWindowOpen ? 'OPEN' : 'CLOSED' }}</span>
+                    — managers {{ $transferWindowOpen ? 'can' : 'cannot' }} make transfers or scout free agents right now.
+                </p>
+            </div>
+            <form action="{{ route('admin.settings.transfer-window.toggle') }}" method="POST">
+                @csrf
+                @if ($transferWindowOpen)
+                    <button type="submit" class="px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition">Close Window</button>
+                @else
+                    <button type="submit" class="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition">Open Window</button>
+                @endif
+            </form>
+        </div>
+    </div>
+
     <div class="cricket-card rounded-2xl p-8 max-w-2xl">
         <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-6">
             @csrf

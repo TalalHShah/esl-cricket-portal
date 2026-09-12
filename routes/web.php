@@ -123,4 +123,5 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     // Settings
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::post('settings/transfer-window/toggle', [SettingController::class, 'toggleTransferWindow'])->name('settings.transfer-window.toggle');
 });

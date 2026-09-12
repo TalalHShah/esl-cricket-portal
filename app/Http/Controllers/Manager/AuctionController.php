@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Manager;
 
+use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\AuctionSession;
 use Illuminate\Contracts\View\View;
@@ -12,28 +13,47 @@ use Illuminate\Support\Facades\DB;
 
 class AuctionController extends Controller
 {
-    public function index(): View
+    use Sortable;
+
+    public function index(Request $request): View
     {
-        $liveSessions = AuctionSession::with(['player', 'currentTeam', 'highestBidder'])
-            ->whereIn('status', ['live', 'paused'])
-            ->orderByDesc('started_at')
-            ->get();
+        $liveQuery = AuctionSession::with(['player', 'currentTeam', 'highestBidder'])
+            ->whereIn('status', ['live', 'paused']);
 
-        $upcomingSessions = AuctionSession::with('player')
-            ->where('status', 'scheduled')
-            ->orderBy('created_at')
-            ->limit(10)
-            ->get();
+        $liveSort = $this->applySort($liveQuery, $request, [
+            'started_desc' => fn ($q) => $q->orderByDesc('started_at'),
+            'bid_desc' => fn ($q) => $q->orderByDesc('current_bid'),
+            'bid_asc' => fn ($q) => $q->orderBy('current_bid'),
+        ], 'started_desc', 'live_sort');
 
-        $completedSessions = AuctionSession::with(['player', 'highestBidder'])
-            ->where('status', 'completed')
-            ->latest('ended_at')
-            ->limit(10)
-            ->get();
+        $liveSessions = $liveQuery->get();
+
+        $upcomingQuery = AuctionSession::with('player')->where('status', 'scheduled');
+
+        $upcomingSort = $this->applySort($upcomingQuery, $request, [
+            'created_asc' => fn ($q) => $q->orderBy('created_at'),
+            'starting_bid_desc' => fn ($q) => $q->orderByDesc('starting_bid'),
+            'starting_bid_asc' => fn ($q) => $q->orderBy('starting_bid'),
+        ], 'created_asc', 'upcoming_sort');
+
+        $upcomingSessions = $upcomingQuery->limit(10)->get();
+
+        $completedQuery = AuctionSession::with(['player', 'highestBidder'])->where('status', 'completed');
+
+        $completedSort = $this->applySort($completedQuery, $request, [
+            'ended_desc' => fn ($q) => $q->orderByDesc('ended_at'),
+            'fee_desc' => fn ($q) => $q->orderByDesc('current_bid'),
+            'fee_asc' => fn ($q) => $q->orderBy('current_bid'),
+        ], 'ended_desc', 'completed_sort');
+
+        $completedSessions = $completedQuery->limit(10)->get();
 
         $team = Auth::user()->managedTeam;
 
-        return view('manager.auction', compact('liveSessions', 'upcomingSessions', 'completedSessions', 'team'));
+        return view('manager.auction', compact(
+            'liveSessions', 'upcomingSessions', 'completedSessions', 'team',
+            'liveSort', 'upcomingSort', 'completedSort'
+        ));
     }
 
     public function room(AuctionSession $auctionSession): View

@@ -27,7 +27,16 @@
 
     {{-- Live Sessions --}}
     <div class="mb-10">
-        <p class="eyebrow live mb-4">Live &amp; In Progress</p>
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <p class="eyebrow live">Live &amp; In Progress</p>
+            @if($liveSessions->count() > 1)
+                @include('partials.sort-bar', ['current' => $liveSort, 'sortId' => 'live', 'paramName' => 'live_sort', 'options' => [
+                    'started_desc' => 'Recently Started',
+                    'bid_desc' => 'Current Bid — High to Low',
+                    'bid_asc' => 'Current Bid — Low to High',
+                ]])
+            @endif
+        </div>
         @forelse ($liveSessions as $session)
             <a href="{{ route('manager.auction.room', $session) }}" class="masthead lift-on-hover block mb-4">
                 <div class="flex items-center justify-between gap-8">
@@ -54,7 +63,16 @@
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {{-- Upcoming --}}
         <div>
-            <p class="eyebrow gold mb-4">Scheduled</p>
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+                <p class="eyebrow gold">Scheduled</p>
+                @if($upcomingSessions->count() > 1)
+                    @include('partials.sort-bar', ['current' => $upcomingSort, 'sortId' => 'upcoming', 'paramName' => 'upcoming_sort', 'options' => [
+                        'created_asc' => 'Queue Order',
+                        'starting_bid_desc' => 'Starting Bid — High to Low',
+                        'starting_bid_asc' => 'Starting Bid — Low to High',
+                    ]])
+                @endif
+            </div>
             <div class="card-section">
                 @forelse ($upcomingSessions as $session)
                     <a href="{{ route('manager.auction.room', $session) }}" class="news-row row-hover px-6 block">
@@ -69,7 +87,16 @@
 
         {{-- Completed --}}
         <div>
-            <p class="eyebrow gold mb-4">Recently Sold</p>
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+                <p class="eyebrow gold">Recently Sold</p>
+                @if($completedSessions->count() > 1)
+                    @include('partials.sort-bar', ['current' => $completedSort, 'sortId' => 'completed', 'paramName' => 'completed_sort', 'options' => [
+                        'ended_desc' => 'Most Recent',
+                        'fee_desc' => 'Fee — High to Low',
+                        'fee_asc' => 'Fee — Low to High',
+                    ]])
+                @endif
+            </div>
             <div class="card-section">
                 @forelse ($completedSessions as $session)
                     <div class="news-row px-6 flex items-center justify-between">

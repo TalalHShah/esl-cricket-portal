@@ -80,28 +80,38 @@ class AuctionController extends Controller
             return back()->withErrors(['bid' => 'You are not assigned to manage a team.']);
         }
 
-        if ($auctionSession->status !== 'live') {
-            return back()->withErrors(['bid' => 'This auction is not currently live.']);
-        }
+        $result = DB::transaction(function () use ($auctionSession, $team) {
+            $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
 
-        $minimumBid = $auctionSession->current_bid > 0
-            ? $auctionSession->current_bid + $auctionSession->bid_increment
-            : $auctionSession->starting_bid;
+            if ($locked->status !== 'live') {
+                return ['error' => 'This auction is not currently live.'];
+            }
 
-        $remainingBudget = $team->remainingBudget();
+            if ($locked->highest_bidder_team_id === $team->id) {
+                return ['error' => 'You are already the highest bidder.'];
+            }
 
-        if ($remainingBudget < $minimumBid) {
-            return back()->withErrors(['bid' => 'Insufficient budget to place this bid.']);
-        }
+            $minimumBid = $locked->current_bid > 0
+                ? $locked->current_bid + $locked->bid_increment
+                : $locked->starting_bid;
 
-        DB::transaction(function () use ($auctionSession, $team, $minimumBid) {
-            $auctionSession->update([
+            if ($team->remainingBudget() < $minimumBid) {
+                return ['error' => 'Insufficient budget to place this bid.'];
+            }
+
+            $locked->update([
                 'current_bid' => $minimumBid,
                 'current_team_id' => $team->id,
                 'highest_bidder_team_id' => $team->id,
             ]);
+
+            return ['success' => true, 'amount' => $minimumBid];
         });
 
-        return back()->with('status', 'Bid placed: PKR ' . number_format($minimumBid, 0));
+        if (isset($result['error'])) {
+            return back()->withErrors(['bid' => $result['error']]);
+        }
+
+        return back()->with('status', 'Bid placed: PKR ' . number_format($result['amount'], 0));
     }
 }

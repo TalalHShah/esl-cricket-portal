@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\AuctionSessionController;
 use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Admin\AdminTeamController;
 use App\Http\Controllers\Admin\AdminPlayerController;
@@ -107,6 +108,17 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
 
     // Player CRUD
     Route::resource('players', AdminPlayerController::class);
+
+    // Auction Session management
+    Route::get('auctions', [AuctionSessionController::class, 'index'])->name('auctions.index');
+    Route::get('auctions/create', [AuctionSessionController::class, 'create'])->name('auctions.create');
+    Route::post('auctions', [AuctionSessionController::class, 'store'])->name('auctions.store');
+    Route::post('auctions/{auction}/start', [AuctionSessionController::class, 'start'])->name('auctions.start');
+    Route::post('auctions/{auction}/pause', [AuctionSessionController::class, 'pause'])->name('auctions.pause');
+    Route::post('auctions/{auction}/resume', [AuctionSessionController::class, 'resume'])->name('auctions.resume');
+    Route::post('auctions/{auction}/complete', [AuctionSessionController::class, 'complete'])->name('auctions.complete');
+    Route::post('auctions/{auction}/cancel', [AuctionSessionController::class, 'cancel'])->name('auctions.cancel');
+    Route::delete('auctions/{auction}', [AuctionSessionController::class, 'destroy'])->name('auctions.destroy');
 
     // Settings
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');

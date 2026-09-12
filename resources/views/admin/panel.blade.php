@@ -67,7 +67,7 @@
         {{-- Players Management --}}
         <div class="cricket-card rounded-2xl overflow-hidden">
             <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-amber-500/10">
-                <h2 class="text-lg font-bold text-white">⭐ Players</h2>
+                <h2 class="text-lg font-bold text-white">Players</h2>
             </div>
             <div class="p-6 space-y-3">
                 <a href="{{ route('admin.players.index') }}" class="block w-full px-4 py-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-center transition">
@@ -75,6 +75,21 @@
                 </a>
                 <a href="{{ route('admin.players.create') }}" class="block w-full px-4 py-3 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-bold text-center transition border border-amber-500/30">
                     + Add New Player
+                </a>
+            </div>
+        </div>
+
+        {{-- Auction Management --}}
+        <div class="cricket-card rounded-2xl overflow-hidden">
+            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-orange-500/10">
+                <h2 class="text-lg font-bold text-white">Auctions</h2>
+            </div>
+            <div class="p-6 space-y-3">
+                <a href="{{ route('admin.auctions.index') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-center transition">
+                    Manage Auctions
+                </a>
+                <a href="{{ route('admin.auctions.create') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 font-bold text-center transition border border-orange-500/30">
+                    + Start New Auction
                 </a>
             </div>
         </div>

@@ -44,11 +44,31 @@
 
                 {{-- Sign In Button --}}
                 <div class="hidden sm:flex items-center gap-3">
-                    <button onclick="alert('Manager Sign In coming soon')" class="btn-accent px-4 py-2 text-sm font-bold">
-                        🔐 Sign In
-                    </button>
+                    @auth
+                        <a href="{{ route('manager.dashboard') }}" class="btn-accent px-4 py-2 text-sm font-bold">
+                            🏠 Manager Portal
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="btn-accent px-4 py-2 text-sm font-bold">
+                            🔐 Sign In
+                        </a>
+                    @endauth
                 </div>
             </div>
+
+            {{-- Mobile Nav --}}
+            <nav class="md:hidden flex gap-2 overflow-x-auto pb-3 text-xs font-semibold">
+                <a href="{{ route('dashboard') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Home</a>
+                <a href="{{ route('news.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">News</a>
+                <a href="{{ route('teams.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Teams</a>
+                <a href="{{ route('admin.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Managers</a>
+                <a href="{{ route('transfers.index') }}" class="whitespace-nowrap px-3 py-1.5 rounded text-white" style="background-color: var(--bg-tertiary);">Transfers</a>
+                @auth
+                    <a href="{{ route('manager.dashboard') }}" class="whitespace-nowrap px-3 py-1.5 rounded font-bold" style="background-color: var(--accent); color: var(--primary);">Portal</a>
+                @else
+                    <a href="{{ route('login') }}" class="whitespace-nowrap px-3 py-1.5 rounded font-bold" style="background-color: var(--accent); color: var(--primary);">Sign In</a>
+                @endauth
+            </nav>
         </div>
     </header>
 

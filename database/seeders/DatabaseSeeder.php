@@ -28,11 +28,14 @@ class DatabaseSeeder extends Seeder
         // ------------------------------------------------------------------
         // Users
         // ------------------------------------------------------------------
+        // Talal holds both the league administrator role and manages Blue
+        // Panthers directly — the platform supports one account carrying
+        // both powers simultaneously.
         $admin = User::firstOrCreate(
             ['email' => 'admin@esl.test'],
             [
-                'name' => 'ESL Administrator',
-                'password' => Hash::make('password'),
+                'name' => 'Talal H Shah',
+                'password' => Hash::make('Talal1996@'),
                 'role' => 'admin',
                 'is_active' => true,
             ]
@@ -41,8 +44,8 @@ class DatabaseSeeder extends Seeder
         $managerOne = User::firstOrCreate(
             ['email' => 'manager1@esl.test'],
             [
-                'name' => 'Adeel Khan',
-                'password' => Hash::make('password'),
+                'name' => 'Umaid Ali',
+                'password' => Hash::make('UmaidAliPW'),
                 'role' => 'manager',
                 'is_active' => true,
             ]
@@ -51,8 +54,8 @@ class DatabaseSeeder extends Seeder
         $managerTwo = User::firstOrCreate(
             ['email' => 'manager2@esl.test'],
             [
-                'name' => 'Bilal Ahmed',
-                'password' => Hash::make('password'),
+                'name' => "Bradley D'Souza",
+                'password' => Hash::make('BradleyBB'),
                 'role' => 'manager',
                 'is_active' => true,
             ]
@@ -61,8 +64,18 @@ class DatabaseSeeder extends Seeder
         $managerThree = User::firstOrCreate(
             ['email' => 'manager3@esl.test'],
             [
-                'name' => 'Danish Raza',
-                'password' => Hash::make('password'),
+                'name' => 'Selwyn Baretto',
+                'password' => Hash::make('SelwynBarettoRSK'),
+                'role' => 'manager',
+                'is_active' => true,
+            ]
+        );
+
+        $managerFour = User::firstOrCreate(
+            ['email' => 'yasir.raghib@esl.test'],
+            [
+                'name' => 'Yasir Saood Raghib',
+                'password' => Hash::make('YasirSaoodRaghibYFL'),
                 'role' => 'manager',
                 'is_active' => true,
             ]
@@ -73,34 +86,54 @@ class DatabaseSeeder extends Seeder
         // ------------------------------------------------------------------
         $teamsData = [
             [
-                'name' => 'Karachi Kings',
-                'short_name' => 'KAR',
-                'primary_color' => '#0ea5e9',
+                'name' => 'Blue Panthers',
+                'short_name' => 'BLP',
+                'primary_color' => '#1D4ED8',
+                'secondary_color' => '#FFFFFF',
+                'manager_id' => $admin->id,
+                'budget' => 50000000,
+                'spent' => 0,
+                'description' => 'Cricket. Precision. Panthers.',
+            ],
+            [
+                'name' => 'Peace Walkers',
+                'short_name' => 'PW',
+                'primary_color' => '#16a34a',
                 'secondary_color' => '#ffffff',
                 'manager_id' => $managerOne->id,
                 'budget' => 50000000,
                 'spent' => 0,
-                'description' => 'The coastal powerhouse of the ESL Cricket Portal.',
+                'description' => 'Calm off the field, ruthless on it.',
             ],
             [
-                'name' => 'Lahore Lions',
-                'short_name' => 'LAH',
-                'primary_color' => '#16a34a',
+                'name' => 'BandBros',
+                'short_name' => 'BB',
+                'primary_color' => '#dc2626',
                 'secondary_color' => '#ffffff',
                 'manager_id' => $managerTwo->id,
                 'budget' => 50000000,
                 'spent' => 0,
-                'description' => 'Heavyweights from the heart of Punjab.',
+                'description' => 'The band that plays to win.',
             ],
             [
-                'name' => 'Islamabad United',
-                'short_name' => 'ISB',
-                'primary_color' => '#dc2626',
-                'secondary_color' => '#ffffff',
+                'name' => 'Royal Super Knights XI',
+                'short_name' => 'RSK',
+                'primary_color' => '#000000',
+                'secondary_color' => '#00478a',
                 'manager_id' => $managerThree->id,
                 'budget' => 50000000,
                 'spent' => 0,
-                'description' => 'Capital side known for aggressive auction bidding.',
+                'description' => 'Royalty at the crease.',
+            ],
+            [
+                'name' => 'Yasir Fine Legs',
+                'short_name' => 'YFL',
+                'primary_color' => '#F59E0B',
+                'secondary_color' => '#1F2937',
+                'manager_id' => $managerFour->id,
+                'budget' => 50000000,
+                'spent' => 0,
+                'description' => 'Sharp fielding, sharper bidding.',
             ],
         ];
 
@@ -111,9 +144,11 @@ class DatabaseSeeder extends Seeder
             );
         });
 
-        $karachi = $teams[0];
-        $lahore = $teams[1];
-        $islamabad = $teams[2];
+        $bluePanthers = $teams[0];
+        $peaceWalkers = $teams[1];
+        $bandBros = $teams[2];
+        $royalKnights = $teams[3];
+        $yasirFineLegs = $teams[4];
 
         // ------------------------------------------------------------------
         // Players
@@ -148,10 +183,13 @@ class DatabaseSeeder extends Seeder
             );
         });
 
-        // Assign a few players to teams so the fixture is realistic.
-        $karachi->players()->saveMany($players->take(5));
-        $lahore->players()->saveMany($players->slice(5, 5));
-        $islamabad->players()->saveMany($players->slice(10, 3));
+        // Assign three players to each of the five teams so every squad has
+        // a realistic starting roster.
+        $bluePanthers->players()->saveMany($players->slice(0, 3));
+        $peaceWalkers->players()->saveMany($players->slice(3, 3));
+        $bandBros->players()->saveMany($players->slice(6, 3));
+        $royalKnights->players()->saveMany($players->slice(9, 3));
+        $yasirFineLegs->players()->saveMany($players->slice(12, 3));
 
         // Reflect capped spending on the team records.
         $teams->each(function (Team $team) {
@@ -163,42 +201,42 @@ class DatabaseSeeder extends Seeder
         // ------------------------------------------------------------------
         $matchOne = CricketMatch::firstOrCreate(
             [
-                'home_team_id' => $karachi->id,
-                'away_team_id' => $lahore->id,
+                'home_team_id' => $bluePanthers->id,
+                'away_team_id' => $peaceWalkers->id,
                 'match_date' => now()->subDays(7)->startOfHour(),
             ],
             [
-                'winner_team_id' => $karachi->id,
+                'winner_team_id' => $bluePanthers->id,
                 'status' => 'confirmed',
-                'submitted_by_user_id' => $managerOne->id,
+                'submitted_by_user_id' => $admin->id,
                 'confirmed_by_user_id' => $admin->id,
-                'summary_notes' => 'Karachi Kings won by 6 wickets with 8 balls to spare.',
+                'summary_notes' => 'Blue Panthers won by 6 wickets with 8 balls to spare.',
             ]
         );
 
         $matchTwo = CricketMatch::firstOrCreate(
             [
-                'home_team_id' => $lahore->id,
-                'away_team_id' => $islamabad->id,
+                'home_team_id' => $peaceWalkers->id,
+                'away_team_id' => $bandBros->id,
                 'match_date' => now()->subDays(3)->startOfHour(),
             ],
             [
-                'winner_team_id' => $islamabad->id,
+                'winner_team_id' => $bandBros->id,
                 'status' => 'pending_confirmation',
-                'submitted_by_user_id' => $managerThree->id,
+                'submitted_by_user_id' => $managerTwo->id,
                 'summary_notes' => 'Awaiting confirmation of the final scorecard.',
             ]
         );
 
         if ($matchOne->stats()->count() === 0) {
-            $karachiPlayers = $karachi->players()->take(3)->get();
-            $lahorePlayers = $lahore->players()->take(3)->get();
+            $panthersPlayers = $bluePanthers->players()->take(3)->get();
+            $walkersPlayers = $peaceWalkers->players()->take(3)->get();
 
-            foreach ($karachiPlayers as $index => $player) {
+            foreach ($panthersPlayers as $index => $player) {
                 MatchStat::create([
                     'match_id' => $matchOne->id,
                     'player_id' => $player->id,
-                    'team_id' => $karachi->id,
+                    'team_id' => $bluePanthers->id,
                     'runs_scored' => 45 - ($index * 8),
                     'balls_faced' => 34 - ($index * 5),
                     'fours' => 5 - $index,
@@ -214,11 +252,11 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
 
-            foreach ($lahorePlayers as $index => $player) {
+            foreach ($walkersPlayers as $index => $player) {
                 MatchStat::create([
                     'match_id' => $matchOne->id,
                     'player_id' => $player->id,
-                    'team_id' => $lahore->id,
+                    'team_id' => $peaceWalkers->id,
                     'runs_scored' => 30 - ($index * 6),
                     'balls_faced' => 28 - ($index * 4),
                     'fours' => 3 - $index,
@@ -244,14 +282,14 @@ class DatabaseSeeder extends Seeder
             Transfer::firstOrCreate(
                 [
                     'player_id' => $transferPlayer->id,
-                    'to_team_id' => $karachi->id,
+                    'to_team_id' => $bluePanthers->id,
                 ],
                 [
-                    'from_team_id' => $islamabad->id,
+                    'from_team_id' => $royalKnights->id,
                     'fee' => 3500000,
                     'type' => 'direct',
                     'status' => 'approved',
-                    'requested_by_user_id' => $managerOne->id,
+                    'requested_by_user_id' => $admin->id,
                     'approved_by_user_id' => $admin->id,
                     'effective_at' => now()->subDays(1),
                     'notes' => 'Season-long loan converted to permanent move.',
@@ -263,11 +301,11 @@ class DatabaseSeeder extends Seeder
         // News Articles
         // ------------------------------------------------------------------
         NewsArticle::firstOrCreate(
-            ['slug' => 'kings-crown-opening-night'],
+            ['slug' => 'panthers-crown-opening-night'],
             [
-                'title' => 'Kings Crown the Opening Night',
-                'excerpt' => 'Karachi Kings chase down 168 with clinical ease in the ESL season opener.',
-                'body' => 'Karachi Kings began their ESL campaign with a commanding six-wicket victory over Lahore Lions. A composed middle-order chase, anchored by an exceptional half-century, saw the hosts home with eight balls remaining. Lahore will rue a middle-order collapse that cost them momentum at the death.',
+                'title' => 'Panthers Crown the Opening Night',
+                'excerpt' => 'Blue Panthers chase down 168 with clinical ease in the ESL season opener.',
+                'body' => 'Blue Panthers began their ESL campaign with a commanding six-wicket victory over Peace Walkers. A composed middle-order chase, anchored by an exceptional half-century, saw the hosts home with eight balls remaining. Peace Walkers will rue a middle-order collapse that cost them momentum at the death.',
                 'category' => 'match_report',
                 'status' => 'published',
                 'author_id' => $admin->id,
@@ -312,7 +350,7 @@ class DatabaseSeeder extends Seeder
         // Settings
         // ------------------------------------------------------------------
         $settings = [
-            ['key' => 'platform.name', 'value' => 'ESL Cricket Portal', 'type' => 'string', 'group' => 'general', 'description' => 'Public platform name.', 'is_public' => true],
+            ['key' => 'platform.name', 'value' => 'Emirates Sports League', 'type' => 'string', 'group' => 'general', 'description' => 'Public platform name.', 'is_public' => true],
             ['key' => 'platform.tagline', 'value' => 'Where every run counts.', 'type' => 'string', 'group' => 'general', 'description' => 'Homepage tagline.', 'is_public' => true],
             ['key' => 'auction.default_bid_increment', 'value' => '100000', 'type' => 'decimal', 'group' => 'auction', 'description' => 'Default bid increment amount.', 'is_public' => false],
             ['key' => 'auction.min_squad_size', 'value' => '11', 'type' => 'integer', 'group' => 'auction', 'description' => 'Minimum squad size per team.', 'is_public' => false],

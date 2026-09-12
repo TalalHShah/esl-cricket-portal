@@ -19,6 +19,7 @@ use App\Http\Controllers\Manager\TransferMarketController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\PublicManagerController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,9 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 // Teams
 Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
 Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+
+// Managers (public listing)
+Route::get('/managers', [PublicManagerController::class, 'index'])->name('managers.index');
 
 // Players
 Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
@@ -90,9 +94,6 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
-
-// Public Admin Dashboard (read-only for all)
-Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 
 // Admin Control Panel (CRUD) — restricted to authenticated admins only
 Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

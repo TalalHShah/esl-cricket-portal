@@ -106,8 +106,8 @@
             <a href="{{ route('players.index') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
                 Public Players
             </a>
-            <a href="{{ route('admin.index') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
-                Public Admin
+            <a href="{{ route('managers.index') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
+                Public Managers
             </a>
         </div>
     </div>

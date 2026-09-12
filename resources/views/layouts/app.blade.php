@@ -38,7 +38,7 @@
                     <a href="{{ route('dashboard') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Home</a>
                     <a href="{{ route('news.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">News</a>
                     <a href="{{ route('teams.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Teams</a>
-                    <a href="{{ route('admin.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Managers</a>
+                    <a href="{{ route('managers.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Managers</a>
                     <a href="{{ route('transfers.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Transfers</a>
                 </nav>
 
@@ -61,7 +61,7 @@
                 <a href="{{ route('dashboard') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Home</a>
                 <a href="{{ route('news.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">News</a>
                 <a href="{{ route('teams.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Teams</a>
-                <a href="{{ route('admin.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Managers</a>
+                <a href="{{ route('managers.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Managers</a>
                 <a href="{{ route('transfers.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Transfers</a>
                 @auth
                     <a href="{{ route('manager.dashboard') }}" class="whitespace-nowrap px-3 py-1.5 font-bold" style="background-color: var(--gold); color: var(--ink);">Portal</a>

@@ -68,7 +68,6 @@
                             ['route' => 'admin.teams.index', 'label' => 'Teams', 'active' => 'admin.teams.*'],
                             ['route' => 'admin.players.index', 'label' => 'Players', 'active' => 'admin.players.*'],
                             ['route' => 'admin.settings.index', 'label' => 'Settings'],
-                            ['route' => 'admin.index', 'label' => 'Public Overview'],
                         ];
                     @endphp
                     @foreach ($navItems as $item)

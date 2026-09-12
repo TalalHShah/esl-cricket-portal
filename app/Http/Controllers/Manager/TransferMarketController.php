@@ -80,7 +80,7 @@ class TransferMarketController extends Controller
             'fee' => ['required', 'numeric', 'min:1'],
         ]);
 
-        $remainingBudget = $team->budget - $team->spent;
+        $remainingBudget = $team->remainingBudget();
 
         if ($remainingBudget < $validated['fee']) {
             return back()->withErrors(['offer' => 'Offer exceeds your remaining budget.']);
@@ -120,7 +120,7 @@ class TransferMarketController extends Controller
                 return ['error' => 'This player is no longer on your squad.'];
             }
 
-            $remainingBudget = $buyerTeam->budget - $buyerTeam->spent;
+            $remainingBudget = $buyerTeam->remainingBudget();
             if ($remainingBudget < (float) $transfer->fee) {
                 $transfer->update(['status' => 'rejected', 'notes' => $transfer->notes.' (auto-rejected: buyer no longer has sufficient budget)']);
 

@@ -88,7 +88,7 @@ class AuctionController extends Controller
             ? $auctionSession->current_bid + $auctionSession->bid_increment
             : $auctionSession->starting_bid;
 
-        $remainingBudget = $team->budget - $team->spent;
+        $remainingBudget = $team->remainingBudget();
 
         if ($remainingBudget < $minimumBid) {
             return back()->withErrors(['bid' => 'Insufficient budget to place this bid.']);

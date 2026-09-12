@@ -94,7 +94,7 @@ class ScoutController extends Controller
 
             $fee = (float) $lockedPlayer->current_value;
             $lockedTeam = $team->fresh();
-            $remainingBudget = $lockedTeam->budget - $lockedTeam->spent;
+            $remainingBudget = $lockedTeam->remainingBudget();
 
             if ($remainingBudget < $fee) {
                 return ['error' => 'Insufficient budget to sign this player.'];

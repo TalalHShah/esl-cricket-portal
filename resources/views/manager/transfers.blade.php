@@ -98,6 +98,18 @@
                                 {{ ucfirst($transfer->status) }}
                             </span>
                         </div>
+                        @if ($transfer->status === 'pending' && $team && $transfer->from_team_id === $team->id)
+                            <div class="flex items-center gap-2 mt-3">
+                                <form method="POST" action="{{ route('manager.transfers.offers.approve', $transfer) }}" class="flex-1">
+                                    @csrf
+                                    <button type="submit" class="btn-accent w-full py-1.5 text-xs">Accept Offer</button>
+                                </form>
+                                <form method="POST" action="{{ route('manager.transfers.offers.reject', $transfer) }}" class="flex-1">
+                                    @csrf
+                                    <button type="submit" class="btn-ghost w-full py-1.5 text-xs" style="color: var(--live);">Decline</button>
+                                </form>
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="p-10 text-center" style="color: var(--paper-faint);">No transfer activity yet</div>

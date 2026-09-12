@@ -73,6 +73,8 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 
     Route::get('/transfers', [TransferMarketController::class, 'index'])->name('transfers');
     Route::post('/transfers/{player}/offer', [TransferMarketController::class, 'makeOffer'])->name('transfers.offer');
+    Route::post('/transfers/offers/{transfer}/approve', [TransferMarketController::class, 'approveOffer'])->name('transfers.offers.approve');
+    Route::post('/transfers/offers/{transfer}/reject', [TransferMarketController::class, 'rejectOffer'])->name('transfers.offers.reject');
 
     Route::get('/auction', [AuctionController::class, 'index'])->name('auction');
     Route::get('/auction/{auctionSession}/room', [AuctionController::class, 'room'])->name('auction.room');

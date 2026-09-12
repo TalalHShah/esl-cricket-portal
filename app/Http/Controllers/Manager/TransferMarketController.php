@@ -6,11 +6,13 @@ use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Models\Team;
 use App\Models\Transfer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TransferMarketController extends Controller
 {
@@ -66,6 +68,14 @@ class TransferMarketController extends Controller
             return back()->withErrors(['offer' => 'The transfer window is currently closed. Players are being signed through the Auction instead.']);
         }
 
+        if (is_null($player->team_id)) {
+            return back()->withErrors(['offer' => 'This player is a free agent — sign them through Scouts instead.']);
+        }
+
+        if ($player->team_id === $team->id) {
+            return back()->withErrors(['offer' => 'You already own this player.']);
+        }
+
         $validated = $request->validate([
             'fee' => ['required', 'numeric', 'min:1'],
         ]);
@@ -88,5 +98,69 @@ class TransferMarketController extends Controller
         ]);
 
         return back()->with('status', "Offer of PKR " . number_format($validated['fee'], 0) . " submitted for {$player->name}.");
+    }
+
+    public function approveOffer(Transfer $transfer): RedirectResponse
+    {
+        $team = Auth::user()->managedTeam;
+
+        if (! $team || $transfer->from_team_id !== $team->id) {
+            return back()->withErrors(['offer' => 'You are not authorized to act on this offer.']);
+        }
+
+        if ($transfer->status !== 'pending') {
+            return back()->withErrors(['offer' => 'This offer has already been resolved.']);
+        }
+
+        $result = DB::transaction(function () use ($transfer, $team) {
+            $player = Player::whereKey($transfer->player_id)->lockForUpdate()->first();
+            $buyerTeam = Team::whereKey($transfer->to_team_id)->lockForUpdate()->first();
+
+            if (! $player || $player->team_id !== $team->id) {
+                return ['error' => 'This player is no longer on your squad.'];
+            }
+
+            $remainingBudget = $buyerTeam->budget - $buyerTeam->spent;
+            if ($remainingBudget < (float) $transfer->fee) {
+                $transfer->update(['status' => 'rejected', 'notes' => $transfer->notes.' (auto-rejected: buyer no longer has sufficient budget)']);
+
+                return ['error' => 'The buying team no longer has sufficient budget — the offer has been automatically rejected.'];
+            }
+
+            $player->update(['team_id' => $buyerTeam->id, 'sold_price' => $transfer->fee]);
+            $buyerTeam->increment('spent', $transfer->fee);
+            $team->decrement('spent', min((float) $transfer->fee, (float) $team->spent));
+
+            $transfer->update([
+                'status' => 'approved',
+                'approved_by_user_id' => Auth::id(),
+                'effective_at' => now(),
+            ]);
+
+            return ['success' => true, 'player' => $player->name];
+        });
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['offer' => $result['error']]);
+        }
+
+        return back()->with('status', "Transfer approved — {$result['player']} has moved to their new team.");
+    }
+
+    public function rejectOffer(Transfer $transfer): RedirectResponse
+    {
+        $team = Auth::user()->managedTeam;
+
+        if (! $team || $transfer->from_team_id !== $team->id) {
+            return back()->withErrors(['offer' => 'You are not authorized to act on this offer.']);
+        }
+
+        if ($transfer->status !== 'pending') {
+            return back()->withErrors(['offer' => 'This offer has already been resolved.']);
+        }
+
+        $transfer->update(['status' => 'rejected']);
+
+        return back()->with('status', 'Offer rejected.');
     }
 }

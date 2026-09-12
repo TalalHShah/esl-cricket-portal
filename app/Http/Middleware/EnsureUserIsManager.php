@@ -23,6 +23,10 @@ class EnsureUserIsManager
             ]);
         }
 
+        if (! Auth::user()->managedTeam) {
+            abort(403, 'Unauthorized access to manager portal.');
+        }
+
         return $next($request);
     }
 }

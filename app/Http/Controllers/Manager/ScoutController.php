@@ -85,27 +85,33 @@ class ScoutController extends Controller
             return back()->withErrors(['sign' => 'The transfer window is currently closed. Free agents are being signed through the Auction instead.']);
         }
 
-        if ($player->team_id !== null) {
-            return back()->withErrors(['sign' => 'This player is already signed to a team.']);
-        }
+        $result = DB::transaction(function () use ($player, $team) {
+            $lockedPlayer = Player::whereKey($player->id)->lockForUpdate()->first();
 
-        $fee = (float) $player->current_value;
-        $remainingBudget = $team->budget - $team->spent;
+            if ($lockedPlayer->team_id !== null) {
+                return ['error' => 'This player is already signed to a team.'];
+            }
 
-        if ($remainingBudget < $fee) {
-            return back()->withErrors(['sign' => 'Insufficient budget to sign this player.']);
-        }
+            $fee = (float) $lockedPlayer->current_value;
+            $lockedTeam = $team->fresh();
+            $remainingBudget = $lockedTeam->budget - $lockedTeam->spent;
 
-        DB::transaction(function () use ($player, $team, $fee) {
-            $player->update([
-                'team_id' => $team->id,
-                'sold_price' => $fee,
-            ]);
+            if ($remainingBudget < $fee) {
+                return ['error' => 'Insufficient budget to sign this player.'];
+            }
+
+            $updated = Player::whereKey($lockedPlayer->id)
+                ->whereNull('team_id')
+                ->update(['team_id' => $team->id, 'sold_price' => $fee]);
+
+            if ($updated === 0) {
+                return ['error' => 'This player is already signed to a team.'];
+            }
 
             $team->increment('spent', $fee);
 
             Transfer::create([
-                'player_id' => $player->id,
+                'player_id' => $lockedPlayer->id,
                 'from_team_id' => null,
                 'to_team_id' => $team->id,
                 'fee' => $fee,
@@ -114,10 +120,16 @@ class ScoutController extends Controller
                 'requested_by_user_id' => Auth::id(),
                 'approved_by_user_id' => Auth::id(),
                 'effective_at' => now(),
-                'notes' => "Free agent signing: {$player->name}",
+                'notes' => "Free agent signing: {$lockedPlayer->name}",
             ]);
+
+            return ['success' => true, 'name' => $lockedPlayer->name, 'fee' => $fee];
         });
 
-        return back()->with('status', "{$player->name} signed for PKR " . number_format($fee, 0) . '.');
+        if (isset($result['error'])) {
+            return back()->withErrors(['sign' => $result['error']]);
+        }
+
+        return back()->with('status', "{$result['name']} signed for PKR " . number_format($result['fee'], 0) . '.');
     }
 }

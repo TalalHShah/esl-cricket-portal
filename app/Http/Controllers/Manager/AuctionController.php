@@ -80,6 +80,10 @@ class AuctionController extends Controller
             return back()->withErrors(['bid' => 'You are not assigned to manage a team.']);
         }
 
+        if (! session('auction_room_joined_' . $auctionSession->id, false)) {
+            return back()->withErrors(['bid' => 'Join the auction room before placing a bid.']);
+        }
+
         $result = DB::transaction(function () use ($auctionSession, $team) {
             $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
 

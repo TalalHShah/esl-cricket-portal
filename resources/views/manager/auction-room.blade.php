@@ -2,6 +2,12 @@
 
 @section('title', $auctionSession->player?->name ?? $auctionSession->name)
 
+@section('head')
+    @if(in_array($auctionSession->status, ['live', 'scheduled', 'paused'], true))
+        <meta http-equiv="refresh" content="4">
+    @endif
+@endsection
+
 @section('content')
     @php
         $player = $auctionSession->player;

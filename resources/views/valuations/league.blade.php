@@ -3,95 +3,72 @@
 @section('title', 'League Valuations')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-4xl font-black text-white">League Valuations</h1>
-        <p class="mt-2 text-slate-400">Current market values across all active players</p>
+    @include('partials.page-header', [
+        'title' => 'League Valuations',
+        'eyebrow' => 'Market',
+        'subtitle' => 'Current market values across all active players',
+    ])
+
+    <div class="flex gap-3 mb-10">
+        <a href="{{ route('valuations.league') }}" class="btn-accent px-5 py-2.5">League View</a>
+        <a href="{{ route('valuations.tiers') }}" class="btn-ghost px-5 py-2.5">By Tier</a>
     </div>
 
-    {{-- Quick Links --}}
-    <div class="flex gap-3 mb-8">
-        <a href="{{ route('valuations.league') }}" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold text-sm">
-            League View
-        </a>
-        <a href="{{ route('valuations.tiers') }}" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">
-            ⭐ By Tier
-        </a>
-    </div>
-
-    {{-- Players Table --}}
-    <div class="cricket-card rounded-2xl overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-emerald-500/10 border-b border-emerald-500/20">
+    <div class="card-section overflow-x-auto">
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase text-emerald-400">Rank</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase text-emerald-400">Player</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase text-emerald-400">Team</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase text-emerald-400">Tier</th>
-                    <th class="px-6 py-4 text-right text-xs font-bold uppercase text-emerald-400">Base Value</th>
-                    <th class="px-6 py-4 text-right text-xs font-bold uppercase text-emerald-400">Current Value</th>
-                    <th class="px-6 py-4 text-right text-xs font-bold uppercase text-emerald-400">Change</th>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Team</th>
+                    <th>Tier</th>
+                    <th style="text-align:right;">Base Value</th>
+                    <th style="text-align:right;">Current Value</th>
+                    <th style="text-align:right;">Change</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-700">
+            <tbody>
                 @forelse ($players as $index => $player)
-                    <tr class="hover:bg-slate-800/50 transition">
-                        <td class="px-6 py-4 font-bold text-white">{{ $loop->iteration + ($players->currentPage() - 1) * $players->perPage() }}</td>
-                        <td class="px-6 py-4">
-                            <a href="{{ route('players.show', $player) }}" class="font-semibold text-emerald-400 hover:text-emerald-300">
-                                {{ $player->name }}
-                            </a>
-                            <p class="text-xs text-slate-500">{{ $player->role }}</p>
+                    <tr>
+                        <td style="font-weight: 600; color: var(--paper);">{{ $loop->iteration + ($players->currentPage() - 1) * $players->perPage() }}</td>
+                        <td>
+                            <a href="{{ route('players.show', $player) }}" class="text-link font-semibold">{{ $player->name }}</a>
+                            <p class="text-xs mt-1" style="color: var(--paper-faint);">{{ $player->role }}</p>
                         </td>
-                        <td class="px-6 py-4 text-slate-400 text-sm">
+                        <td style="color: var(--paper-dim);">
                             @if ($player->team)
-                                <a href="{{ route('teams.show', $player->team) }}" class="hover:text-white transition">
-                                    {{ $player->team->name }}
-                                </a>
+                                <a href="{{ route('teams.show', $player->team) }}" style="color: var(--paper-dim);" class="underline-hover">{{ $player->team->name }}</a>
                             @else
-                                <span class="text-amber-400">Free Agent</span>
+                                <span class="tag gold">Free Agent</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold {{ match($player->tier) {
-                                'Superstar' => 'bg-purple-500/20 text-purple-300',
-                                'Star' => 'bg-amber-500/20 text-amber-300',
-                                'Normal' => 'bg-blue-500/20 text-blue-300',
-                                'Low-value' => 'bg-slate-500/20 text-slate-300',
-                            } }}">
-                                {{ $player->tier }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right text-slate-400">PKR {{ number_format($player->base_value, 0) }}</td>
-                        <td class="px-6 py-4 text-right font-bold text-emerald-400">PKR {{ number_format($player->current_value, 0) }}</td>
-                        <td class="px-6 py-4 text-right font-bold">
+                        <td><span class="tag">{{ $player->tier }}</span></td>
+                        <td style="text-align:right; color: var(--paper-dim);">{{ number_format($player->base_value, 0) }}</td>
+                        <td style="text-align:right; font-weight: 600; color: var(--gold);">{{ number_format($player->current_value, 0) }}</td>
+                        <td style="text-align:right; font-weight: 600;">
                             @php
                                 $change = $player->current_value - $player->base_value;
-                                $changePercent = ($change / $player->base_value) * 100;
+                                $changePercent = $player->base_value > 0 ? ($change / $player->base_value) * 100 : 0;
                             @endphp
                             @if ($change > 0)
-                                <span class="text-emerald-400">
-                                    +{{ number_format($change, 0) }} (+{{ number_format($changePercent, 1) }}%)
-                                </span>
+                                <span style="color: var(--up);">+{{ number_format($change, 0) }} (+{{ number_format($changePercent, 1) }}%)</span>
                             @elseif ($change < 0)
-                                <span class="text-red-400">
-                                    {{ number_format($change, 0) }} ({{ number_format($changePercent, 1) }}%)
-                                </span>
+                                <span style="color: var(--live);">{{ number_format($change, 0) }} ({{ number_format($changePercent, 1) }}%)</span>
                             @else
-                                <span class="text-slate-500">—</span>
+                                <span style="color: var(--paper-faint);">—</span>
                             @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-8 text-center text-slate-500">No players found</td>
+                        <td colspan="7" style="text-align:center; padding: 3rem 0; color: var(--paper-faint);">No players found</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    {{-- Pagination --}}
-    <div class="mt-6">
+    <div class="mt-10">
         {{ $players->links() }}
     </div>
 @endsection

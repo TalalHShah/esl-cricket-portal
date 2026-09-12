@@ -3,119 +3,130 @@
 @section('title', $player->name)
 
 @section('content')
-    <div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {{-- Profile --}}
-        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-            <div class="flex items-center gap-4">
-                <span class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-xl font-bold text-slate-300">
-                    {{ strtoupper(substr($player->name, 0, 1)) }}
-                </span>
-                <div>
-                    <h1 class="text-xl font-bold text-white">{{ $player->name }}</h1>
-                    <p class="text-sm text-slate-400">{{ $player->country }}</p>
-                </div>
+    @php
+        $team = $player->team;
+        $primary = $team->primary_color ?? '#1D4ED8';
+        $secondary = $team->secondary_color ?? '#0D1220';
+    @endphp
+
+    {{-- Hero --}}
+    <div class="relative overflow-hidden mb-10 p-8 md:p-10"
+         style="border-radius: 2px; border: 1px solid var(--line-strong); border-top: 3px solid var(--gold);
+                background-image: {{ $team ? 'linear-gradient(165deg, rgba(4,6,14,0.35) 0%, rgba(4,6,14,0.9) 100%), linear-gradient(160deg, ' . $primary . ' 0%, ' . $secondary . ' 100%)' : 'none' }};
+                background-color: {{ $team ? 'transparent' : 'var(--surface)' }};">
+
+        @if($team && $team->logo)
+            <img src="{{ asset('storage/' . $team->logo) }}" alt=""
+                 style="position:absolute; top:-15%; right:-10%; width:60%; height:auto; opacity:0.18; pointer-events:none;">
+        @endif
+
+        <div class="relative flex items-start gap-8">
+            <div class="player-portrait" style="width: 140px; height: 180px; flex-shrink: 0; {{ $team ? 'border-color: rgba(255,255,255,0.35); background-color: rgba(0,0,0,0.25);' : '' }}">
+                @if($player->image)
+                    <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                @else
+                    <div class="initials" style="{{ $team ? 'color: rgba(255,255,255,0.7);' : '' }}">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+                @endif
             </div>
 
-            <dl class="mt-6 space-y-3 text-sm">
-                <div class="flex justify-between"><dt class="text-slate-500">Role</dt><dd class="text-slate-200">{{ $player->role }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Tier</dt><dd class="text-slate-200">{{ $player->tier }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Age</dt><dd class="text-slate-200">{{ $player->age ?? '—' }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Batting Style</dt><dd class="text-slate-200">{{ $player->batting_style ?? '—' }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Bowling Style</dt><dd class="text-slate-200">{{ $player->bowling_style ?? '—' }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Status</dt>
-                    <dd class="text-slate-200">{{ $player->isFreeAgent() ? 'Free Agent' : 'Contracted' }}</dd>
-                </div>
+            <div class="flex-1">
+                <p class="eyebrow gold mb-2">{{ $team ? $team->name : 'Free Agent' }}</p>
+                <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: {{ $team ? '#fff' : 'var(--paper)' }};">{{ $player->name }}</h1>
+                <p class="text-base" style="color: {{ $team ? 'rgba(255,255,255,0.8)' : 'var(--paper-dim)' }};">{{ $player->role }} — {{ $player->country }} — {{ $player->tier }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {{-- Profile --}}
+        <div class="card-section p-6">
+            <p class="eyebrow gold mb-4">Profile</p>
+            <dl class="space-y-3 text-sm">
+                <div class="flex justify-between"><dt style="color: var(--paper-faint);">Age</dt><dd style="color: var(--paper);">{{ $player->age ?? '—' }}</dd></div>
+                <div class="flex justify-between"><dt style="color: var(--paper-faint);">Batting Style</dt><dd style="color: var(--paper);">{{ $player->batting_style ?? '—' }}</dd></div>
+                <div class="flex justify-between"><dt style="color: var(--paper-faint);">Bowling Style</dt><dd style="color: var(--paper);">{{ $player->bowling_style ?? '—' }}</dd></div>
+                <div class="flex justify-between"><dt style="color: var(--paper-faint);">Status</dt><dd style="color: var(--paper);">{{ $player->isFreeAgent() ? 'Free Agent' : 'Contracted' }}</dd></div>
             </dl>
 
-            <div class="mt-6 space-y-2 border-t border-slate-800 pt-4">
+            <div class="mt-6 pt-4 space-y-2" style="border-top: var(--rule);">
                 <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">Base Value</span>
-                    <span class="font-semibold text-slate-200">{{ number_format((float) $player->base_value, 0) }}</span>
+                    <span style="color: var(--paper-faint);">Base Value</span>
+                    <span class="font-semibold" style="color: var(--paper);">{{ number_format((float) $player->base_value, 0) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">Current Value</span>
-                    <span class="font-semibold text-emerald-400">{{ number_format((float) $player->current_value, 0) }}</span>
+                    <span style="color: var(--paper-faint);">Current Value</span>
+                    <span class="font-semibold" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</span>
                 </div>
                 @if (! is_null($player->sold_price))
                     <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Sold Price</span>
-                        <span class="font-semibold text-sky-400">{{ number_format((float) $player->sold_price, 0) }}</span>
+                        <span style="color: var(--paper-faint);">Sold Price</span>
+                        <span class="font-semibold" style="color: var(--up);">{{ number_format((float) $player->sold_price, 0) }}</span>
                     </div>
                 @endif
             </div>
 
-            <div class="mt-6">
-                @if ($player->team)
-                    <a href="{{ route('teams.show', $player->team) }}"
-                       class="block rounded-md border border-slate-700 px-4 py-2 text-center text-sm text-slate-200 hover:bg-slate-800">
-                        {{ $player->team->name }}
-                    </a>
-                @else
-                    <span class="block rounded-md border border-dashed border-slate-700 px-4 py-2 text-center text-sm text-slate-500">
-                        No team
-                    </span>
-                @endif
-            </div>
+            @if ($team)
+                <a href="{{ route('teams.show', $team) }}" class="btn-ghost block w-full mt-6 py-2.5 text-center">{{ $team->name }}</a>
+            @endif
         </div>
 
         {{-- Career totals --}}
         <div class="lg:col-span-2">
+            <p class="eyebrow gold mb-4">Career Totals</p>
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                @include('partials.stat-card', ['label' => 'Matches', 'value' => $totals['matches'], 'accent' => 'violet'])
-                @include('partials.stat-card', ['label' => 'Runs', 'value' => $totals['runs'], 'accent' => 'emerald'])
-                @include('partials.stat-card', ['label' => 'Balls Faced', 'value' => $totals['balls'], 'accent' => 'sky'])
-                @include('partials.stat-card', ['label' => 'Fours', 'value' => $totals['fours'], 'accent' => 'amber'])
-                @include('partials.stat-card', ['label' => 'Sixes', 'value' => $totals['sixes'], 'accent' => 'rose'])
-                @include('partials.stat-card', ['label' => 'Wickets', 'value' => $totals['wickets'], 'accent' => 'emerald'])
+                @include('partials.stat-card', ['label' => 'Matches', 'value' => $totals['matches']])
+                @include('partials.stat-card', ['label' => 'Runs', 'value' => $totals['runs'], 'accent' => 'gold'])
+                @include('partials.stat-card', ['label' => 'Balls Faced', 'value' => $totals['balls']])
+                @include('partials.stat-card', ['label' => 'Fours', 'value' => $totals['fours']])
+                @include('partials.stat-card', ['label' => 'Sixes', 'value' => $totals['sixes']])
+                @include('partials.stat-card', ['label' => 'Wickets', 'value' => $totals['wickets'], 'accent' => 'up'])
             </div>
         </div>
     </div>
 
     {{-- Match stats --}}
-    <div class="rounded-xl border border-slate-800 bg-slate-900/60">
-        <div class="border-b border-slate-800 px-5 py-4">
-            <h2 class="font-semibold text-white">Match Statistics</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead class="border-b border-slate-800 text-xs uppercase text-slate-500">
+    <div class="mt-10">
+        <p class="eyebrow gold mb-4">Match Statistics</p>
+        <div class="card-section overflow-x-auto">
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <th class="px-5 py-3">Match</th>
-                        <th class="px-5 py-3 text-right">Runs</th>
-                        <th class="px-5 py-3 text-right">Balls</th>
-                        <th class="px-5 py-3 text-right">4s</th>
-                        <th class="px-5 py-3 text-right">6s</th>
-                        <th class="px-5 py-3 text-right">Wkts</th>
-                        <th class="px-5 py-3 text-right">Overs</th>
-                        <th class="px-5 py-3 text-right">Catches</th>
+                        <th>Match</th>
+                        <th style="text-align:right;">Runs</th>
+                        <th style="text-align:right;">Balls</th>
+                        <th style="text-align:right;">4s</th>
+                        <th style="text-align:right;">6s</th>
+                        <th style="text-align:right;">Wkts</th>
+                        <th style="text-align:right;">Overs</th>
+                        <th style="text-align:right;">Catches</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800">
+                <tbody>
                     @forelse ($stats as $stat)
-                        <tr class="hover:bg-slate-800/40">
-                            <td class="px-5 py-3">
+                        <tr>
+                            <td>
                                 @if ($stat->match)
-                                    <a href="{{ route('matches.show', $stat->match) }}" class="text-white hover:text-emerald-400">
+                                    <a href="{{ route('matches.show', $stat->match) }}" class="text-link font-medium">
                                         {{ $stat->match->homeTeam?->short_name ?? $stat->match->homeTeam?->name }}
                                         v
                                         {{ $stat->match->awayTeam?->short_name ?? $stat->match->awayTeam?->name }}
                                     </a>
-                                    <span class="block text-xs text-slate-500">{{ optional($stat->match->match_date)->format('d M Y') }}</span>
+                                    <span class="block text-xs mt-1" style="color: var(--paper-faint);">{{ optional($stat->match->match_date)->format('d M Y') }}</span>
                                 @else
-                                    <span class="text-slate-500">—</span>
+                                    <span style="color: var(--paper-faint);">—</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-3 text-right font-semibold text-emerald-400">{{ $stat->runs_scored }}</td>
-                            <td class="px-5 py-3 text-right text-slate-300">{{ $stat->balls_faced }}</td>
-                            <td class="px-5 py-3 text-right text-slate-300">{{ $stat->fours }}</td>
-                            <td class="px-5 py-3 text-right text-slate-300">{{ $stat->sixes }}</td>
-                            <td class="px-5 py-3 text-right text-slate-300">{{ $stat->wickets_taken }}</td>
-                            <td class="px-5 py-3 text-right text-slate-300">{{ $stat->overs_bowled }}</td>
-                            <td class="px-5 py-3 text-right text-slate-300">{{ $stat->catches }}</td>
+                            <td style="text-align:right; color: var(--gold); font-weight: 600;">{{ $stat->runs_scored }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $stat->balls_faced }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $stat->fours }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $stat->sixes }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $stat->wickets_taken }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $stat->overs_bowled }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $stat->catches }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-5 py-12 text-center text-slate-500">No match statistics recorded yet.</td>
+                            <td colspan="8" style="text-align:center; padding: 3rem 0; color: var(--paper-faint);">No match statistics recorded yet</td>
                         </tr>
                     @endforelse
                 </tbody>

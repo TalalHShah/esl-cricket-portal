@@ -3,41 +3,35 @@
 @section('title', 'Players by Tier')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-4xl font-black text-white">⭐ Players by Tier</h1>
-        <p class="mt-2 text-slate-400">Performance categories and average valuations</p>
-    </div>
+    @include('partials.page-header', [
+        'title' => 'Players by Tier',
+        'eyebrow' => 'Market',
+        'subtitle' => 'Performance categories and average valuations',
+    ])
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @forelse ($tiers as $tier)
-            <div class="cricket-card rounded-2xl p-6">
-                <h3 class="font-bold text-lg mb-3 {{ match($tier->tier) {
-                    'Superstar' => 'text-purple-400',
-                    'Star' => 'text-amber-400',
-                    'Normal' => 'text-blue-400',
-                    'Low-value' => 'text-slate-400',
-                } }}">
-                    {{ $tier->tier }}
-                </h3>
-                <div class="space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-sm text-slate-400">Count:</span>
-                        <span class="text-lg font-bold text-white">{{ $tier->count }}</span>
+            <div class="card-section p-6">
+                <p class="eyebrow gold mb-4">{{ $tier->tier }}</p>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-sm" style="color: var(--paper-faint);">Count</span>
+                        <span class="text-lg font-semibold" style="color: var(--paper);">{{ $tier->count }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-sm text-slate-400">Avg Value:</span>
-                        <span class="text-lg font-bold text-emerald-400">PKR {{ number_format($tier->avg_value, 0) }}</span>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-sm" style="color: var(--paper-faint);">Avg Value</span>
+                        <span class="text-lg font-semibold" style="color: var(--gold);">{{ number_format($tier->avg_value, 0) }}</span>
                     </div>
                 </div>
             </div>
         @empty
-            <div class="col-span-full text-center text-slate-500">No tier data</div>
+            <div class="col-span-full">
+                @include('partials.empty-state', ['message' => 'No tier data available.'])
+            </div>
         @endforelse
     </div>
 
-    <div class="mt-8">
-        <a href="{{ route('valuations.league') }}" class="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition">
-            ← Back to League View
-        </a>
+    <div class="mt-10">
+        <a href="{{ route('valuations.league') }}" class="btn-ghost px-6 py-3">&larr; Back to League View</a>
     </div>
 @endsection

@@ -1,10 +1,13 @@
-@props(['title', 'subtitle' => null])
+@props(['title', 'subtitle' => null, 'eyebrow' => null])
 
-<div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+<div class="mb-10 flex flex-wrap items-end justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">{{ $title }}</h1>
+        @if ($eyebrow)
+            <p class="eyebrow gold mb-2">{{ $eyebrow }}</p>
+        @endif
+        <h1 class="font-display text-4xl font-semibold" style="color: var(--paper);">{{ $title }}</h1>
         @if ($subtitle)
-            <p class="mt-1 text-sm text-slate-400">{{ $subtitle }}</p>
+            <p class="mt-2 text-sm" style="color: var(--paper-faint);">{{ $subtitle }}</p>
         @endif
     </div>
     @if (! empty($actions))

@@ -2,24 +2,21 @@
     'label',
     'value',
     'hint' => null,
-    'accent' => 'emerald',
+    'accent' => 'default',
 ])
 
 @php
-    $accents = [
-        'emerald' => 'text-emerald-400',
-        'sky' => 'text-sky-400',
-        'amber' => 'text-amber-400',
-        'rose' => 'text-rose-400',
-        'violet' => 'text-violet-400',
-    ];
-    $accentClass = $accents[$accent] ?? $accents['emerald'];
+    $accentClass = match ($accent) {
+        'emerald', 'up' => 'up',
+        'amber', 'gold' => 'gold',
+        default => '',
+    };
 @endphp
 
-<div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ $label }}</p>
-    <p class="mt-2 text-3xl font-bold {{ $accentClass }}">{{ $value }}</p>
+<div class="stat">
+    <p class="stat-figure {{ $accentClass }}">{{ $value }}</p>
+    <p class="stat-caption">{{ $label }}</p>
     @if ($hint)
-        <p class="mt-1 text-xs text-slate-500">{{ $hint }}</p>
+        <p class="text-xs mt-1" style="color: var(--paper-faint);">{{ $hint }}</p>
     @endif
 </div>

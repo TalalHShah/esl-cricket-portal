@@ -16,54 +16,47 @@
         </div>
     @endif
 
+    <div class="card-section mb-10 p-6">
+        <form method="GET" action="{{ route('manager.transfers') }}" class="flex flex-wrap items-end gap-3">
+            <div>
+                <label class="eyebrow block mb-2">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name" class="field px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="eyebrow block mb-2">Role</label>
+                <select name="role" class="field px-3 py-2 text-sm">
+                    <option value="">All Roles</option>
+                    @foreach ($roles as $role)
+                        <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="btn-accent px-5 py-2.5">Search</button>
+            <a href="{{ route('manager.transfers') }}" class="btn-ghost px-5 py-2.5">Reset</a>
+        </form>
+    </div>
+
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div class="lg:col-span-2">
-            <div class="card-section mb-6 p-6">
-                <form method="GET" action="{{ route('manager.transfers') }}" class="flex flex-wrap items-end gap-3">
-                    <div>
-                        <label class="eyebrow block mb-2">Search</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name" class="field px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="eyebrow block mb-2">Role</label>
-                        <select name="role" class="field px-3 py-2 text-sm">
-                            <option value="">All Roles</option>
-                            @foreach ($roles as $role)
-                                <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-accent px-5 py-2.5">Search</button>
-                </form>
-            </div>
-
-            <div class="card-section">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 @forelse ($listedPlayers as $player)
-                    <div class="news-row px-6">
-                        <div class="flex items-center gap-4">
-                            <div class="player-portrait" style="width: 56px; height: 72px; flex-shrink: 0;">
-                                @if($player->image)
-                                    <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
-                                @else
-                                    <div class="initials" style="font-size: 0.9rem;">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
-                                @endif
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-base font-semibold" style="color: var(--paper);">{{ $player->name }}</h3>
-                                <p class="text-xs mb-2" style="color: var(--paper-faint);">{{ $player->role }} — {{ $player->tier }} — {{ $player->team?->name }}</p>
-                                <p class="text-base font-semibold" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
-                            </div>
-                            @if($team)
-                                <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
-                                    @csrf
-                                    <input type="number" name="fee" required min="1" placeholder="Offer" class="field px-3 py-2 text-sm" style="width: 9rem;">
-                                    <button type="submit" class="btn-accent px-4 py-2 text-xs whitespace-nowrap">Make Offer</button>
-                                </form>
-                            @endif
-                        </div>
-                    </div>
+                    <x-player-card :player="$player">
+                        @if($team)
+                            <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
+                                @csrf
+                                <input type="number" name="fee" required min="1" placeholder="Offer amount"
+                                       class="field px-3 py-2 text-xs flex-1" style="background: rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.4); color: #fff;">
+                                <button type="submit" class="px-4 py-2 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                                        style="background: var(--gold); color: var(--ink); border-radius: 2px;">
+                                    Offer
+                                </button>
+                            </form>
+                        @endif
+                    </x-player-card>
                 @empty
-                    <div class="p-12 text-center" style="color: var(--paper-faint);">No players available in the market</div>
+                    <div class="sm:col-span-2">
+                        <div class="card-section p-12 text-center" style="color: var(--paper-faint);">No players available in the market</div>
+                    </div>
                 @endforelse
             </div>
 

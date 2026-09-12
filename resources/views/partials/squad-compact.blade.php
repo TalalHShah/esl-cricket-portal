@@ -14,7 +14,7 @@
             </div>
             <span class="text-sm font-semibold truncate" style="color: var(--paper); flex: 1 1 auto; min-width: 0;">{{ $player->name }}</span>
             <span class="text-xs whitespace-nowrap hidden sm:inline" style="color: var(--paper-faint);">{{ $player->typeLabel() }}</span>
-            <span class="tag whitespace-nowrap">{{ $player->tier }}</span>
+            <span class="tag whitespace-nowrap {{ $player->is_manager_player ? 'gold' : '' }}">{{ $player->is_manager_player ? 'Manager' : $player->tier }}</span>
             <span class="text-sm font-semibold whitespace-nowrap" style="color: var(--gold); min-width: 6rem; text-align: right;"><x-money :amount="$player->current_value" /></span>
         </a>
     @empty

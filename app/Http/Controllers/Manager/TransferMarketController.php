@@ -21,9 +21,10 @@ class TransferMarketController extends Controller
     public function index(Request $request): View
     {
         $team = Auth::user()->managedTeam;
-        $windowOpen = Setting::getValue('transfer_window.open', true);
+        $windowOpen = Setting::isTransferWindowOpen();
 
         $query = Player::with('team')
+            ->transferable()
             ->whereNotNull('team_id')
             ->where('is_active', true)
             ->when($team, fn ($q) => $q->where('team_id', '!=', $team->id))
@@ -64,8 +65,12 @@ class TransferMarketController extends Controller
             return back()->withErrors(['offer' => 'You are not assigned to manage a team.']);
         }
 
-        if (! Setting::getValue('transfer_window.open', true)) {
+        if (! Setting::isTransferWindowOpen()) {
             return back()->withErrors(['offer' => 'The transfer window is currently closed. Players are being signed through the Auction instead.']);
+        }
+
+        if ($player->is_manager_player) {
+            return back()->withErrors(['offer' => 'This player cannot be transferred.']);
         }
 
         if (is_null($player->team_id)) {
@@ -74,6 +79,10 @@ class TransferMarketController extends Controller
 
         if ($player->team_id === $team->id) {
             return back()->withErrors(['offer' => 'You already own this player.']);
+        }
+
+        if (! $team->hasSquadSpace()) {
+            return back()->withErrors(['offer' => 'Your squad is full (' . Team::SQUAD_LIMIT . ' players max). Release a player before making an offer.']);
         }
 
         $validated = $request->validate([
@@ -118,6 +127,12 @@ class TransferMarketController extends Controller
 
             if (! $player || $player->team_id !== $team->id) {
                 return ['error' => 'This player is no longer on your squad.'];
+            }
+
+            if (! $buyerTeam->hasSquadSpace()) {
+                $transfer->update(['status' => 'rejected', 'notes' => $transfer->notes.' (auto-rejected: buyer squad is full)']);
+
+                return ['error' => 'The buying team\'s squad is now full — the offer has been automatically rejected.'];
             }
 
             $remainingBudget = $buyerTeam->remainingBudget();

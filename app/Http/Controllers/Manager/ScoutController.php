@@ -6,6 +6,7 @@ use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Models\Team;
 use App\Models\Transfer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -20,9 +21,9 @@ class ScoutController extends Controller
     public function index(Request $request): View
     {
         $ownTeam = Auth::user()->managedTeam;
-        $windowOpen = Setting::getValue('transfer_window.open', true);
+        $windowOpen = Setting::isTransferWindowOpen();
 
-        $query = Player::query()->with('team')->where('is_active', true);
+        $query = Player::query()->transferable()->with('team')->where('is_active', true);
 
         if ($ownTeam) {
             $query->where(function ($q) use ($ownTeam) {
@@ -81,8 +82,12 @@ class ScoutController extends Controller
             return back()->withErrors(['sign' => 'You are not assigned to manage a team.']);
         }
 
-        if (! Setting::getValue('transfer_window.open', true)) {
+        if (! Setting::isTransferWindowOpen()) {
             return back()->withErrors(['sign' => 'The transfer window is currently closed. Free agents are being signed through the Auction instead.']);
+        }
+
+        if ($player->is_manager_player) {
+            return back()->withErrors(['sign' => 'This player cannot be signed.']);
         }
 
         $result = DB::transaction(function () use ($player, $team) {
@@ -92,8 +97,13 @@ class ScoutController extends Controller
                 return ['error' => 'This player is already signed to a team.'];
             }
 
+            $lockedTeam = Team::whereKey($team->id)->lockForUpdate()->first();
+
+            if (! $lockedTeam->hasSquadSpace()) {
+                return ['error' => 'Your squad is full (' . Team::SQUAD_LIMIT . ' players max). Release a player before signing another.'];
+            }
+
             $fee = (float) $lockedPlayer->current_value;
-            $lockedTeam = $team->fresh();
             $remainingBudget = $lockedTeam->remainingBudget();
 
             if ($remainingBudget < $fee) {

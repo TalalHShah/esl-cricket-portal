@@ -45,7 +45,7 @@
         <div class="relative">
             <div class="flex items-center justify-between mb-3">
                 <span class="tag" style="border-color: rgba(255,255,255,0.5); color: #fff; background: rgba(0,0,0,0.25);">{{ $team->short_name ?? $team->name }}</span>
-                <span class="tag" style="border-color: rgba(255,255,255,0.5); color: #fff; background: rgba(0,0,0,0.25);">{{ $player->tier }}</span>
+                <span class="tag" style="border-color: rgba(255,255,255,0.5); color: #fff; background: rgba(0,0,0,0.25);">{{ $player->is_manager_player ? 'Manager' : $player->tier }}</span>
             </div>
 
             <{{ $infoTag }} @if($href) href="{{ $href }}" @endif style="display:block; text-decoration:none;">

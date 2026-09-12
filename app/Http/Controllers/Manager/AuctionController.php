@@ -84,6 +84,10 @@ class AuctionController extends Controller
             return back()->withErrors(['bid' => 'Join the auction room before placing a bid.']);
         }
 
+        if (! $team->hasSquadSpace()) {
+            return back()->withErrors(['bid' => 'Your squad is full (' . \App\Models\Team::SQUAD_LIMIT . ' players max) — you cannot bid on another player.']);
+        }
+
         $result = DB::transaction(function () use ($auctionSession, $team) {
             $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
 

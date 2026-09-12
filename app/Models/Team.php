@@ -12,6 +12,11 @@ class Team extends Model
     use HasFactory;
 
     /**
+     * Maximum squad size, including the team's fixed manager-player.
+     */
+    public const SQUAD_LIMIT = 20;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -105,5 +110,14 @@ class Team extends Model
     public function remainingBudget(): float
     {
         return (float) $this->budget - (float) $this->spent;
+    }
+
+    /**
+     * Whether this team can still add another player without exceeding
+     * the squad cap (which includes the team's own manager-player).
+     */
+    public function hasSquadSpace(): bool
+    {
+        return $this->players()->count() < self::SQUAD_LIMIT;
     }
 }

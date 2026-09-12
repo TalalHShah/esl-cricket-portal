@@ -43,7 +43,7 @@
         </div>
 
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <p class="eyebrow gold">Full Squad ({{ $players->count() }})</p>
+            <p class="eyebrow gold">Full Squad ({{ $players->count() }} / {{ \App\Models\Team::SQUAD_LIMIT }})</p>
             <form method="GET" class="flex items-center gap-2 flex-wrap">
                 <div class="flex items-center gap-1" style="background-color: var(--surface-raised); border: 1px solid var(--line-strong); border-radius: 2px;">
                     <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="px-3 py-2 text-xs font-semibold uppercase" style="{{ $view === 'grid' ? 'background-color: var(--gold); color: var(--ink);' : 'color: var(--paper-dim);' }}">Grid</a>
@@ -93,7 +93,7 @@
                                     </div>
                                 </td>
                                 <td style="color: var(--paper-dim);">{{ $player->typeLabel() }}</td>
-                                <td><span class="tag">{{ $player->tier }}</span></td>
+                                <td><span class="tag {{ $player->is_manager_player ? 'gold' : '' }}">{{ $player->is_manager_player ? 'Manager' : $player->tier }}</span></td>
                                 <td style="text-align:right; color: var(--paper-dim);">{{ $player->age ?? '—' }}</td>
                                 <td style="text-align:right; font-weight: 600; color: var(--gold);"><x-money :amount="$player->current_value" /></td>
                             </tr>
@@ -117,7 +117,7 @@
                             @endif
                         </div>
                         <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
-                        <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->tier }}</p>
+                        <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->is_manager_player ? 'Manager' : $player->tier }}</p>
                         <p class="text-sm font-semibold mt-2" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
                     </a>
                 @empty

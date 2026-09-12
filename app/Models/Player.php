@@ -43,6 +43,7 @@ class Player extends Model
         'sold_price',
         'is_auctioned',
         'is_active',
+        'is_manager_player',
     ];
 
     /**
@@ -59,6 +60,7 @@ class Player extends Model
             'sold_price' => 'decimal:2',
             'is_auctioned' => 'boolean',
             'is_active' => 'boolean',
+            'is_manager_player' => 'boolean',
         ];
     }
 
@@ -100,6 +102,16 @@ class Player extends Model
     public function isFreeAgent(): bool
     {
         return is_null($this->team_id);
+    }
+
+    /**
+     * Scope out the one fixed manager-player per team — they represent
+     * the manager themselves, are never free agents, and cannot be
+     * bought, sold, or auctioned by any team.
+     */
+    public function scopeTransferable($query)
+    {
+        return $query->where('is_manager_player', false);
     }
 
     /**

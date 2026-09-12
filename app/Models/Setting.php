@@ -63,6 +63,23 @@ class Setting extends Model
     }
 
     /**
+     * Whether the transfer market (direct offers + free-agent scouting)
+     * is currently open. The market is automatically forced closed
+     * while any auction session is scheduled, live, or paused — auction
+     * lots are meant to be won at auction, not signed around it — and
+     * reopens on its own once no such session remains, on top of the
+     * manual transfer_window.open toggle admins can also close by hand.
+     */
+    public static function isTransferWindowOpen(): bool
+    {
+        if (! static::getValue('transfer_window.open', true)) {
+            return false;
+        }
+
+        return ! AuctionSession::whereIn('status', ['scheduled', 'live', 'paused'])->exists();
+    }
+
+    /**
      * Persist a setting value, creating it if needed.
      */
     public static function setValue(string $key, mixed $value, string $type = 'string'): void

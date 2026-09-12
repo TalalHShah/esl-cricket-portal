@@ -108,6 +108,53 @@
         @endunless
     </form>
 
+    <div class="mt-6 card-section p-6">
+        <h3 class="font-display text-lg font-semibold mb-4" style="color: var(--paper);">Screenshots &amp; Evidence</h3>
+
+        @if ($match->screenshots->isNotEmpty())
+            <div class="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-4">
+                @foreach ($match->screenshots as $screenshot)
+                    <div class="card-section p-2">
+                        <a href="{{ asset('storage/' . $screenshot->file_path) }}" target="_blank">
+                            <img src="{{ asset('storage/' . $screenshot->file_path) }}" alt="{{ $screenshot->original_name }}" class="w-full rounded" style="aspect-ratio: 4/3; object-fit: cover;">
+                        </a>
+                        <p class="text-xs mt-2" style="color: var(--paper-faint);">{{ ucfirst($screenshot->type) }}</p>
+                        @if ($screenshot->caption)
+                            <p class="text-xs" style="color: var(--paper-dim);">{{ $screenshot->caption }}</p>
+                        @endif
+                        <form method="POST" action="{{ route('admin.matches.screenshots.destroy', [$match, $screenshot]) }}" onsubmit="return confirm('Remove this screenshot?');" class="mt-2">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="text-xs" style="color: var(--live);">Remove</button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p class="text-sm mb-4" style="color: var(--paper-faint);">No screenshots uploaded yet.</p>
+        @endif
+
+        <form method="POST" action="{{ route('admin.matches.screenshots.store', $match) }}" enctype="multipart/form-data" class="grid grid-cols-1 gap-3 sm:grid-cols-4 sm:items-end">
+            @csrf
+            <div class="sm:col-span-2">
+                <label class="eyebrow block mb-2">Image</label>
+                <input type="file" name="screenshot" accept="image/*" class="field w-full px-3 py-2 text-sm" required>
+            </div>
+            <div>
+                <label class="eyebrow block mb-2">Type</label>
+                <select name="type" class="field w-full px-3 py-2 text-sm">
+                    <option value="scorecard">Scorecard</option>
+                    <option value="result">Result</option>
+                    <option value="dispute">Dispute</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn-accent w-full py-2.5">Upload</button>
+            </div>
+        </form>
+        @error('screenshot') <p class="text-sm mt-2" style="color: var(--live);">{{ $message }}</p> @enderror
+    </div>
+
     @unless ($readOnly)
         <div class="mt-6 card-section p-6">
             <h3 class="font-display text-lg font-semibold mb-2" style="color: var(--paper);">Confirm Result</h3>

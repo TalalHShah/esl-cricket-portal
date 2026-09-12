@@ -122,6 +122,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::put('matches/{match}', [AdminMatchController::class, 'update'])->name('matches.update');
     Route::post('matches/{match}/confirm', [AdminMatchController::class, 'confirm'])->name('matches.confirm');
     Route::delete('matches/{match}', [AdminMatchController::class, 'destroy'])->name('matches.destroy');
+    Route::post('matches/{match}/screenshots', [AdminMatchController::class, 'uploadScreenshot'])->name('matches.screenshots.store');
+    Route::delete('matches/{match}/screenshots/{screenshot}', [AdminMatchController::class, 'destroyScreenshot'])->name('matches.screenshots.destroy');
 
     // News CRUD
     Route::get('news', [AdminNewsController::class, 'index'])->name('news.index');

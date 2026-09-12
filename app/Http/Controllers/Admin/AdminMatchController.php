@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\CricketMatch;
+use App\Models\MatchScreenshot;
 use App\Models\MatchStat;
 use App\Models\Team;
 use App\Services\PlayerValuationService;
@@ -13,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AdminMatchController extends Controller
 {
@@ -59,7 +61,7 @@ class AdminMatchController extends Controller
 
     public function edit(CricketMatch $match): View
     {
-        $match->load(['homeTeam.players', 'awayTeam.players', 'stats']);
+        $match->load(['homeTeam.players', 'awayTeam.players', 'stats', 'screenshots']);
 
         $statsByPlayer = $match->stats->keyBy('player_id');
 
@@ -170,5 +172,41 @@ class AdminMatchController extends Controller
         $match->delete();
 
         return redirect()->route('admin.matches.index')->with('status', 'Match removed.');
+    }
+
+    public function uploadScreenshot(Request $request, CricketMatch $match): RedirectResponse
+    {
+        $validated = $request->validate([
+            'screenshot' => 'required|image|max:8192',
+            'type' => 'required|in:scorecard,result,dispute,other',
+            'caption' => 'nullable|string|max:255',
+        ]);
+
+        $path = $request->file('screenshot')->store('match-screenshots', 'public');
+
+        MatchScreenshot::create([
+            'match_id' => $match->id,
+            'uploaded_by_user_id' => Auth::id(),
+            'file_path' => $path,
+            'original_name' => $request->file('screenshot')->getClientOriginalName(),
+            'mime_type' => $request->file('screenshot')->getMimeType(),
+            'file_size' => $request->file('screenshot')->getSize(),
+            'type' => $validated['type'],
+            'caption' => $validated['caption'] ?? null,
+        ]);
+
+        return back()->with('status', 'Screenshot uploaded.');
+    }
+
+    public function destroyScreenshot(CricketMatch $match, MatchScreenshot $screenshot): RedirectResponse
+    {
+        if ($screenshot->match_id !== $match->id) {
+            abort(404);
+        }
+
+        Storage::disk('public')->delete($screenshot->file_path);
+        $screenshot->delete();
+
+        return back()->with('status', 'Screenshot removed.');
     }
 }

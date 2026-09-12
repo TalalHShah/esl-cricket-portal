@@ -53,6 +53,21 @@
         </div>
     </div>
 
+    @php $publicScreenshots = $match->screenshots->whereIn('type', ['scorecard', 'result']); @endphp
+    @if ($publicScreenshots->isNotEmpty())
+        <div class="mb-10">
+            <p class="eyebrow gold mb-4">Match Evidence</p>
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                @foreach ($publicScreenshots as $screenshot)
+                    <a href="{{ asset('storage/' . $screenshot->file_path) }}" target="_blank" class="card-section p-2 lift-on-hover">
+                        <img src="{{ asset('storage/' . $screenshot->file_path) }}" alt="{{ $screenshot->original_name }}" class="w-full rounded" style="aspect-ratio: 4/3; object-fit: cover;">
+                        <p class="text-xs mt-2" style="color: var(--paper-faint);">{{ ucfirst($screenshot->type) }}</p>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
         @foreach ([['team' => $match->homeTeam, 'rows' => $homeStats, 'label' => $homeName], ['team' => $match->awayTeam, 'rows' => $awayStats, 'label' => $awayName]] as $side)
             <div>

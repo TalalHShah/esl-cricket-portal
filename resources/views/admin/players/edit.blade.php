@@ -62,17 +62,39 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="eyebrow block mb-2">Role</label>
-                    <select name="role" class="field w-full px-4 py-3" required>
-                        @foreach ($roles as $role)
-                            <option value="{{ $role }}" {{ old('role', $player->role) == $role ? 'selected' : '' }}>{{ $role }}</option>
-                        @endforeach
-                    </select>
-                    @error('role') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
-                </div>
+            <div>
+                <label class="eyebrow block mb-2">Category</label>
+                <select name="role" id="role-select" class="field w-full px-4 py-3" required onchange="toggleStyleFields()">
+                    @foreach ($roles as $role)
+                        <option value="{{ $role }}" {{ old('role', $player->role) == $role ? 'selected' : '' }}>{{ $role }}</option>
+                    @endforeach
+                </select>
+                @error('role') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+            </div>
 
+            <div id="batting-style-field">
+                <label class="eyebrow block mb-2">Batting Hand</label>
+                <select name="batting_style" class="field w-full px-4 py-3">
+                    <option value="">Select...</option>
+                    @foreach ($battingStyles as $style)
+                        <option value="{{ $style }}" {{ old('batting_style', $player->batting_style) == $style ? 'selected' : '' }}>{{ $style }}</option>
+                    @endforeach
+                </select>
+                @error('batting_style') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+            </div>
+
+            <div id="bowling-style-field">
+                <label class="eyebrow block mb-2">Bowling Type</label>
+                <select name="bowling_style" class="field w-full px-4 py-3">
+                    <option value="">Select...</option>
+                    @foreach ($bowlingStyles as $style)
+                        <option value="{{ $style }}" {{ old('bowling_style', $player->bowling_style) == $style ? 'selected' : '' }}>{{ $style }}</option>
+                    @endforeach
+                </select>
+                @error('bowling_style') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="eyebrow block mb-2">Tier</label>
                     <select name="tier" class="field w-full px-4 py-3" required>
@@ -82,12 +104,11 @@
                     </select>
                     @error('tier') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
                 </div>
-            </div>
-
-            <div>
-                <label class="eyebrow block mb-2">Base Value</label>
-                <input type="number" name="base_value" class="field w-full px-4 py-3" value="{{ old('base_value', $player->base_value) }}" required>
-                @error('base_value') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+                <div>
+                    <label class="eyebrow block mb-2">Base Value</label>
+                    <input type="number" name="base_value" class="field w-full px-4 py-3" value="{{ old('base_value', $player->base_value) }}" required>
+                    @error('base_value') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+                </div>
             </div>
 
             <label class="flex items-center gap-3">
@@ -101,4 +122,16 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function toggleStyleFields() {
+            const role = document.getElementById('role-select').value;
+            const battingRequired = ['Batsman', 'Wicketkeeper', 'All-rounder'].includes(role);
+            const bowlingRequired = ['Bowler', 'All-rounder'].includes(role);
+
+            document.getElementById('batting-style-field').hidden = !battingRequired;
+            document.getElementById('bowling-style-field').hidden = !bowlingRequired;
+        }
+        document.addEventListener('DOMContentLoaded', toggleStyleFields);
+    </script>
 @endsection

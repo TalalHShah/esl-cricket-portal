@@ -77,7 +77,7 @@
                             </div>
                             <div class="flex-1">
                                 <p class="font-semibold" style="color: var(--paper);">{{ $player->name }}</p>
-                                <p class="text-xs" style="color: var(--paper-faint);">{{ $player->role }} &nbsp;—&nbsp; {{ $player->tier }}</p>
+                                <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->tier }}</p>
                             </div>
                             <p class="text-base font-semibold" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
                         </div>

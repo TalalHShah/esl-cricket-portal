@@ -49,7 +49,7 @@ class ScoutController extends Controller
 
         $players = $query->orderByRaw('team_id IS NULL DESC')->orderByDesc('current_value')->paginate(12)->withQueryString();
 
-        $roles = ['Batsman', 'Wicketkeeper', 'All-rounder', 'Fast Bowler', 'Spinner'];
+        $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
         $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
 
         return view('manager.scouts', compact('players', 'roles', 'tiers'));

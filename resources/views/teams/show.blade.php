@@ -54,7 +54,7 @@
                             @endif
                         </div>
                         <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
-                        <p class="text-xs" style="color: var(--paper-faint);">{{ $player->role }}</p>
+                        <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }}</p>
                         <p class="text-sm font-semibold mt-1" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
                     </a>
                 @empty

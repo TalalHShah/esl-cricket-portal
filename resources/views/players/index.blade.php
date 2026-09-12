@@ -19,7 +19,7 @@
                 <label class="eyebrow block mb-2">Role</label>
                 <select name="role" class="field px-3 py-2 text-sm">
                     <option value="">All Roles</option>
-                    @foreach (['Batsman', 'Wicketkeeper', 'All-rounder', 'Fast Bowler', 'Spinner'] as $role)
+                    @foreach (['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'] as $role)
                         <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
                     @endforeach
                 </select>

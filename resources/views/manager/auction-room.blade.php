@@ -29,7 +29,7 @@
             </p>
             <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: var(--paper);">{{ $player?->name ?? $auctionSession->name }}</h1>
             @if($player)
-                <p class="text-base" style="color: var(--paper-dim);">{{ $player->role }} &nbsp;—&nbsp; {{ $player->country }} &nbsp;—&nbsp; {{ $player->tier }}</p>
+                <p class="text-base" style="color: var(--paper-dim);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->country }} &nbsp;—&nbsp; {{ $player->tier }}</p>
                 <p class="text-sm mt-1" style="color: var(--paper-faint);">Base value <x-money :amount="$player->base_value" /></p>
             @endif
         </div>

@@ -32,7 +32,7 @@
             <div class="flex-1">
                 <p class="eyebrow gold mb-2">{{ $team ? $team->name : 'Free Agent' }}</p>
                 <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: {{ $team ? '#fff' : 'var(--paper)' }};">{{ $player->name }}</h1>
-                <p class="text-base" style="color: {{ $team ? 'rgba(255,255,255,0.8)' : 'var(--paper-dim)' }};">{{ $player->role }} — {{ $player->country }} — {{ $player->tier }}</p>
+                <p class="text-base" style="color: {{ $team ? 'rgba(255,255,255,0.8)' : 'var(--paper-dim)' }};">{{ $player->typeLabel() }} — {{ $player->country }} — {{ $player->tier }}</p>
             </div>
         </div>
     </div>

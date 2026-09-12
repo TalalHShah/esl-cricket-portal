@@ -52,8 +52,9 @@
                         $navItems = [
                             ['route' => 'manager.dashboard', 'label' => 'Home'],
                             ['route' => 'manager.transfers', 'label' => 'Transfer Market'],
-                            ['route' => 'manager.auction', 'label' => 'Auction'],
+                            ['route' => 'manager.auction', 'label' => 'Auction', 'active' => 'manager.auction*'],
                             ['route' => 'manager.scouts', 'label' => 'Scouts'],
+                            ['route' => 'manager.teams.index', 'label' => 'Teams', 'active' => 'manager.teams.*'],
                             ['route' => 'manager.fixtures', 'label' => 'Fixtures'],
                             ['route' => 'manager.livestream', 'label' => 'Live Stream'],
                             ['route' => 'manager.team', 'label' => 'Team Profile'],
@@ -61,7 +62,7 @@
                         ];
                     @endphp
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
+                        <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['active'] ?? $item['route']) ? 'active' : '' }}">
                             {{ $item['label'] }}
                         </a>
                     @endforeach

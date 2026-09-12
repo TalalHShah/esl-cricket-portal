@@ -36,7 +36,7 @@ class TransferMarketController extends Controller
                 ->get();
         }
 
-        $roles = ['Batsman', 'Wicketkeeper', 'All-rounder', 'Fast Bowler', 'Spinner'];
+        $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
 
         return view('manager.transfers', compact('listedPlayers', 'myTransfers', 'team', 'roles'));
     }

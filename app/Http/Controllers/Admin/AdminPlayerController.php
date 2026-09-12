@@ -9,8 +9,23 @@ use App\Http\Controllers\Controller;
 
 class AdminPlayerController extends Controller
 {
-    private const ROLES = ['Batsman', 'Wicketkeeper', 'All-rounder', 'Fast Bowler', 'Spinner'];
+    private const ROLES = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
     private const TIERS = ['Superstar', 'Star', 'Normal', 'Low-value'];
+
+    private const BATTING_STYLES = ['Right-Hand Bat', 'Left-Hand Bat'];
+
+    private const BOWLING_STYLES = [
+        'Right-arm Fast',
+        'Right-arm Fast-Medium',
+        'Right-arm Medium',
+        'Right-arm Off Spin',
+        'Right-arm Leg Spin',
+        'Left-arm Fast',
+        'Left-arm Fast-Medium',
+        'Left-arm Medium',
+        'Left-arm Orthodox',
+        'Left-arm Chinaman',
+    ];
 
     public function index()
     {
@@ -23,22 +38,14 @@ class AdminPlayerController extends Controller
         $teams = Team::all();
         $tiers = self::TIERS;
         $roles = self::ROLES;
-        return view('admin.players.create', compact('teams', 'tiers', 'roles'));
+        $battingStyles = self::BATTING_STYLES;
+        $bowlingStyles = self::BOWLING_STYLES;
+        return view('admin.players.create', compact('teams', 'tiers', 'roles', 'battingStyles', 'bowlingStyles'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'country' => 'required|string|max:64',
-            'team_id' => 'nullable|exists:teams,id',
-            'role' => 'required|in:' . implode(',', self::ROLES),
-            'tier' => 'required|in:' . implode(',', self::TIERS),
-            'base_value' => 'required|numeric|min:0',
-            'age' => 'nullable|integer|min:14|max:50',
-            'photo' => 'nullable|image|max:4096',
-            'is_active' => 'boolean',
-        ]);
+        $validated = $this->validatePlayer($request);
 
         if ($request->hasFile('photo')) {
             $validated['image'] = $request->file('photo')->store('player-photos', 'public');
@@ -55,23 +62,14 @@ class AdminPlayerController extends Controller
         $teams = Team::all();
         $tiers = self::TIERS;
         $roles = self::ROLES;
-        return view('admin.players.edit', compact('player', 'teams', 'tiers', 'roles'));
+        $battingStyles = self::BATTING_STYLES;
+        $bowlingStyles = self::BOWLING_STYLES;
+        return view('admin.players.edit', compact('player', 'teams', 'tiers', 'roles', 'battingStyles', 'bowlingStyles'));
     }
 
     public function update(Request $request, Player $player)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'country' => 'required|string|max:64',
-            'team_id' => 'nullable|exists:teams,id',
-            'role' => 'required|in:' . implode(',', self::ROLES),
-            'tier' => 'required|in:' . implode(',', self::TIERS),
-            'base_value' => 'required|numeric|min:0',
-            'age' => 'nullable|integer|min:14|max:50',
-            'photo' => 'nullable|image|max:4096',
-            'remove_photo' => 'nullable|boolean',
-            'is_active' => 'boolean',
-        ]);
+        $validated = $this->validatePlayer($request);
 
         if ($request->boolean('remove_photo')) {
             $validated['image'] = null;
@@ -93,5 +91,33 @@ class AdminPlayerController extends Controller
         $name = $player->name;
         $player->delete();
         return redirect()->route('admin.players.index')->with('status', "Player '$name' deleted.");
+    }
+
+    /**
+     * Validate a player submission, requiring the sub-type field(s) that
+     * apply to the chosen role: batting hand for Batsman/Wicketkeeper,
+     * bowling arm+type for Bowler, both for All-rounder.
+     */
+    private function validatePlayer(Request $request): array
+    {
+        $role = $request->input('role');
+
+        $battingRequired = in_array($role, ['Batsman', 'Wicketkeeper', 'All-rounder'], true);
+        $bowlingRequired = in_array($role, ['Bowler', 'All-rounder'], true);
+
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'country' => 'required|string|max:64',
+            'team_id' => 'nullable|exists:teams,id',
+            'role' => 'required|in:' . implode(',', self::ROLES),
+            'batting_style' => ($battingRequired ? 'required' : 'nullable') . '|in:' . implode(',', self::BATTING_STYLES),
+            'bowling_style' => ($bowlingRequired ? 'required' : 'nullable') . '|in:' . implode(',', self::BOWLING_STYLES),
+            'tier' => 'required|in:' . implode(',', self::TIERS),
+            'base_value' => 'required|numeric|min:0',
+            'age' => 'nullable|integer|min:14|max:50',
+            'photo' => 'nullable|image|max:4096',
+            'remove_photo' => 'nullable|boolean',
+            'is_active' => 'boolean',
+        ]);
     }
 }

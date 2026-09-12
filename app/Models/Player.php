@@ -101,4 +101,39 @@ class Player extends Model
     {
         return is_null($this->team_id);
     }
+
+    /**
+     * Shorthand for the batting hand, e.g. "RHB" or "LHB".
+     */
+    public function battingShorthand(): ?string
+    {
+        return match ($this->batting_style) {
+            'Right-Hand Bat' => 'RHB',
+            'Left-Hand Bat' => 'LHB',
+            default => null,
+        };
+    }
+
+    /**
+     * A single combined label describing the player's role and sub-type,
+     * e.g. "Batsman (RHB)", "Bowler (Right-arm Fast)",
+     * "All-rounder (RHB, Off Spin)".
+     */
+    public function typeLabel(): string
+    {
+        $bowlingShorthand = $this->bowling_style ? str_replace(['Right-arm ', 'Left-arm '], ['R-arm ', 'L-arm '], $this->bowling_style) : null;
+
+        return match ($this->role) {
+            'Batsman', 'Wicketkeeper' => $this->battingShorthand()
+                ? "{$this->role} ({$this->battingShorthand()})"
+                : $this->role,
+            'Bowler' => $bowlingShorthand
+                ? "{$this->role} ({$bowlingShorthand})"
+                : $this->role,
+            'All-rounder' => collect([$this->battingShorthand(), $bowlingShorthand])
+                ->filter()
+                ->pipe(fn ($parts) => $parts->isNotEmpty() ? "{$this->role} ({$parts->implode(', ')})" : $this->role),
+            default => $this->role,
+        };
+    }
 }

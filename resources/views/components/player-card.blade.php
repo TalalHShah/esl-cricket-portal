@@ -21,7 +21,7 @@
             @endif
         </div>
         <h3 class="text-base font-semibold mb-1" style="color: var(--paper);">{{ $player->name }}</h3>
-        <p class="text-xs mb-1" style="color: var(--paper-faint);">{{ $player->role }} — {{ $player->country }}</p>
+        <p class="text-xs mb-1" style="color: var(--paper-faint);">{{ $player->typeLabel() }} — {{ $player->country }}</p>
         @if($player->age)
             <p class="text-xs mb-3" style="color: var(--paper-faint);">Age {{ $player->age }}</p>
         @endif
@@ -54,7 +54,7 @@
             </div>
 
             <h3 class="text-base font-semibold mb-1" style="color: #fff;">{{ $player->name }}</h3>
-            <p class="text-xs mb-3" style="color: rgba(255,255,255,0.75);">{{ $player->role }} — {{ $team->name }}</p>
+            <p class="text-xs mb-3" style="color: rgba(255,255,255,0.75);">{{ $player->typeLabel() }} — {{ $team->name }}</p>
             <p class="text-lg font-semibold mb-4" style="color: #fff;"><x-money :amount="$player->current_value" :size="16" /></p>
 
             {{ $slot }}

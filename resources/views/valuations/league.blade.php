@@ -33,7 +33,7 @@
                         <td style="font-weight: 600; color: var(--paper);">{{ $loop->iteration + ($players->currentPage() - 1) * $players->perPage() }}</td>
                         <td>
                             <a href="{{ route('players.show', $player) }}" class="text-link font-semibold">{{ $player->name }}</a>
-                            <p class="text-xs mt-1" style="color: var(--paper-faint);">{{ $player->role }}</p>
+                            <p class="text-xs mt-1" style="color: var(--paper-faint);">{{ $player->typeLabel() }}</p>
                         </td>
                         <td style="color: var(--paper-dim);">
                             @if ($player->team)

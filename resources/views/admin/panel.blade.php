@@ -109,6 +109,21 @@
             </div>
         </div>
 
+        {{-- News Management --}}
+        <div class="cricket-card rounded-2xl overflow-hidden">
+            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-purple-500/10">
+                <h2 class="text-lg font-bold text-white">News</h2>
+            </div>
+            <div class="p-6 space-y-3">
+                <a href="{{ route('admin.news.index') }}" class="block w-full px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-center transition">
+                    Manage Articles
+                </a>
+                <a href="{{ route('admin.news.create') }}" class="block w-full px-4 py-3 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold text-center transition border border-purple-500/30">
+                    + New Article
+                </a>
+            </div>
+        </div>
+
         {{-- Settings Management --}}
         <div class="cricket-card rounded-2xl overflow-hidden">
             <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-blue-500/10">

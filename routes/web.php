@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminTeamController;
 use App\Http\Controllers\Admin\AdminPlayerController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\AdminMatchController;
+use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Manager\AuctionController;
@@ -118,6 +119,14 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::put('matches/{match}', [AdminMatchController::class, 'update'])->name('matches.update');
     Route::post('matches/{match}/confirm', [AdminMatchController::class, 'confirm'])->name('matches.confirm');
     Route::delete('matches/{match}', [AdminMatchController::class, 'destroy'])->name('matches.destroy');
+
+    // News CRUD
+    Route::get('news', [AdminNewsController::class, 'index'])->name('news.index');
+    Route::get('news/create', [AdminNewsController::class, 'create'])->name('news.create');
+    Route::post('news', [AdminNewsController::class, 'store'])->name('news.store');
+    Route::get('news/{newsArticle}/edit', [AdminNewsController::class, 'edit'])->name('news.edit');
+    Route::put('news/{newsArticle}', [AdminNewsController::class, 'update'])->name('news.update');
+    Route::delete('news/{newsArticle}', [AdminNewsController::class, 'destroy'])->name('news.destroy');
 
     // Auction Session management
     Route::get('auctions', [AuctionSessionController::class, 'index'])->name('auctions.index');

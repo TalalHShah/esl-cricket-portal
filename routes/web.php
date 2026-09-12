@@ -71,6 +71,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::post('/auction/{auctionSession}/bid', [AuctionController::class, 'bid'])->name('auction.bid');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');
+    Route::post('/scouts/{player}/sign', [ScoutController::class, 'sign'])->name('scouts.sign');
 
     Route::get('/fixtures', [ManagerFixtureController::class, 'index'])->name('fixtures');
 

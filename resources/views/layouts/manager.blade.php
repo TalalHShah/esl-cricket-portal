@@ -67,6 +67,7 @@
                         $navItems = [
                             ['route' => 'manager.dashboard', 'label' => 'Home'],
                             ['route' => 'manager.transfers', 'label' => 'Transfer Market'],
+                            ['route' => 'manager.draft', 'label' => 'Draft Room'],
                             ['route' => 'manager.auction', 'label' => 'Auction', 'active' => 'manager.auction*'],
                             ['route' => 'manager.scouts', 'label' => 'Scouts'],
                             ['route' => 'manager.teams.index', 'label' => 'Teams', 'active' => 'manager.teams.*'],

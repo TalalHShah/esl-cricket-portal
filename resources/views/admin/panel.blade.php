@@ -106,6 +106,9 @@
                 <a href="{{ route('admin.auctions.create') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 font-bold text-center transition border border-orange-500/30">
                     + Start New Auction
                 </a>
+                <a href="{{ route('admin.draft.create') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 font-bold text-center transition border border-orange-500/30">
+                    Start Country Draft
+                </a>
             </div>
         </div>
 

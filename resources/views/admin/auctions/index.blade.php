@@ -15,7 +15,8 @@
                 'status' => 'Status',
                 'bid_desc' => 'Current Bid — High to Low',
             ]])
-            <a href="{{ route('admin.auctions.create') }}" class="btn-accent px-5 py-3 whitespace-nowrap">+ New Auction</a>
+            <a href="{{ route('admin.draft.create') }}" class="btn-accent px-5 py-3 whitespace-nowrap">Start Country Draft</a>
+            <a href="{{ route('admin.auctions.create') }}" class="btn-ghost px-5 py-3 whitespace-nowrap">+ Single Auction</a>
         </div>
     </div>
 

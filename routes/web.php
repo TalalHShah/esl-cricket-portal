@@ -8,9 +8,11 @@ use App\Http\Controllers\Admin\AdminPlayerController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\AdminMatchController;
 use App\Http\Controllers\Admin\AdminNewsController;
+use App\Http\Controllers\Admin\AuctionDraftController as AdminAuctionDraftController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Manager\AuctionController;
+use App\Http\Controllers\Manager\AuctionDraftController;
 use App\Http\Controllers\Manager\FixtureController as ManagerFixtureController;
 use App\Http\Controllers\Manager\LeagueTeamController;
 use App\Http\Controllers\Manager\LiveStreamController;
@@ -81,7 +83,14 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::get('/auction/{auctionSession}/room', [AuctionController::class, 'room'])->name('auction.room');
     Route::post('/auction/{auctionSession}/join', [AuctionController::class, 'join'])->name('auction.join');
     Route::post('/auction/{auctionSession}/bid', [AuctionController::class, 'bid'])->name('auction.bid');
+    Route::post('/auction/{auctionSession}/pass', [AuctionController::class, 'pass'])->name('auction.pass');
     Route::get('/auction/{auctionSession}/state', [AuctionController::class, 'state'])->name('auction.state');
+
+    Route::get('/draft', [AuctionDraftController::class, 'room'])->name('draft');
+    Route::get('/draft/{draft}/state', [AuctionDraftController::class, 'state'])->name('draft.state');
+    Route::post('/draft/{draft}/spin', [AuctionDraftController::class, 'spin'])->name('draft.spin');
+    Route::post('/draft/{draft}/nominate', [AuctionDraftController::class, 'nominate'])->name('draft.nominate');
+    Route::post('/draft/{draft}/skip', [AuctionDraftController::class, 'skip'])->name('draft.skip');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');
     Route::post('/scouts/{player}/sign', [ScoutController::class, 'sign'])->name('scouts.sign');
@@ -143,6 +152,11 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::post('auctions/{auction}/resume', [AuctionSessionController::class, 'resume'])->name('auctions.resume');
     Route::post('auctions/{auction}/complete', [AuctionSessionController::class, 'complete'])->name('auctions.complete');
     Route::post('auctions/{auction}/cancel', [AuctionSessionController::class, 'cancel'])->name('auctions.cancel');
+
+    // Country draft
+    Route::get('draft/create', [AdminAuctionDraftController::class, 'create'])->name('draft.create');
+    Route::post('draft', [AdminAuctionDraftController::class, 'store'])->name('draft.store');
+    Route::post('draft/{draft}/cancel', [AdminAuctionDraftController::class, 'cancel'])->name('draft.cancel');
     Route::delete('auctions/{auction}', [AuctionSessionController::class, 'destroy'])->name('auctions.destroy');
 
     // Settings

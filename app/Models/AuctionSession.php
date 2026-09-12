@@ -12,11 +12,20 @@ class AuctionSession extends Model
     use HasFactory;
 
     /**
-     * How long, in seconds, bidding stays open after each bid before the
-     * lot is considered ready to be called (mirrors a real auction's
-     * "going once, going twice" countdown). Each new bid resets the clock.
+     * How long, in seconds, the clock runs from the very first bid on a
+     * lot. Subsequent bids don't reset this back to the full window —
+     * they only add BID_EXTENSION_SECONDS, so an active bidding war
+     * creeps the deadline forward instead of restarting a full countdown
+     * on every single bid.
      */
-    public const BID_WINDOW_SECONDS = 30;
+    public const BID_WINDOW_SECONDS = 180;
+
+    /**
+     * How long, in seconds, each bid after the first adds to the clock
+     * (an anti-snipe extension, same idea as eBay/auction-house
+     * "going once, going twice" rules).
+     */
+    public const BID_EXTENSION_SECONDS = 30;
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +42,8 @@ class AuctionSession extends Model
         'starting_bid',
         'bid_increment',
         'highest_bidder_team_id',
+        'nominated_by_team_id',
+        'auction_draft_id',
         'started_by_user_id',
         'started_at',
         'ended_at',
@@ -78,6 +89,23 @@ class AuctionSession extends Model
     public function highestBidder(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'highest_bidder_team_id');
+    }
+
+    /**
+     * The team whose pick brought this player into the auction.
+     */
+    public function nominatedBy(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'nominated_by_team_id');
+    }
+
+    /**
+     * The country-draft event this lot belongs to, if nominated
+     * through the draft rather than created manually by an admin.
+     */
+    public function draft(): BelongsTo
+    {
+        return $this->belongsTo(AuctionDraft::class, 'auction_draft_id');
     }
 
     /**

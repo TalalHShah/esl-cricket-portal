@@ -37,6 +37,26 @@
         .leader-crest-avatar .crest-box, .leader-crest-avatar .avatar-box { width: 56px; height: 56px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--line-strong); background-color: var(--surface-raised); }
         .leader-crest-avatar .avatar-box { margin-left: -14px; border-color: var(--gold); }
         .leader-crest-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .tag.passed { border-color: var(--paper-faint); color: var(--paper-faint); }
+
+        @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes overlayCardIn { 0% { transform: scale(0.7) translateY(40px); opacity: 0; } 70% { transform: scale(1.03) translateY(-6px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes overlayLogoSpin { 0% { transform: scale(1.4) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 0.18; } }
+        #soldOverlay { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; animation: overlayFadeIn 400ms ease-out; }
+        #soldOverlay .overlay-bg { position: absolute; inset: 0; }
+        #soldOverlay .overlay-logo-watermark { position: absolute; top: 50%; left: 50%; width: 70vh; height: 70vh; transform: translate(-50%, -50%); animation: overlayLogoSpin 900ms ease-out forwards; }
+        #soldOverlay .overlay-logo-watermark img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); }
+        #soldOverlay .overlay-card { position: relative; text-align: center; padding: 3rem 3.5rem; animation: overlayCardIn 650ms cubic-bezier(.2,.9,.25,1.2); max-width: 90vw; }
+        #soldOverlay .overlay-avatars { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+        #soldOverlay .overlay-crest, #soldOverlay .overlay-avatar { width: 96px; height: 96px; border-radius: 9999px; overflow: hidden; border: 3px solid rgba(255,255,255,0.85); background-color: rgba(0,0,0,0.25); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+        #soldOverlay .overlay-avatar { margin-left: -24px; }
+        #soldOverlay .overlay-crest img, #soldOverlay .overlay-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        #soldOverlay .overlay-sold-tag { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; font-size: 1rem; color: rgba(255,255,255,0.85); margin-bottom: 0.75rem; }
+        #soldOverlay .overlay-player { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: clamp(2rem, 5vw, 3.25rem); color: #fff; margin-bottom: 0.5rem; line-height: 1.05; }
+        #soldOverlay .overlay-price { font-size: clamp(1.5rem, 3vw, 2rem); color: #fff; font-weight: 700; margin-bottom: 1rem; }
+        #soldOverlay .overlay-team { font-size: 1.15rem; color: rgba(255,255,255,0.9); margin-bottom: 0.25rem; }
+        #soldOverlay .overlay-manager { font-size: 0.95rem; color: rgba(255,255,255,0.7); margin-bottom: 2rem; }
+        #soldOverlay .overlay-continue { background: rgba(255,255,255,0.95); color: #111; border: none; padding: 0.75rem 2rem; border-radius: 2px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; cursor: pointer; }
     </style>
 @endsection
 
@@ -75,7 +95,7 @@
         @if($isLive)
             <div class="text-center">
                 <div class="countdown-ring" id="countdownRing">—</div>
-                <p class="text-xs mt-2" style="color: var(--paper-faint);">seconds left</p>
+                <p class="text-xs mt-2" style="color: var(--paper-faint);">time left</p>
             </div>
         @endif
     </div>
@@ -117,7 +137,9 @@
                                 <input type="number" id="customBidInput" class="field px-3 py-2 text-sm" style="width: 10rem;" placeholder="Custom amount" min="{{ (int) $minimumBid }}" step="{{ (int) $auctionSession->bid_increment }}">
                                 <button type="button" id="bidCustomBtn" class="btn-ghost px-4 py-2 text-sm">Bid This</button>
                             </div>
+                            <button type="button" id="passBtn" class="btn-ghost px-6 py-3 text-base" style="color: var(--live); border-color: var(--live);">Pass</button>
                         </div>
+                        <p class="text-xs mt-2" id="passedNotice" style="color: var(--paper-faint); display:none;">You've passed on this bid — you'll get another chance if someone bids higher.</p>
                         <p class="text-xs mt-3" id="bidError" style="color: var(--live);"></p>
                     </div>
                 @else
@@ -143,6 +165,8 @@
             <div id="jitsiContainer" class="hidden mt-6" style="height: 480px; border-radius: 2px; overflow: hidden; border: 1px solid var(--line-strong);"></div>
         </div>
     @endif
+
+    <div id="soldOverlay" class="hidden"></div>
 
     {{-- Non-floor states --}}
     @if($isOver)
@@ -176,8 +200,18 @@
         <script>
         (function () {
             const auctionId = {{ $auctionSession->id }};
+            const isDraftLot = {{ $auctionSession->auction_draft_id ? 'true' : 'false' }};
+            const draftRoomUrl = @json(route('manager.draft'));
+            window.continueAfterAuction = function () {
+                if (isDraftLot) {
+                    window.location.href = draftRoomUrl;
+                } else {
+                    window.location.reload();
+                }
+            };
             const stateUrl = @json(route('manager.auction.state', $auctionSession));
             const bidUrl = @json(route('manager.auction.bid', $auctionSession));
+            const passUrl = @json(route('manager.auction.pass', $auctionSession));
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
             const isPausedInitial = {{ $isPaused ? 'true' : 'false' }};
             let lastBid = null;
@@ -218,6 +252,7 @@
                             <p class="text-sm font-semibold truncate" style="color: var(--paper);">${p.manager_name || 'Manager'}${p.is_you ? ' (You)' : ''}</p>
                             <p class="text-xs truncate" style="color: var(--paper-faint);">${p.team_short_name || p.team_name || ''}</p>
                             ${p.is_leading ? '<span class="tag gold" style="font-size:0.6rem;">Leading</span>' : ''}
+                            ${!p.is_leading && p.has_passed ? '<span class="tag passed" style="font-size:0.6rem;">Passed</span>' : ''}
                             ${!p.is_online ? '<span class="text-xs" style="color: var(--paper-faint);"> — away</span>' : ''}
                         </div>
                     `;
@@ -250,8 +285,10 @@
                 const ring = document.getElementById('countdownRing');
                 if (!ring || !deadline) { if (ring) ring.textContent = '—'; return; }
                 const remaining = Math.max(0, Math.round((new Date(deadline) - new Date()) / 1000));
-                ring.textContent = remaining;
-                ring.classList.toggle('urgent', remaining <= 10);
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                ring.textContent = mins + ':' + String(secs).padStart(2, '0');
+                ring.classList.toggle('urgent', remaining <= 15);
             }
             setInterval(tickCountdown, 1000);
             tickCountdown();
@@ -290,23 +327,73 @@
                 const expiredNotice = document.getElementById('timeExpiredNotice');
                 const bidMinBtn = document.getElementById('bidMinBtn');
                 const bidCustomBtn = document.getElementById('bidCustomBtn');
+                const passBtn = document.getElementById('passBtn');
+                const passedNotice = document.getElementById('passedNotice');
                 if (expiredNotice) {
                     expiredNotice.classList.toggle('hidden', !data.time_expired);
                 }
                 if (data.you) {
-                    const disable = data.time_expired || data.you.is_leading || !data.you.has_squad_space;
-                    if (bidMinBtn) bidMinBtn.disabled = disable;
-                    if (bidCustomBtn) bidCustomBtn.disabled = disable;
+                    const disableBid = data.time_expired || data.you.is_leading || !data.you.has_squad_space || data.you.has_passed;
+                    if (bidMinBtn) bidMinBtn.disabled = disableBid;
+                    if (bidCustomBtn) bidCustomBtn.disabled = disableBid;
+                    if (passBtn) passBtn.disabled = data.you.is_leading || data.you.has_passed || !data.leader;
+                    if (passedNotice) passedNotice.style.display = (data.you.has_passed && !data.you.is_leading) ? 'block' : 'none';
                 }
 
                 renderSeats(data.participants || []);
 
                 if (data.status !== 'live' && data.status !== 'paused') {
                     polling = false;
-                    window.location.reload();
+                    showConclusionOverlay(data);
                 } else if (isPausedInitial !== (data.status === 'paused')) {
                     window.location.reload();
                 }
+            }
+
+            function coloredCrestBg(leader) {
+                const c1 = (leader && leader.primary_color) || '#1D4ED8';
+                const c2 = (leader && leader.secondary_color) || '#0D1220';
+                return `linear-gradient(155deg, ${c1} 0%, ${c2} 85%)`;
+            }
+
+            function showConclusionOverlay(data) {
+                const overlay = document.getElementById('soldOverlay');
+                if (!overlay) { window.location.reload(); return; }
+
+                if (data.sale_result === 'sold' && data.leader) {
+                    const leader = data.leader;
+                    overlay.innerHTML = `
+                        <div class="overlay-bg" style="background: ${coloredCrestBg(leader)};"></div>
+                        ${leader.team_logo ? `<div class="overlay-logo-watermark"><img src="${leader.team_logo}" alt=""></div>` : ''}
+                        <div class="overlay-card">
+                            <p class="overlay-sold-tag">Sold!</p>
+                            <div class="overlay-avatars">
+                                <div class="overlay-crest">${leader.team_logo ? `<img src="${leader.team_logo}" alt="">` : ''}</div>
+                                <div class="overlay-avatar">${leader.manager_avatar ? `<img src="${leader.manager_avatar}" alt="">` : ''}</div>
+                            </div>
+                            <p class="overlay-player">${data.player_name || ''}</p>
+                            <p class="overlay-price">${fmtMoney(data.current_bid, 22)}</p>
+                            <p class="overlay-team">Won by ${leader.team_name}</p>
+                            <p class="overlay-manager">Managed by ${leader.manager_name || '—'}</p>
+                            <button type="button" class="overlay-continue" onclick="continueAfterAuction()">Continue</button>
+                        </div>
+                    `;
+                } else if (data.sale_result === 'unsold') {
+                    overlay.innerHTML = `
+                        <div class="overlay-bg" style="background: linear-gradient(155deg, #313C5C 0%, #0D1220 85%);"></div>
+                        <div class="overlay-card">
+                            <p class="overlay-sold-tag">Unsold</p>
+                            <p class="overlay-player">${data.player_name || ''}</p>
+                            <p class="overlay-manager" style="margin-bottom:2rem;">No winning bid was finalized for this lot.</p>
+                            <button type="button" class="overlay-continue" onclick="continueAfterAuction()">Continue</button>
+                        </div>
+                    `;
+                } else {
+                    window.location.reload();
+                    return;
+                }
+
+                overlay.classList.remove('hidden');
             }
 
             function poll() {
@@ -352,6 +439,26 @@
                     return;
                 }
                 placeBid(val);
+            });
+
+            const passBtn = document.getElementById('passBtn');
+            if (passBtn) passBtn.addEventListener('click', () => {
+                const errorEl = document.getElementById('bidError');
+                if (errorEl) errorEl.textContent = '';
+                fetch(passUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ _token: csrf }).toString(),
+                }).then(async r => {
+                    const data = await r.json();
+                    if (!r.ok) {
+                        if (errorEl) errorEl.textContent = data.error || 'Could not pass.';
+                        return;
+                    }
+                    poll();
+                }).catch(() => {
+                    if (errorEl) errorEl.textContent = 'Network error — try again.';
+                });
             });
 
             // Video/voice call (Jitsi Meet public server)

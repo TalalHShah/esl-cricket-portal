@@ -6,7 +6,7 @@ use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\AuctionSession;
 use App\Models\Player;
-use App\Models\Transfer;
+use App\Services\AuctionCompletionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -130,56 +130,18 @@ class AuctionSessionController extends Controller
      * as an approved auction Transfer. If nobody bid, the player simply
      * stays a free agent and the session closes as unsold.
      */
-    public function complete(AuctionSession $auction): RedirectResponse
+    public function complete(AuctionSession $auction, AuctionCompletionService $completion): RedirectResponse
     {
         if (! in_array($auction->status, ['live', 'paused'], true)) {
             return back()->withErrors(['auction' => 'Only a live or paused auction can be completed.']);
         }
 
-        $squadFull = false;
+        $result = $completion->complete($auction, Auth::id());
+        $auction = $result['auction'];
 
-        DB::transaction(function () use ($auction, &$squadFull) {
-            if ($auction->highest_bidder_team_id && $auction->current_bid > 0) {
-                $player = $auction->player;
-                $team = $auction->highestBidder;
-
-                if ($team->hasSquadSpace()) {
-                    $player->update([
-                        'team_id' => $team->id,
-                        'sold_price' => $auction->current_bid,
-                        'is_auctioned' => true,
-                    ]);
-
-                    $team->increment('spent', $auction->current_bid);
-
-                    Transfer::create([
-                        'player_id' => $player->id,
-                        'from_team_id' => null,
-                        'to_team_id' => $team->id,
-                        'fee' => $auction->current_bid,
-                        'type' => 'auction',
-                        'status' => 'approved',
-                        'requested_by_user_id' => Auth::id(),
-                        'approved_by_user_id' => Auth::id(),
-                        'effective_at' => now(),
-                        'notes' => "Auction sale: {$player->name} to {$team->name}",
-                    ]);
-                } else {
-                    $squadFull = true;
-                }
-            }
-
-            $auction->update([
-                'status' => 'completed',
-                'ended_at' => now(),
-            ]);
-        });
-
-        $auction->refresh();
-
-        if ($squadFull) {
+        if ($result['squad_full']) {
             $message = "{$auction->player?->name} went unsold — {$auction->highestBidder?->name}'s squad was full (" . \App\Models\Team::SQUAD_LIMIT . ' players max) by the time the auction was completed.';
-        } elseif ($auction->highest_bidder_team_id) {
+        } elseif ($result['sold']) {
             $message = "{$auction->player?->name} sold to {$auction->highestBidder?->name} for PKR " . number_format((float) $auction->current_bid, 0) . '.';
         } else {
             $message = "{$auction->player?->name} went unsold — no bids were placed.";

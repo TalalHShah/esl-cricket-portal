@@ -18,6 +18,7 @@ class AuctionParticipant extends Model
         'user_id',
         'joined_at',
         'last_seen_at',
+        'passed_at',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class AuctionParticipant extends Model
         return [
             'joined_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'passed_at' => 'datetime',
         ];
     }
 
@@ -46,5 +48,10 @@ class AuctionParticipant extends Model
     public function isOnline(): bool
     {
         return $this->last_seen_at?->diffInSeconds(now()) <= self::ONLINE_THRESHOLD_SECONDS;
+    }
+
+    public function hasPassed(): bool
+    {
+        return $this->passed_at !== null;
     }
 }

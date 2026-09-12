@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuctionParticipant;
 use App\Models\AuctionSession;
 use App\Models\Team;
+use App\Services\AuctionCompletionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -63,6 +64,18 @@ class AuctionController extends Controller
     {
         $auctionSession->load(['player', 'currentTeam', 'highestBidder']);
         $team = Auth::user()->managedTeam;
+
+        // A lot nominated through the country draft seats everyone
+        // automatically — they were just redirected here by the draft
+        // room, so there's no separate "Join" step to click through.
+        if ($auctionSession->auction_draft_id && $team && ! session('auction_room_joined_' . $auctionSession->id, false)) {
+            session(['auction_room_joined_' . $auctionSession->id => true]);
+            AuctionParticipant::updateOrCreate(
+                ['auction_session_id' => $auctionSession->id, 'team_id' => $team->id],
+                ['user_id' => Auth::id(), 'joined_at' => now(), 'last_seen_at' => now()]
+            );
+        }
+
         $joined = session('auction_room_joined_' . $auctionSession->id, false);
 
         return view('manager.auction-room', compact('auctionSession', 'team', 'joined'));
@@ -90,8 +103,10 @@ class AuctionController extends Controller
      * (bid, leader, countdown, seated managers) as JSON so the room
      * can update itself without a full page reload.
      */
-    public function state(AuctionSession $auctionSession): JsonResponse
+    public function state(AuctionSession $auctionSession, AuctionCompletionService $completion): JsonResponse
     {
+        $auctionSession = $completion->completeIfExpired($auctionSession);
+
         $team = Auth::user()->managedTeam;
 
         if ($team && session('auction_room_joined_' . $auctionSession->id, false)) {
@@ -108,6 +123,15 @@ class AuctionController extends Controller
 
         $auctionSession->load(['player', 'highestBidder.manager']);
 
+        $saleResult = null;
+        if (in_array($auctionSession->status, ['completed', 'cancelled'], true)) {
+            $saleResult = $auctionSession->status === 'cancelled'
+                ? 'cancelled'
+                : ($auctionSession->highest_bidder_team_id && $auctionSession->player?->team_id === $auctionSession->highest_bidder_team_id
+                    ? 'sold'
+                    : 'unsold');
+        }
+
         $participants = AuctionParticipant::with(['team.manager'])
             ->where('auction_session_id', $auctionSession->id)
             ->get()
@@ -121,6 +145,7 @@ class AuctionController extends Controller
                 'is_leading' => $p->team_id === $auctionSession->highest_bidder_team_id,
                 'is_online' => $p->isOnline(),
                 'is_you' => $team && $p->team_id === $team->id,
+                'has_passed' => $p->hasPassed(),
             ])
             ->values();
 
@@ -128,8 +153,13 @@ class AuctionController extends Controller
             ? (float) $auctionSession->current_bid + (float) $auctionSession->bid_increment
             : (float) $auctionSession->starting_bid;
 
+        $myParticipant = $team
+            ? AuctionParticipant::where('auction_session_id', $auctionSession->id)->where('team_id', $team->id)->first()
+            : null;
+
         return response()->json([
             'status' => $auctionSession->status,
+            'sale_result' => $saleResult,
             'player_name' => $auctionSession->player?->name,
             'current_bid' => (float) $auctionSession->current_bid,
             'starting_bid' => (float) $auctionSession->starting_bid,
@@ -142,6 +172,8 @@ class AuctionController extends Controller
                 'team_logo' => $auctionSession->highestBidder->logo ? asset('storage/' . $auctionSession->highestBidder->logo) : null,
                 'manager_name' => $auctionSession->highestBidder->manager?->name,
                 'manager_avatar' => $auctionSession->highestBidder->manager?->avatar ? asset('storage/' . $auctionSession->highestBidder->manager->avatar) : null,
+                'primary_color' => $auctionSession->highestBidder->primary_color,
+                'secondary_color' => $auctionSession->highestBidder->secondary_color,
             ] : null,
             'deadline_at' => $auctionSession->bid_deadline_at?->toIso8601String(),
             'time_expired' => $auctionSession->biddingTimeExpired(),
@@ -152,6 +184,7 @@ class AuctionController extends Controller
                 'remaining_budget' => $team->remainingBudget(),
                 'has_squad_space' => $team->hasSquadSpace(),
                 'is_leading' => $team->id === $auctionSession->highest_bidder_team_id,
+                'has_passed' => $myParticipant?->hasPassed() ?? false,
             ] : null,
         ]);
     }
@@ -206,12 +239,22 @@ class AuctionController extends Controller
                 return ['error' => 'Insufficient budget to place this bid.'];
             }
 
+            $isFirstBid = (float) $locked->current_bid <= 0;
+            $newDeadline = $isFirstBid
+                ? now()->addSeconds(AuctionSession::BID_WINDOW_SECONDS)
+                : ($locked->bid_deadline_at && $locked->bid_deadline_at->isFuture() ? $locked->bid_deadline_at : now())
+                    ->copy()->addSeconds(AuctionSession::BID_EXTENSION_SECONDS);
+
             $locked->update([
                 'current_bid' => $bidAmount,
                 'current_team_id' => $team->id,
                 'highest_bidder_team_id' => $team->id,
-                'bid_deadline_at' => now()->addSeconds(AuctionSession::BID_WINDOW_SECONDS),
+                'bid_deadline_at' => $newDeadline,
             ]);
+
+            // A new highest bid reopens the floor — everyone who had
+            // passed gets to reconsider against the new price.
+            AuctionParticipant::where('auction_session_id', $locked->id)->update(['passed_at' => null]);
 
             return ['success' => true, 'amount' => $bidAmount];
         });
@@ -225,5 +268,70 @@ class AuctionController extends Controller
         }
 
         return back()->with('status', 'Bid placed: PKR ' . number_format($result['amount'], 0));
+    }
+
+    /**
+     * A seated team declines to bid further at the current price. Once
+     * every other seated team has passed against the current highest
+     * bid, the lot is sold immediately — no need to wait out the clock
+     * or for the admin to step in.
+     */
+    public function pass(AuctionSession $auctionSession, AuctionCompletionService $completion): JsonResponse
+    {
+        $team = Auth::user()->managedTeam;
+
+        if (! $team) {
+            return response()->json(['error' => 'You are not assigned to manage a team.'], 422);
+        }
+
+        if (! session('auction_room_joined_' . $auctionSession->id, false)) {
+            return response()->json(['error' => 'Join the auction room first.'], 422);
+        }
+
+        $result = DB::transaction(function () use ($auctionSession, $team, $completion) {
+            $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
+
+            if ($locked->status !== 'live') {
+                return ['error' => 'This auction is not currently live.'];
+            }
+
+            if (! $locked->highest_bidder_team_id) {
+                return ['error' => 'There is no bid yet to pass on.'];
+            }
+
+            if ($locked->highest_bidder_team_id === $team->id) {
+                return ['error' => 'You are leading this bid — you cannot pass.'];
+            }
+
+            $participant = AuctionParticipant::where('auction_session_id', $locked->id)
+                ->where('team_id', $team->id)
+                ->first();
+
+            if (! $participant) {
+                return ['error' => 'Join the auction room first.'];
+            }
+
+            $participant->update(['passed_at' => now()]);
+
+            $others = AuctionParticipant::where('auction_session_id', $locked->id)
+                ->where('team_id', '!=', $locked->highest_bidder_team_id)
+                ->get();
+
+            $everyoneElsePassed = $others->isNotEmpty() && $others->every(fn (AuctionParticipant $p) => $p->hasPassed());
+
+            if ($everyoneElsePassed) {
+                $completion->complete($locked, null);
+
+                return ['success' => true, 'completed' => true];
+            }
+
+            return ['success' => true, 'completed' => false];
+        });
+
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], 422);
+        }
+
+        return response()->json($result);
     }
 }

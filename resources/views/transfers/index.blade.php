@@ -13,7 +13,7 @@
         @include('partials.stat-card', ['label' => 'Total Transfers', 'value' => $totals['count']])
         @include('partials.stat-card', ['label' => 'Approved', 'value' => $totals['approved'], 'accent' => 'up'])
         @include('partials.stat-card', ['label' => 'Pending', 'value' => $totals['pending'], 'accent' => 'gold'])
-        @include('partials.stat-card', ['label' => 'Total Spend', 'value' => number_format((float) $totals['spend'], 0), 'accent' => 'gold'])
+        @include('partials.stat-card', ['label' => 'Total Spend', 'value' => (float) $totals['spend'], 'accent' => 'gold', 'money' => true])
     </div>
 
     <div class="card-section mb-10 p-6">
@@ -66,7 +66,7 @@
                         <td style="color: var(--paper-dim);">{{ $transfer->fromTeam?->name ?? 'Free Agent' }}</td>
                         <td style="color: var(--paper-dim);">{{ $transfer->toTeam?->name ?? 'Released' }}</td>
                         <td style="color: var(--paper-dim);">{{ ucfirst($transfer->type) }}</td>
-                        <td style="text-align:right; color: var(--gold); font-weight: 600;">{{ number_format((float) $transfer->fee, 0) }}</td>
+                        <td style="text-align:right; color: var(--gold); font-weight: 600;"><x-money :amount="$transfer->fee" /></td>
                         <td>@include('partials.status-badge', ['status' => $transfer->status])</td>
                     </tr>
                 @empty

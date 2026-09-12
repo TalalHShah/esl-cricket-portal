@@ -20,7 +20,7 @@
                     </div>
                     <div class="flex justify-between items-baseline">
                         <span class="text-sm" style="color: var(--paper-faint);">Avg Value</span>
-                        <span class="text-lg font-semibold" style="color: var(--gold);">{{ number_format($tier->avg_value, 0) }}</span>
+                        <span class="text-lg font-semibold" style="color: var(--gold);"><x-money :amount="$tier->avg_value" /></span>
                     </div>
                 </div>
             </div>

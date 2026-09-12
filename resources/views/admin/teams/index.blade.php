@@ -42,7 +42,7 @@
                 <div class="space-y-2">
                     <div class="flex justify-between">
                         <span class="text-sm text-slate-400">Budget:</span>
-                        <span class="text-sm font-bold text-emerald-300">PKR {{ number_format($team->budget) }}</span>
+                        <span class="text-sm font-bold text-emerald-300"><x-money :amount="$team->budget" :size="14" /></span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm text-slate-400">Players:</span>

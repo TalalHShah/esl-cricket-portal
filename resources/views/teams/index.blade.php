@@ -44,11 +44,11 @@
                     </div>
                     <div>
                         <p class="stat-caption mb-1">Budget</p>
-                        <p class="text-base font-semibold" style="color: var(--gold);">{{ number_format((float) $team->budget, 0) }}</p>
+                        <p class="text-base font-semibold" style="color: var(--gold);"><x-money :amount="$team->budget" /></p>
                     </div>
                     <div>
                         <p class="stat-caption mb-1">Remaining</p>
-                        <p class="text-base font-semibold" style="color: var(--up);">{{ number_format($team->remainingBudget(), 0) }}</p>
+                        <p class="text-base font-semibold" style="color: var(--up);"><x-money :amount="$team->remainingBudget()" /></p>
                     </div>
                 </div>
             </a>

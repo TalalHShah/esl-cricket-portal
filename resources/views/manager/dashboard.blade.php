@@ -30,15 +30,15 @@
 
         <div class="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-2 lg:grid-cols-4">
             <div class="stat">
-                <p class="stat-figure gold">{{ number_format((float) $team->budget, 0) }}</p>
+                <p class="stat-figure gold"><x-money :amount="$team->budget" :size="18" /></p>
                 <p class="stat-caption">Total Budget</p>
             </div>
             <div class="stat">
-                <p class="stat-figure">{{ number_format((float) $team->spent, 0) }}</p>
+                <p class="stat-figure"><x-money :amount="$team->spent" :size="18" /></p>
                 <p class="stat-caption">Spent</p>
             </div>
             <div class="stat">
-                <p class="stat-figure up">{{ number_format($team->remainingBudget(), 0) }}</p>
+                <p class="stat-figure up"><x-money :amount="$team->remainingBudget()" :size="18" /></p>
                 <p class="stat-caption">Remaining</p>
             </div>
             <div class="stat">
@@ -79,7 +79,7 @@
                                 <p class="font-semibold" style="color: var(--paper);">{{ $player->name }}</p>
                                 <p class="text-xs" style="color: var(--paper-faint);">{{ $player->role }} &nbsp;—&nbsp; {{ $player->tier }}</p>
                             </div>
-                            <p class="text-base font-semibold" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
+                            <p class="text-base font-semibold" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
                         </div>
                     @empty
                         <div class="p-10 text-center" style="color: var(--paper-faint);">No players in squad yet — visit Scouts to sign players</div>

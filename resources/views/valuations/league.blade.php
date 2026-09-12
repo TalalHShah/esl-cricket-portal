@@ -43,17 +43,17 @@
                             @endif
                         </td>
                         <td><span class="tag">{{ $player->tier }}</span></td>
-                        <td style="text-align:right; color: var(--paper-dim);">{{ number_format($player->base_value, 0) }}</td>
-                        <td style="text-align:right; font-weight: 600; color: var(--gold);">{{ number_format($player->current_value, 0) }}</td>
+                        <td style="text-align:right; color: var(--paper-dim);"><x-money :amount="$player->base_value" /></td>
+                        <td style="text-align:right; font-weight: 600; color: var(--gold);"><x-money :amount="$player->current_value" /></td>
                         <td style="text-align:right; font-weight: 600;">
                             @php
                                 $change = $player->current_value - $player->base_value;
                                 $changePercent = $player->base_value > 0 ? ($change / $player->base_value) * 100 : 0;
                             @endphp
                             @if ($change > 0)
-                                <span style="color: var(--up);">+{{ number_format($change, 0) }} (+{{ number_format($changePercent, 1) }}%)</span>
+                                <span style="color: var(--up);">+<x-money :amount="$change" /> (+{{ number_format($changePercent, 1) }}%)</span>
                             @elseif ($change < 0)
-                                <span style="color: var(--live);">{{ number_format($change, 0) }} ({{ number_format($changePercent, 1) }}%)</span>
+                                <span style="color: var(--live);">-<x-money :amount="abs($change)" /> ({{ number_format($changePercent, 1) }}%)</span>
                             @else
                                 <span style="color: var(--paper-faint);">—</span>
                             @endif

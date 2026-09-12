@@ -11,15 +11,15 @@
     @if($team)
         <div class="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-3">
             <div class="stat">
-                <p class="stat-figure gold">{{ number_format((float) $team->budget, 0) }}</p>
+                <p class="stat-figure gold"><x-money :amount="$team->budget" :size="18" /></p>
                 <p class="stat-caption">Total Budget</p>
             </div>
             <div class="stat">
-                <p class="stat-figure up">{{ number_format($team->remainingBudget(), 0) }}</p>
+                <p class="stat-figure up"><x-money :amount="$team->remainingBudget()" :size="18" /></p>
                 <p class="stat-caption">Available to Bid</p>
             </div>
             <div class="stat">
-                <p class="stat-figure">{{ number_format((float) $team->spent, 0) }}</p>
+                <p class="stat-figure"><x-money :amount="$team->spent" :size="18" /></p>
                 <p class="stat-caption">Already Spent</p>
             </div>
         </div>
@@ -38,7 +38,7 @@
                     </div>
                     <div class="text-right">
                         <p class="stat-caption mb-1">Current Bid</p>
-                        <p class="stat-figure gold">{{ number_format((float) $session->current_bid ?: $session->starting_bid, 0) }}</p>
+                        <p class="stat-figure gold"><x-money :amount="$session->current_bid ?: $session->starting_bid" :size="18" /></p>
                         @if($session->highestBidder)
                             <p class="text-xs mt-1" style="color: var(--paper-faint);">Leading — {{ $session->highestBidder->name }}</p>
                         @endif
@@ -59,7 +59,7 @@
                 @forelse ($upcomingSessions as $session)
                     <a href="{{ route('manager.auction.room', $session) }}" class="news-row row-hover px-6 block">
                         <p class="font-semibold" style="color: var(--paper);">{{ $session->player?->name ?? $session->name }}</p>
-                        <p class="text-xs mt-1" style="color: var(--paper-faint);">Starting bid — {{ number_format((float) $session->starting_bid, 0) }}</p>
+                        <p class="text-xs mt-1" style="color: var(--paper-faint);">Starting bid — <x-money :amount="$session->starting_bid" /></p>
                     </a>
                 @empty
                     <div class="p-10 text-center" style="color: var(--paper-faint);">No scheduled auctions</div>
@@ -77,7 +77,7 @@
                             <p class="font-semibold" style="color: var(--paper);">{{ $session->player?->name ?? $session->name }}</p>
                             <p class="text-xs mt-1" style="color: var(--paper-faint);">{{ $session->highestBidder?->name ?? '—' }}</p>
                         </div>
-                        <p class="text-sm font-semibold" style="color: var(--gold);">{{ number_format((float) $session->current_bid, 0) }}</p>
+                        <p class="text-sm font-semibold" style="color: var(--gold);"><x-money :amount="$session->current_bid" /></p>
                     </div>
                 @empty
                     <div class="p-10 text-center" style="color: var(--paper-faint);">No completed auctions yet</div>

@@ -90,7 +90,7 @@
     <footer class="mt-20 py-10" style="background-color: var(--surface); border-top: var(--rule);">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
             <p class="font-display text-lg font-semibold mb-2" style="color: var(--paper);">ESL CRICKET — MANAGER PORTAL</p>
-            <p class="text-sm" style="color: var(--paper-faint);">&copy; {{ date('Y') }} Elite Series League</p>
+            <p class="text-sm" style="color: var(--paper-faint);">&copy; {{ date('Y') }} Emirates Sports League</p>
         </div>
     </footer>
 

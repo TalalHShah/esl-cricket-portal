@@ -23,7 +23,7 @@
         @include('partials.stat-card', ['label' => 'Pending Matches', 'value' => $stats['pending_matches'], 'accent' => 'amber'])
         @include('partials.stat-card', ['label' => 'Disputed Matches', 'value' => $stats['disputed_matches'], 'accent' => 'rose'])
         @include('partials.stat-card', ['label' => 'Pending Transfers', 'value' => $stats['pending_transfers'], 'accent' => 'amber'])
-        @include('partials.stat-card', ['label' => 'Total Squad Value', 'value' => number_format((float) $stats['total_squad_value'], 0), 'accent' => 'emerald'])
+        @include('partials.stat-card', ['label' => 'Total Squad Value', 'value' => (float) $stats['total_squad_value'], 'accent' => 'emerald', 'money' => true])
     </div>
 
     <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -31,9 +31,9 @@
         <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
             <h2 class="font-semibold text-white">League Finances</h2>
             <dl class="mt-4 space-y-3 text-sm">
-                <div class="flex justify-between"><dt class="text-slate-500">Total Budget</dt><dd class="font-semibold text-emerald-400">{{ number_format((float) $stats['total_budget'], 0) }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Total Spent</dt><dd class="font-semibold text-amber-400">{{ number_format((float) $stats['total_spent'], 0) }}</dd></div>
-                <div class="flex justify-between border-t border-slate-800 pt-3"><dt class="text-slate-400">Remaining</dt><dd class="font-semibold text-sky-400">{{ number_format((float) $stats['total_budget'] - (float) $stats['total_spent'], 0) }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-500">Total Budget</dt><dd class="font-semibold text-emerald-400"><x-money :amount="$stats['total_budget']" :size="14" /></dd></div>
+                <div class="flex justify-between"><dt class="text-slate-500">Total Spent</dt><dd class="font-semibold text-amber-400"><x-money :amount="$stats['total_spent']" :size="14" /></dd></div>
+                <div class="flex justify-between border-t border-slate-800 pt-3"><dt class="text-slate-400">Remaining</dt><dd class="font-semibold text-sky-400"><x-money :amount="$stats['total_budget'] - $stats['total_spent']" :size="14" /></dd></div>
             </dl>
         </div>
 

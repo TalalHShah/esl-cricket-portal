@@ -26,15 +26,15 @@
 
     <div class="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-3">
         <div class="stat">
-            <p class="stat-figure gold">{{ number_format((float) $team->budget, 0) }}</p>
+            <p class="stat-figure gold"><x-money :amount="$team->budget" :size="18" /></p>
             <p class="stat-caption">Total Budget</p>
         </div>
         <div class="stat">
-            <p class="stat-figure">{{ number_format((float) $team->spent, 0) }}</p>
+            <p class="stat-figure"><x-money :amount="$team->spent" :size="18" /></p>
             <p class="stat-caption">Spent</p>
         </div>
         <div class="stat">
-            <p class="stat-figure up">{{ number_format($team->remainingBudget(), 0) }}</p>
+            <p class="stat-figure up"><x-money :amount="$team->remainingBudget()" :size="18" /></p>
             <p class="stat-caption">Remaining</p>
         </div>
     </div>
@@ -55,7 +55,7 @@
                         </div>
                         <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
                         <p class="text-xs" style="color: var(--paper-faint);">{{ $player->role }}</p>
-                        <p class="text-sm font-semibold mt-1" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
+                        <p class="text-sm font-semibold mt-1" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
                     </a>
                 @empty
                     <div class="col-span-full card-section p-10 text-center" style="color: var(--paper-faint);">No players in this squad</div>

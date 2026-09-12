@@ -25,7 +25,7 @@
         @if($player->age)
             <p class="text-xs mb-3" style="color: var(--paper-faint);">Age {{ $player->age }}</p>
         @endif
-        <p class="text-lg font-semibold mb-4" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</p>
+        <p class="text-lg font-semibold mb-4" style="color: var(--gold);"><x-money :amount="$player->current_value" :size="16" /></p>
 
         {{ $slot }}
     </div>
@@ -55,7 +55,7 @@
 
             <h3 class="text-base font-semibold mb-1" style="color: #fff;">{{ $player->name }}</h3>
             <p class="text-xs mb-3" style="color: rgba(255,255,255,0.75);">{{ $player->role }} — {{ $team->name }}</p>
-            <p class="text-lg font-semibold mb-4" style="color: #fff;">{{ number_format((float) $player->current_value, 0) }}</p>
+            <p class="text-lg font-semibold mb-4" style="color: #fff;"><x-money :amount="$player->current_value" :size="16" /></p>
 
             {{ $slot }}
         </div>

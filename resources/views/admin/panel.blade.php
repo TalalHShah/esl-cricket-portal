@@ -28,7 +28,7 @@
         </div>
         <div class="cricket-card rounded-2xl p-6">
             <p class="text-xs font-bold uppercase text-cyan-400">Total Budget</p>
-            <p class="text-lg font-black text-white mt-2">PKR {{ number_format($stats['total_budget']) }}</p>
+            <p class="text-lg font-black text-white mt-2"><x-money :amount="$stats['total_budget']" :size="16" /></p>
         </div>
     </div>
 

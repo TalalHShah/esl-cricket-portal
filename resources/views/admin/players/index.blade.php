@@ -43,7 +43,7 @@
                                 {{ $player->tier }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-emerald-400 font-semibold">PKR {{ number_format($player->base_value) }}</td>
+                        <td class="px-6 py-4 text-emerald-400 font-semibold"><x-money :amount="$player->base_value" :size="14" /></td>
                         <td class="px-6 py-4">
                             <span class="px-3 py-1 rounded-full text-xs font-bold {{ $player->is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300' }}">
                                 {{ $player->is_active ? 'Active' : 'Inactive' }}

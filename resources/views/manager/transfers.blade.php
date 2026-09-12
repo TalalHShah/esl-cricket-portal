@@ -11,7 +11,7 @@
 
     @if($team)
         <div class="stat mb-10">
-            <p class="stat-figure up">{{ number_format($team->remainingBudget(), 0) }}</p>
+            <p class="stat-figure up"><x-money :amount="$team->remainingBudget()" :size="18" /></p>
             <p class="stat-caption">Available Budget</p>
         </div>
     @endif
@@ -75,7 +75,7 @@
                             {{ $transfer->fromTeam?->short_name ?? '—' }} &rarr; {{ $transfer->toTeam?->short_name ?? '—' }}
                         </p>
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold" style="color: var(--gold);">{{ number_format((float) $transfer->fee, 0) }}</span>
+                            <span class="text-sm font-semibold" style="color: var(--gold);"><x-money :amount="$transfer->fee" /></span>
                             <span class="status-pill {{ $transfer->status === 'approved' ? 'confirmed' : ($transfer->status === 'rejected' ? 'live' : 'pending') }}">
                                 {{ ucfirst($transfer->status) }}
                             </span>

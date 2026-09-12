@@ -87,8 +87,8 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 // Public Admin Dashboard (read-only for all)
 Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 
-// Admin Control Panel (CRUD) — TODO: add IsAdmin middleware after auth is built
-Route::prefix('admin')->name('admin.')->group(function () {
+// Admin Control Panel (CRUD) — restricted to authenticated admins only
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/panel', [AdminController::class, 'panel'])->name('panel');
 
     // Manager CRUD

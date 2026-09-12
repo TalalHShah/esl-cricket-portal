@@ -51,16 +51,16 @@
             <div class="mt-6 pt-4 space-y-2" style="border-top: var(--rule);">
                 <div class="flex justify-between text-sm">
                     <span style="color: var(--paper-faint);">Base Value</span>
-                    <span class="font-semibold" style="color: var(--paper);">{{ number_format((float) $player->base_value, 0) }}</span>
+                    <span class="font-semibold" style="color: var(--paper);"><x-money :amount="$player->base_value" /></span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span style="color: var(--paper-faint);">Current Value</span>
-                    <span class="font-semibold" style="color: var(--gold);">{{ number_format((float) $player->current_value, 0) }}</span>
+                    <span class="font-semibold" style="color: var(--gold);"><x-money :amount="$player->current_value" /></span>
                 </div>
                 @if (! is_null($player->sold_price))
                     <div class="flex justify-between text-sm">
                         <span style="color: var(--paper-faint);">Sold Price</span>
-                        <span class="font-semibold" style="color: var(--up);">{{ number_format((float) $player->sold_price, 0) }}</span>
+                        <span class="font-semibold" style="color: var(--up);"><x-money :amount="$player->sold_price" /></span>
                     </div>
                 @endif
             </div>

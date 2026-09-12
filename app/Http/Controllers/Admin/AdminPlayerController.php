@@ -9,6 +9,9 @@ use App\Http\Controllers\Controller;
 
 class AdminPlayerController extends Controller
 {
+    private const ROLES = ['Batsman', 'Wicketkeeper', 'All-rounder', 'Fast Bowler', 'Spinner'];
+    private const TIERS = ['Superstar', 'Star', 'Normal', 'Low-value'];
+
     public function index()
     {
         $players = Player::with('team')->paginate(15);
@@ -18,8 +21,8 @@ class AdminPlayerController extends Controller
     public function create()
     {
         $teams = Team::all();
-        $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
-        $roles = ['Batsman', 'Bowler', 'All-rounder', 'Wicket-keeper'];
+        $tiers = self::TIERS;
+        $roles = self::ROLES;
         return view('admin.players.create', compact('teams', 'tiers', 'roles'));
     }
 
@@ -27,23 +30,31 @@ class AdminPlayerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'country' => 'required|string|max:64',
             'team_id' => 'nullable|exists:teams,id',
-            'role' => 'required|in:Batsman,Bowler,All-rounder,Wicket-keeper',
-            'tier' => 'required|in:Superstar,Star,Normal,Low-value',
+            'role' => 'required|in:' . implode(',', self::ROLES),
+            'tier' => 'required|in:' . implode(',', self::TIERS),
             'base_value' => 'required|numeric|min:0',
+            'age' => 'nullable|integer|min:14|max:50',
+            'photo' => 'nullable|image|max:4096',
             'is_active' => 'boolean',
         ]);
 
-        Player::create($validated);
+        if ($request->hasFile('photo')) {
+            $validated['image'] = $request->file('photo')->store('player-photos', 'public');
+        }
+        unset($validated['photo']);
 
-        return redirect()->route('admin.players.index')->with('status', "Player '{$validated['name']}' created.");
+        $player = Player::create($validated);
+
+        return redirect()->route('admin.players.index')->with('status', "Player '{$player->name}' created.");
     }
 
     public function edit(Player $player)
     {
         $teams = Team::all();
-        $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
-        $roles = ['Batsman', 'Bowler', 'All-rounder', 'Wicket-keeper'];
+        $tiers = self::TIERS;
+        $roles = self::ROLES;
         return view('admin.players.edit', compact('player', 'teams', 'tiers', 'roles'));
     }
 
@@ -51,12 +62,26 @@ class AdminPlayerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'country' => 'required|string|max:64',
             'team_id' => 'nullable|exists:teams,id',
-            'role' => 'required|in:Batsman,Bowler,All-rounder,Wicket-keeper',
-            'tier' => 'required|in:Superstar,Star,Normal,Low-value',
+            'role' => 'required|in:' . implode(',', self::ROLES),
+            'tier' => 'required|in:' . implode(',', self::TIERS),
             'base_value' => 'required|numeric|min:0',
+            'age' => 'nullable|integer|min:14|max:50',
+            'photo' => 'nullable|image|max:4096',
+            'remove_photo' => 'nullable|boolean',
             'is_active' => 'boolean',
         ]);
+
+        if ($request->boolean('remove_photo')) {
+            $validated['image'] = null;
+        }
+
+        if ($request->hasFile('photo')) {
+            $validated['image'] = $request->file('photo')->store('player-photos', 'public');
+        }
+
+        unset($validated['photo'], $validated['remove_photo']);
 
         $player->update($validated);
 

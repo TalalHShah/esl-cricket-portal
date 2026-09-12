@@ -30,7 +30,7 @@
             <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: var(--paper);">{{ $player?->name ?? $auctionSession->name }}</h1>
             @if($player)
                 <p class="text-base" style="color: var(--paper-dim);">{{ $player->role }} &nbsp;—&nbsp; {{ $player->country }} &nbsp;—&nbsp; {{ $player->tier }}</p>
-                <p class="text-sm mt-1" style="color: var(--paper-faint);">Base value {{ number_format((float) $player->base_value, 0) }}</p>
+                <p class="text-sm mt-1" style="color: var(--paper-faint);">Base value <x-money :amount="$player->base_value" /></p>
             @endif
         </div>
     </div>
@@ -40,16 +40,16 @@
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8">
             <div>
                 <p class="stat-caption mb-2">Current Bid</p>
-                <p class="stat-figure gold" style="font-size: 2.25rem;">{{ number_format((float) $auctionSession->current_bid ?: $auctionSession->starting_bid, 0) }}</p>
+                <p class="stat-figure gold" style="font-size: 2.25rem;"><x-money :amount="$auctionSession->current_bid ?: $auctionSession->starting_bid" :size="26" /></p>
                 @if($auctionSession->highestBidder)
                     <p class="text-sm mt-2" style="color: var(--paper-dim);">Leading — {{ $auctionSession->highestBidder->name }}</p>
                 @endif
             </div>
             <div class="sm:text-right">
                 <p class="stat-caption mb-2">Bid Increment</p>
-                <p class="stat-figure" style="font-size: 2.25rem;">{{ number_format((float) $auctionSession->bid_increment, 0) }}</p>
+                <p class="stat-figure" style="font-size: 2.25rem;"><x-money :amount="$auctionSession->bid_increment" :size="26" /></p>
                 @if($team)
-                    <p class="text-sm mt-2" style="color: var(--paper-dim);">Your remaining budget — {{ number_format($team->remainingBudget(), 0) }}</p>
+                    <p class="text-sm mt-2" style="color: var(--paper-dim);">Your remaining budget — <x-money :amount="$team->remainingBudget()" /></p>
                 @endif
             </div>
         </div>
@@ -61,7 +61,7 @@
             <p class="eyebrow gold mb-3">Auction Concluded</p>
             @if($auctionSession->highestBidder)
                 <p class="font-display text-2xl font-semibold" style="color: var(--paper);">
-                    Sold to {{ $auctionSession->highestBidder->name }} for {{ number_format((float) $auctionSession->current_bid, 0) }}
+                    Sold to {{ $auctionSession->highestBidder->name }} for <x-money :amount="$auctionSession->current_bid" />
                 </p>
             @else
                 <p class="text-sm" style="color: var(--paper-faint);">This player went unsold.</p>
@@ -104,7 +104,7 @@
                 <div class="flex items-center justify-between gap-6">
                     <div>
                         <p class="eyebrow gold mb-1">Next Bid</p>
-                        <p class="stat-figure" style="font-size: 2.25rem;">{{ number_format($minimumBid, 0) }}</p>
+                        <p class="stat-figure" style="font-size: 2.25rem;"><x-money :amount="$minimumBid" :size="26" /></p>
                     </div>
                     <form method="POST" action="{{ route('manager.auction.bid', $auctionSession) }}">
                         @csrf

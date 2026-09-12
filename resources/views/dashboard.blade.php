@@ -110,7 +110,7 @@
                         </div>
                         <div class="text-right">
                             <p class="stat-caption mb-0">Budget</p>
-                            <p class="text-sm font-semibold" style="color: var(--gold);">{{ number_format($team->budget, 0) }}</p>
+                            <p class="text-sm font-semibold" style="color: var(--gold);"><x-money :amount="$team->budget" /></p>
                         </div>
                     </div>
                 </a>

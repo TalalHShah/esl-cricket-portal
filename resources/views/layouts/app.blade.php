@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'ESL Cricket') &middot; Elite Series League</title>
+    <title>@yield('title', 'ESL Cricket') &middot; Emirates Sports League</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,7 +29,7 @@
                     </div>
                     <div class="hidden sm:block leading-none">
                         <h1 class="font-display text-xl font-semibold tracking-wide" style="color: var(--paper);">ESL CRICKET</h1>
-                        <p class="eyebrow gold mt-1">Elite Series League</p>
+                        <p class="eyebrow gold mt-1">Emirates Sports League</p>
                     </div>
                 </a>
 
@@ -88,7 +88,7 @@
     <footer class="mt-20 py-10" style="background-color: var(--surface); border-top: var(--rule);">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
             <p class="font-display text-lg font-semibold mb-2" style="color: var(--paper);">ESL CRICKET</p>
-            <p class="text-sm" style="color: var(--paper-faint);">&copy; {{ date('Y') }} Elite Series League</p>
+            <p class="text-sm" style="color: var(--paper-faint);">&copy; {{ date('Y') }} Emirates Sports League</p>
         </div>
     </footer>
 

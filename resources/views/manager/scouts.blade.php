@@ -48,7 +48,7 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @forelse ($players as $player)
-            <x-player-card :player="$player">
+            <x-player-card :player="$player" :href="route('manager.players.show', $player)">
                 @if(auth()->user()->managedTeam)
                     @if($player->team)
                         <a href="{{ route('manager.transfers', ['search' => $player->name]) }}"

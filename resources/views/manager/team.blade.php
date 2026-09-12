@@ -47,6 +47,7 @@
             <form method="GET" class="flex items-center gap-2 flex-wrap">
                 <div class="flex items-center gap-1" style="background-color: var(--surface-raised); border: 1px solid var(--line-strong); border-radius: 2px;">
                     <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="px-3 py-2 text-xs font-semibold uppercase" style="{{ $view === 'grid' ? 'background-color: var(--gold); color: var(--ink);' : 'color: var(--paper-dim);' }}">Grid</a>
+                    <a href="{{ request()->fullUrlWithQuery(['view' => 'compact']) }}" class="px-3 py-2 text-xs font-semibold uppercase" style="{{ $view === 'compact' ? 'background-color: var(--gold); color: var(--ink);' : 'color: var(--paper-dim);' }}">Compact</a>
                     <a href="{{ request()->fullUrlWithQuery(['view' => 'table']) }}" class="px-3 py-2 text-xs font-semibold uppercase" style="{{ $view === 'table' ? 'background-color: var(--gold); color: var(--ink);' : 'color: var(--paper-dim);' }}">Table</a>
                 </div>
                 <input type="hidden" name="view" value="{{ $view }}">
@@ -78,7 +79,7 @@
                     </thead>
                     <tbody>
                         @forelse ($players as $player)
-                            <tr>
+                            <tr class="row-hover" style="cursor: pointer;" onclick="window.location='{{ route('manager.players.show', $player) }}'">
                                 <td>
                                     <div class="flex items-center gap-3">
                                         <div class="player-portrait" style="width: 40px; height: 52px; flex-shrink: 0;">
@@ -102,10 +103,12 @@
                     </tbody>
                 </table>
             </div>
+        @elseif($view === 'compact')
+            @include('partials.squad-compact', ['players' => $players])
         @else
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 @forelse ($players as $player)
-                    <div class="card-section lift-on-hover p-4">
+                    <a href="{{ route('manager.players.show', $player) }}" class="card-section lift-on-hover p-4 block">
                         <div class="player-portrait mb-3" style="aspect-ratio: 3/4;">
                             @if($player->image)
                                 <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
@@ -116,7 +119,7 @@
                         <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
                         <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->tier }}</p>
                         <p class="text-sm font-semibold mt-2" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
-                    </div>
+                    </a>
                 @empty
                     <div class="col-span-full card-section p-12 text-center" style="color: var(--paper-faint);">No players in squad yet</div>
                 @endforelse

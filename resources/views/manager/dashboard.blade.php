@@ -67,7 +67,7 @@
                 <p class="eyebrow gold mb-4">Top Valued Players</p>
                 <div class="card-section">
                     @forelse ($topPlayers as $player)
-                        <div class="news-row px-6 flex items-center gap-4">
+                        <a href="{{ route('manager.players.show', $player) }}" class="news-row row-hover px-6 flex items-center gap-4">
                             <div class="player-portrait" style="width: 48px; height: 60px; flex-shrink: 0;">
                                 @if($player->image)
                                     <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
@@ -80,7 +80,7 @@
                                 <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->tier }}</p>
                             </div>
                             <p class="text-base font-semibold" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
-                        </div>
+                        </a>
                     @empty
                         <div class="p-10 text-center" style="color: var(--paper-faint);">No players in squad yet — visit Scouts to sign players</div>
                     @endforelse

@@ -13,7 +13,7 @@ class TeamController extends Controller
     {
         $team = Auth::user()->managedTeam;
         $sort = $request->input('sort', 'value_desc');
-        $view = $request->input('view', 'grid') === 'table' ? 'table' : 'grid';
+        $view = in_array($request->input('view'), ['table', 'compact'], true) ? $request->input('view') : 'grid';
 
         $players = collect();
 

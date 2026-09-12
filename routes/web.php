@@ -11,6 +11,7 @@ use App\Http\Controllers\Manager\AuctionController;
 use App\Http\Controllers\Manager\FixtureController as ManagerFixtureController;
 use App\Http\Controllers\Manager\LeagueTeamController;
 use App\Http\Controllers\Manager\LiveStreamController;
+use App\Http\Controllers\Manager\PlayerController as ManagerPlayerController;
 use App\Http\Controllers\Manager\ProfileController;
 use App\Http\Controllers\Manager\ScoutController;
 use App\Http\Controllers\Manager\TeamController as ManagerTeamController;
@@ -82,6 +83,8 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 
     Route::get('/teams', [LeagueTeamController::class, 'index'])->name('teams.index');
     Route::get('/teams/{team}', [LeagueTeamController::class, 'show'])->name('teams.show');
+
+    Route::get('/players/{player}', [ManagerPlayerController::class, 'show'])->name('players.show');
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');

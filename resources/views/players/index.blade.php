@@ -49,9 +49,7 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @forelse ($players as $player)
-            <a href="{{ route('players.show', $player) }}" class="block">
-                <x-player-card :player="$player" />
-            </a>
+            <x-player-card :player="$player" :href="route('players.show', $player)" />
         @empty
             <div class="sm:col-span-2 lg:col-span-4">
                 @include('partials.empty-state', ['message' => 'No players match the current filters.'])

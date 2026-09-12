@@ -40,7 +40,7 @@
         <div class="lg:col-span-2">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 @forelse ($listedPlayers as $player)
-                    <x-player-card :player="$player">
+                    <x-player-card :player="$player" :href="route('manager.players.show', $player)">
                         @if($team)
                             <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
                                 @csrf

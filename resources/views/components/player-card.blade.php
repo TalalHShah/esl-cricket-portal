@@ -1,10 +1,11 @@
-@props(['player'])
+@props(['player', 'href' => null])
 
 @php
     $team = $player->team;
     $isFree = is_null($team);
     $primary = $team->primary_color ?? '#1D4ED8';
     $secondary = $team->secondary_color ?? '#0D1220';
+    $infoTag = $href ? 'a' : 'div';
 @endphp
 
 @if($isFree)
@@ -13,19 +14,21 @@
             <span class="tag gold">Free Agent</span>
             <span class="tag">{{ $player->tier }}</span>
         </div>
-        <div class="player-portrait mb-4" style="aspect-ratio: 3/4;">
-            @if($player->image)
-                <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
-            @else
-                <div class="initials">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+        <{{ $infoTag }} @if($href) href="{{ $href }}" @endif style="display:block; text-decoration:none;">
+            <div class="player-portrait mb-4" style="aspect-ratio: 3/4;">
+                @if($player->image)
+                    <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                @else
+                    <div class="initials">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+                @endif
+            </div>
+            <h3 class="text-base font-semibold mb-1" style="color: var(--paper);">{{ $player->name }}</h3>
+            <p class="text-xs mb-1" style="color: var(--paper-faint);">{{ $player->typeLabel() }} — {{ $player->country }}</p>
+            @if($player->age)
+                <p class="text-xs mb-3" style="color: var(--paper-faint);">Age {{ $player->age }}</p>
             @endif
-        </div>
-        <h3 class="text-base font-semibold mb-1" style="color: var(--paper);">{{ $player->name }}</h3>
-        <p class="text-xs mb-1" style="color: var(--paper-faint);">{{ $player->typeLabel() }} — {{ $player->country }}</p>
-        @if($player->age)
-            <p class="text-xs mb-3" style="color: var(--paper-faint);">Age {{ $player->age }}</p>
-        @endif
-        <p class="text-lg font-semibold mb-4" style="color: var(--gold);"><x-money :amount="$player->current_value" :size="16" /></p>
+            <p class="text-lg font-semibold mb-4" style="color: var(--gold);"><x-money :amount="$player->current_value" :size="16" /></p>
+        </{{ $infoTag }}>
 
         {{ $slot }}
     </div>
@@ -45,17 +48,19 @@
                 <span class="tag" style="border-color: rgba(255,255,255,0.5); color: #fff; background: rgba(0,0,0,0.25);">{{ $player->tier }}</span>
             </div>
 
-            <div class="player-portrait mb-4" style="aspect-ratio: 3/4; border-color: rgba(255,255,255,0.35); background-color: rgba(0,0,0,0.25);">
-                @if($player->image)
-                    <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
-                @else
-                    <div class="initials" style="color: rgba(255,255,255,0.7);">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
-                @endif
-            </div>
+            <{{ $infoTag }} @if($href) href="{{ $href }}" @endif style="display:block; text-decoration:none;">
+                <div class="player-portrait mb-4" style="aspect-ratio: 3/4; border-color: rgba(255,255,255,0.35); background-color: rgba(0,0,0,0.25);">
+                    @if($player->image)
+                        <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                    @else
+                        <div class="initials" style="color: rgba(255,255,255,0.7);">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+                    @endif
+                </div>
 
-            <h3 class="text-base font-semibold mb-1" style="color: #fff;">{{ $player->name }}</h3>
-            <p class="text-xs mb-3" style="color: rgba(255,255,255,0.75);">{{ $player->typeLabel() }} — {{ $team->name }}</p>
-            <p class="text-lg font-semibold mb-4" style="color: #fff;"><x-money :amount="$player->current_value" :size="16" /></p>
+                <h3 class="text-base font-semibold mb-1" style="color: #fff;">{{ $player->name }}</h3>
+                <p class="text-xs mb-3" style="color: rgba(255,255,255,0.75);">{{ $player->typeLabel() }} — {{ $team->name }}</p>
+                <p class="text-lg font-semibold mb-4" style="color: #fff;"><x-money :amount="$player->current_value" :size="16" /></p>
+            </{{ $infoTag }}>
 
             {{ $slot }}
         </div>

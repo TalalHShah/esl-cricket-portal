@@ -25,6 +25,7 @@ class LeagueTeamController extends Controller
     public function show(Request $request, Team $team): View
     {
         $sort = $request->input('sort', 'value_desc');
+        $view = in_array($request->input('view'), ['table', 'compact'], true) ? $request->input('view') : 'grid';
 
         $query = $team->players()->with('team');
 
@@ -43,6 +44,6 @@ class LeagueTeamController extends Controller
         $players = $query->get();
         $ownTeam = Auth::user()->managedTeam;
 
-        return view('manager.league-team-show', compact('team', 'players', 'sort', 'ownTeam'));
+        return view('manager.league-team-show', compact('team', 'players', 'sort', 'view', 'ownTeam'));
     }
 }

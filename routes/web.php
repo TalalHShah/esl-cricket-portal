@@ -81,6 +81,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::get('/auction/{auctionSession}/room', [AuctionController::class, 'room'])->name('auction.room');
     Route::post('/auction/{auctionSession}/join', [AuctionController::class, 'join'])->name('auction.join');
     Route::post('/auction/{auctionSession}/bid', [AuctionController::class, 'bid'])->name('auction.bid');
+    Route::get('/auction/{auctionSession}/state', [AuctionController::class, 'state'])->name('auction.state');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');
     Route::post('/scouts/{player}/sign', [ScoutController::class, 'sign'])->name('scouts.sign');
@@ -106,13 +107,13 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/panel', [AdminController::class, 'panel'])->name('panel');
 
     // Manager CRUD
-    Route::resource('managers', ManagerController::class);
+    Route::resource('managers', ManagerController::class)->except(['show']);
 
     // Team CRUD
-    Route::resource('teams', AdminTeamController::class);
+    Route::resource('teams', AdminTeamController::class)->except(['show']);
 
     // Player CRUD
-    Route::resource('players', AdminPlayerController::class);
+    Route::resource('players', AdminPlayerController::class)->except(['show']);
 
     // Match CRUD + result confirmation
     Route::get('matches', [AdminMatchController::class, 'index'])->name('matches.index');

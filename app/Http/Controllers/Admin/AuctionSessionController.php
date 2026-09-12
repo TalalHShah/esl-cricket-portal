@@ -103,7 +103,7 @@ class AuctionSessionController extends Controller
             return back()->withErrors(['auction' => 'Only live auctions can be paused.']);
         }
 
-        $auction->update(['status' => 'paused']);
+        $auction->update(['status' => 'paused', 'bid_deadline_at' => null]);
 
         return back()->with('status', 'Auction paused.');
     }
@@ -114,7 +114,12 @@ class AuctionSessionController extends Controller
             return back()->withErrors(['auction' => 'Only paused auctions can be resumed.']);
         }
 
-        $auction->update(['status' => 'live']);
+        $auction->update([
+            'status' => 'live',
+            'bid_deadline_at' => (float) $auction->current_bid > 0
+                ? now()->addSeconds(AuctionSession::BID_WINDOW_SECONDS)
+                : null,
+        ]);
 
         return back()->with('status', 'Auction resumed.');
     }

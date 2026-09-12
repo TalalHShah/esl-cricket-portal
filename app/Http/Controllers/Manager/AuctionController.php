@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Manager;
 
 use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
+use App\Models\AuctionParticipant;
 use App\Models\AuctionSession;
+use App\Models\Team;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -69,30 +72,124 @@ class AuctionController extends Controller
     {
         session(['auction_room_joined_' . $auctionSession->id => true]);
 
+        $team = Auth::user()->managedTeam;
+
+        if ($team) {
+            AuctionParticipant::updateOrCreate(
+                ['auction_session_id' => $auctionSession->id, 'team_id' => $team->id],
+                ['user_id' => Auth::id(), 'joined_at' => now(), 'last_seen_at' => now()]
+            );
+        }
+
         return redirect()->route('manager.auction.room', $auctionSession);
     }
 
-    public function bid(Request $request, AuctionSession $auctionSession): RedirectResponse
+    /**
+     * Polled every few seconds by the auction room: refreshes this
+     * team's presence heartbeat and returns the full live state
+     * (bid, leader, countdown, seated managers) as JSON so the room
+     * can update itself without a full page reload.
+     */
+    public function state(AuctionSession $auctionSession): JsonResponse
     {
         $team = Auth::user()->managedTeam;
 
+        if ($team && session('auction_room_joined_' . $auctionSession->id, false)) {
+            $participant = AuctionParticipant::firstOrNew(
+                ['auction_session_id' => $auctionSession->id, 'team_id' => $team->id]
+            );
+            if (! $participant->exists) {
+                $participant->joined_at = now();
+            }
+            $participant->user_id = Auth::id();
+            $participant->last_seen_at = now();
+            $participant->save();
+        }
+
+        $auctionSession->load(['player', 'highestBidder.manager']);
+
+        $participants = AuctionParticipant::with(['team.manager'])
+            ->where('auction_session_id', $auctionSession->id)
+            ->get()
+            ->map(fn (AuctionParticipant $p) => [
+                'team_id' => $p->team_id,
+                'team_name' => $p->team?->name,
+                'team_short_name' => $p->team?->short_name,
+                'team_logo' => $p->team?->logo ? asset('storage/' . $p->team->logo) : null,
+                'manager_name' => $p->team?->manager?->name,
+                'manager_avatar' => $p->team?->manager?->avatar ? asset('storage/' . $p->team->manager->avatar) : null,
+                'is_leading' => $p->team_id === $auctionSession->highest_bidder_team_id,
+                'is_online' => $p->isOnline(),
+                'is_you' => $team && $p->team_id === $team->id,
+            ])
+            ->values();
+
+        $minimumBid = $auctionSession->current_bid > 0
+            ? (float) $auctionSession->current_bid + (float) $auctionSession->bid_increment
+            : (float) $auctionSession->starting_bid;
+
+        return response()->json([
+            'status' => $auctionSession->status,
+            'player_name' => $auctionSession->player?->name,
+            'current_bid' => (float) $auctionSession->current_bid,
+            'starting_bid' => (float) $auctionSession->starting_bid,
+            'bid_increment' => (float) $auctionSession->bid_increment,
+            'minimum_bid' => $minimumBid,
+            'leader' => $auctionSession->highestBidder ? [
+                'team_id' => $auctionSession->highestBidder->id,
+                'team_name' => $auctionSession->highestBidder->name,
+                'team_short_name' => $auctionSession->highestBidder->short_name,
+                'team_logo' => $auctionSession->highestBidder->logo ? asset('storage/' . $auctionSession->highestBidder->logo) : null,
+                'manager_name' => $auctionSession->highestBidder->manager?->name,
+                'manager_avatar' => $auctionSession->highestBidder->manager?->avatar ? asset('storage/' . $auctionSession->highestBidder->manager->avatar) : null,
+            ] : null,
+            'deadline_at' => $auctionSession->bid_deadline_at?->toIso8601String(),
+            'time_expired' => $auctionSession->biddingTimeExpired(),
+            'participants' => $participants,
+            'you' => $team ? [
+                'team_id' => $team->id,
+                'joined' => (bool) session('auction_room_joined_' . $auctionSession->id, false),
+                'remaining_budget' => $team->remainingBudget(),
+                'has_squad_space' => $team->hasSquadSpace(),
+                'is_leading' => $team->id === $auctionSession->highest_bidder_team_id,
+            ] : null,
+        ]);
+    }
+
+    public function bid(Request $request, AuctionSession $auctionSession): RedirectResponse|JsonResponse
+    {
+        $team = Auth::user()->managedTeam;
+        $wantsJson = $request->expectsJson() || $request->ajax();
+
+        $fail = function (string $message) use ($wantsJson) {
+            return $wantsJson
+                ? response()->json(['error' => $message], 422)
+                : back()->withErrors(['bid' => $message]);
+        };
+
         if (! $team) {
-            return back()->withErrors(['bid' => 'You are not assigned to manage a team.']);
+            return $fail('You are not assigned to manage a team.');
         }
 
         if (! session('auction_room_joined_' . $auctionSession->id, false)) {
-            return back()->withErrors(['bid' => 'Join the auction room before placing a bid.']);
+            return $fail('Join the auction room before placing a bid.');
         }
 
         if (! $team->hasSquadSpace()) {
-            return back()->withErrors(['bid' => 'Your squad is full (' . \App\Models\Team::SQUAD_LIMIT . ' players max) — you cannot bid on another player.']);
+            return $fail('Your squad is full (' . Team::SQUAD_LIMIT . ' players max) — you cannot bid on another player.');
         }
 
-        $result = DB::transaction(function () use ($auctionSession, $team) {
+        $requestedAmount = $request->filled('amount') ? (float) $request->input('amount') : null;
+
+        $result = DB::transaction(function () use ($auctionSession, $team, $requestedAmount) {
             $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
 
             if ($locked->status !== 'live') {
                 return ['error' => 'This auction is not currently live.'];
+            }
+
+            if ($locked->biddingTimeExpired()) {
+                return ['error' => "Time's up on this lot — waiting for the auctioneer to call it."];
             }
 
             if ($locked->highest_bidder_team_id === $team->id) {
@@ -100,24 +197,31 @@ class AuctionController extends Controller
             }
 
             $minimumBid = $locked->current_bid > 0
-                ? $locked->current_bid + $locked->bid_increment
-                : $locked->starting_bid;
+                ? (float) $locked->current_bid + (float) $locked->bid_increment
+                : (float) $locked->starting_bid;
 
-            if ($team->remainingBudget() < $minimumBid) {
+            $bidAmount = $requestedAmount && $requestedAmount > $minimumBid ? $requestedAmount : $minimumBid;
+
+            if ($team->remainingBudget() < $bidAmount) {
                 return ['error' => 'Insufficient budget to place this bid.'];
             }
 
             $locked->update([
-                'current_bid' => $minimumBid,
+                'current_bid' => $bidAmount,
                 'current_team_id' => $team->id,
                 'highest_bidder_team_id' => $team->id,
+                'bid_deadline_at' => now()->addSeconds(AuctionSession::BID_WINDOW_SECONDS),
             ]);
 
-            return ['success' => true, 'amount' => $minimumBid];
+            return ['success' => true, 'amount' => $bidAmount];
         });
 
         if (isset($result['error'])) {
-            return back()->withErrors(['bid' => $result['error']]);
+            return $fail($result['error']);
+        }
+
+        if ($wantsJson) {
+            return response()->json(['success' => true, 'amount' => $result['amount']]);
         }
 
         return back()->with('status', 'Bid placed: PKR ' . number_format($result['amount'], 0));

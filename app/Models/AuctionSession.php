@@ -5,10 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AuctionSession extends Model
 {
     use HasFactory;
+
+    /**
+     * How long, in seconds, bidding stays open after each bid before the
+     * lot is considered ready to be called (mirrors a real auction's
+     * "going once, going twice" countdown). Each new bid resets the clock.
+     */
+    public const BID_WINDOW_SECONDS = 30;
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +36,7 @@ class AuctionSession extends Model
         'started_by_user_id',
         'started_at',
         'ended_at',
+        'bid_deadline_at',
     ];
 
     /**
@@ -43,6 +52,7 @@ class AuctionSession extends Model
             'bid_increment' => 'decimal:2',
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
+            'bid_deadline_at' => 'datetime',
         ];
     }
 
@@ -84,5 +94,26 @@ class AuctionSession extends Model
     public function isLive(): bool
     {
         return $this->status === 'live';
+    }
+
+    /**
+     * Teams that have taken a seat in this auction's room.
+     */
+    public function participants(): HasMany
+    {
+        return $this->hasMany(AuctionParticipant::class);
+    }
+
+    /**
+     * Whether the bidding window has expired without a new bid — i.e.
+     * the lot is ready to be called for the highest bidder.
+     */
+    public function biddingTimeExpired(): bool
+    {
+        if (! $this->isLive() || ! $this->bid_deadline_at) {
+            return false;
+        }
+
+        return now()->greaterThan($this->bid_deadline_at);
     }
 }

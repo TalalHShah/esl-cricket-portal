@@ -350,7 +350,7 @@ class DatabaseSeeder extends Seeder
         // Settings
         // ------------------------------------------------------------------
         $settings = [
-            ['key' => 'platform.name', 'value' => 'Emirates Sports League', 'type' => 'string', 'group' => 'general', 'description' => 'Public platform name.', 'is_public' => true],
+            ['key' => 'platform.name', 'value' => 'E-Sports League - Cricket', 'type' => 'string', 'group' => 'general', 'description' => 'Public platform name.', 'is_public' => true],
             ['key' => 'platform.tagline', 'value' => 'Where every run counts.', 'type' => 'string', 'group' => 'general', 'description' => 'Homepage tagline.', 'is_public' => true],
             ['key' => 'auction.default_bid_increment', 'value' => '100000', 'type' => 'decimal', 'group' => 'auction', 'description' => 'Default bid increment amount.', 'is_public' => false],
             ['key' => 'auction.min_squad_size', 'value' => '11', 'type' => 'integer', 'group' => 'auction', 'description' => 'Minimum squad size per team.', 'is_public' => false],

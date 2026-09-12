@@ -8,15 +8,25 @@
     @else
         <div class="masthead mb-10">
             <div class="flex items-start gap-8">
-                @if($team->logo)
-                    <div class="crest" style="width:88px;height:88px;">
-                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}" class="w-full h-full object-cover">
-                    </div>
-                @else
-                    <div class="crest" style="width:88px;height:88px; font-size: 2rem;">
-                        {{ strtoupper(substr($team->name, 0, 1)) }}
-                    </div>
-                @endif
+                <div>
+                    @if($team->logo)
+                        <div class="crest" style="width:88px;height:88px;">
+                            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}" class="w-full h-full object-cover">
+                        </div>
+                    @else
+                        <div class="crest" style="width:88px;height:88px; font-size: 2rem;">
+                            {{ strtoupper(substr($team->name, 0, 1)) }}
+                        </div>
+                    @endif
+                    <form method="POST" action="{{ route('manager.team.logo.update') }}" enctype="multipart/form-data" class="mt-3" style="width: 88px;">
+                        @csrf
+                        <label class="btn-ghost block text-center py-1.5 text-xs cursor-pointer" style="white-space: nowrap;">
+                            {{ $team->logo ? 'Change Logo' : 'Upload Logo' }}
+                            <input type="file" name="logo" accept="image/*" class="hidden" onchange="this.form.submit()">
+                        </label>
+                    </form>
+                    @error('logo') <p class="text-xs mt-1" style="color: var(--live); width: 88px;">{{ $message }}</p> @enderror
+                </div>
                 <div class="flex-1">
                     <p class="eyebrow gold mb-2">{{ $team->short_name }}</p>
                     <h1 class="font-display text-4xl md:text-5xl font-semibold mb-3" style="color: var(--paper);">{{ $team->name }}</h1>

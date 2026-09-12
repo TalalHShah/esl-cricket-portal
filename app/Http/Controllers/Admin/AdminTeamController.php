@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class AdminTeamController extends Controller
 {
@@ -33,7 +34,7 @@ class AdminTeamController extends Controller
 
     public function create()
     {
-        $managers = User::where('role', 'manager')->get();
+        $managers = User::whereIn('role', ['manager', 'admin'])->orderBy('name')->get();
         return view('admin.teams.create', compact('managers'));
     }
 
@@ -45,7 +46,12 @@ class AdminTeamController extends Controller
             'budget' => 'required|numeric|min:0',
             'primary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
             'secondary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
+            'logo' => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo'] = $request->file('logo')->store('team-logos', 'public');
+        }
 
         Team::create($validated);
 
@@ -54,7 +60,7 @@ class AdminTeamController extends Controller
 
     public function edit(Team $team)
     {
-        $managers = User::where('role', 'manager')->get();
+        $managers = User::whereIn('role', ['manager', 'admin'])->orderBy('name')->get();
         return view('admin.teams.edit', compact('team', 'managers'));
     }
 
@@ -66,7 +72,23 @@ class AdminTeamController extends Controller
             'budget' => 'required|numeric|min:0',
             'primary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
             'secondary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
+            'logo' => 'nullable|image|max:2048',
+            'remove_logo' => 'nullable|boolean',
         ]);
+
+        if ($request->boolean('remove_logo') && $team->logo) {
+            Storage::disk('public')->delete($team->logo);
+            $validated['logo'] = null;
+        }
+
+        if ($request->hasFile('logo')) {
+            if ($team->logo) {
+                Storage::disk('public')->delete($team->logo);
+            }
+            $validated['logo'] = $request->file('logo')->store('team-logos', 'public');
+        }
+
+        unset($validated['remove_logo']);
 
         $team->update($validated);
 

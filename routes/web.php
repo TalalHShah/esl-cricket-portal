@@ -100,6 +100,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::get('/livestream', [LiveStreamController::class, 'index'])->name('livestream');
 
     Route::get('/team', [ManagerTeamController::class, 'show'])->name('team');
+    Route::post('/team/logo', [ManagerTeamController::class, 'updateLogo'])->name('team.logo.update');
 
     Route::get('/teams', [LeagueTeamController::class, 'index'])->name('teams.index');
     Route::get('/teams/{team}', [LeagueTeamController::class, 'show'])->name('teams.show');

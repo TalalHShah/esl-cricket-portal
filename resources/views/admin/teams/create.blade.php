@@ -8,8 +8,14 @@
     </div>
 
     <div class="cricket-card rounded-2xl p-8 max-w-2xl">
-        <form action="{{ route('admin.teams.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.teams.store') }}" method="POST" class="space-y-6" enctype="multipart/form-data">
             @csrf
+
+            <div>
+                <label class="block text-sm font-bold text-white mb-2">Team Logo (Optional)</label>
+                <input type="file" name="logo" accept="image/*" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                @error('logo') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
 
             <div>
                 <label class="block text-sm font-bold text-white mb-2">Team Name</label>
@@ -21,7 +27,7 @@
                 <label class="block text-sm font-bold text-white mb-2">Manager (Optional)</label>
                 <select name="manager_id" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:border-emerald-500 focus:outline-none transition">
                     <option value="">Select a manager...</option>
-                    @foreach (\App\Models\User::where('role', 'manager')->get() as $manager)
+                    @foreach ($managers as $manager)
                         <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
                             {{ $manager->name }}
                         </option>

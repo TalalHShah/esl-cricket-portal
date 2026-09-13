@@ -17,7 +17,11 @@ class AuctionDraftController extends Controller
 {
     public function room(AuctionDraftService $service): View
     {
-        $draft = AuctionDraft::where('status', 'active')->latest()->first();
+        // The most recent draft, whatever state it's in — a completed
+        // one still needs to be shown so the admin can open a Bonus
+        // Round or everyone can see the final pool, rather than
+        // disappearing the moment picking finishes.
+        $draft = AuctionDraft::latest()->first();
         $team = Auth::user()->managedTeam;
         $turnTimeoutSeconds = $service->turnTimeoutSeconds();
 
@@ -90,6 +94,27 @@ class AuctionDraftController extends Controller
         return response()->json($result);
     }
 
+    public function bonusNominate(Request $request, AuctionDraft $draft, AuctionDraftService $service): JsonResponse
+    {
+        $team = $this->requireTeam();
+        if (! $team) {
+            return response()->json(['error' => 'You are not assigned to manage a team.'], 422);
+        }
+
+        $validated = $request->validate([
+            'country' => ['required', 'string'],
+            'player_id' => ['required', 'exists:players,id'],
+        ]);
+
+        $result = $service->bonusNominate($draft, $team->id, $validated['country'], (int) $validated['player_id']);
+
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], 422);
+        }
+
+        return response()->json(['success' => true, 'session_id' => $result['session']->id]);
+    }
+
     /**
      * Polled by the draft room: draft-level state (whose turn, country,
      * burned list, players available to pick next) plus a look at the
@@ -97,8 +122,9 @@ class AuctionDraftController extends Controller
      * opens a live bid — that's a separate Auction phase the admin
      * runs later — so there's no "active session" concept anymore.
      */
-    public function state(AuctionDraft $draft, AuctionDraftService $draftService): JsonResponse
+    public function state(Request $request, AuctionDraft $draft, AuctionDraftService $draftService): JsonResponse
     {
+        $service = $draftService;
         $draft = $draftService->autoAdvanceIfExpired($draft);
         $team = Auth::user()->managedTeam;
 
@@ -126,6 +152,32 @@ class AuctionDraftController extends Controller
                     'image' => $p->image ? asset('storage/' . $p->image) : null,
                     'is_shortlisted' => in_array($p->id, $shortlistedIds, true),
                 ]);
+        }
+
+        $bonusCountries = [];
+        $bonusPlayers = [];
+        if ($draft->status === 'bonus_round') {
+            $bonusCountries = $service->bonusRoundCountries();
+
+            if ($request->filled('bonus_country') && in_array($request->input('bonus_country'), $bonusCountries, true)) {
+                $bonusPlayers = Player::query()
+                    ->transferable()
+                    ->notNominated()
+                    ->whereNull('team_id')
+                    ->where('is_active', true)
+                    ->where('country', $request->input('bonus_country'))
+                    ->orderByDesc('current_value')
+                    ->get(['id', 'name', 'role', 'tier', 'base_value', 'image'])
+                    ->map(fn (Player $p) => [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'role' => $p->role,
+                        'tier' => $p->tier,
+                        'base_value' => (float) $p->base_value,
+                        'image' => $p->image ? asset('storage/' . $p->image) : null,
+                        'is_shortlisted' => in_array($p->id, $shortlistedIds, true),
+                    ]);
+            }
         }
 
         $pool = AuctionSession::with(['player', 'nominatedBy'])
@@ -182,6 +234,9 @@ class AuctionDraftController extends Controller
             'available_players' => $availablePlayers,
             'pool' => $pool,
             'pool_count' => $pool->count(),
+            'bonus_countries' => $bonusCountries,
+            'bonus_players' => $bonusPlayers,
+            'bonus_selected_country' => $request->input('bonus_country'),
         ]);
     }
 

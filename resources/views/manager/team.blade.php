@@ -85,12 +85,13 @@
                             <th>Tier</th>
                             <th style="text-align:right;">Age</th>
                             <th style="text-align:right;">Value</th>
+                            <th style="text-align:right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($players as $player)
-                            <tr class="row-hover" style="cursor: pointer;" onclick="window.location='{{ route('manager.players.show', $player) }}'">
-                                <td>
+                            <tr class="row-hover">
+                                <td style="cursor: pointer;" onclick="window.location='{{ route('manager.players.show', $player) }}'">
                                     <div class="flex items-center gap-3">
                                         <div class="player-portrait" style="width: 40px; height: 52px; flex-shrink: 0;">
                                             @if($player->image)
@@ -106,30 +107,46 @@
                                 <td><span class="tag {{ $player->is_manager_player ? 'gold' : '' }}">{{ $player->is_manager_player ? 'Manager' : $player->tier }}</span></td>
                                 <td style="text-align:right; color: var(--paper-dim);">{{ $player->age ?? '—' }}</td>
                                 <td style="text-align:right; font-weight: 600; color: var(--gold);"><x-money :amount="$player->current_value" /></td>
+                                <td style="text-align:right;">
+                                    @unless ($player->is_manager_player)
+                                        <form method="POST" action="{{ route('manager.team.players.release', $player) }}" onsubmit="return confirm('Release {{ $player->name }}? They become a free agent again — your budget spent on them is not refunded.');">
+                                            @csrf
+                                            <button type="submit" class="btn-ghost px-3 py-1.5 text-xs" style="color: var(--live);">Release</button>
+                                        </form>
+                                    @endunless
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" style="text-align:center; padding: 3rem 0; color: var(--paper-faint);">No players in squad yet</td></tr>
+                            <tr><td colspan="6" style="text-align:center; padding: 3rem 0; color: var(--paper-faint);">No players in squad yet</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         @elseif($view === 'compact')
-            @include('partials.squad-compact', ['players' => $players])
+            @include('partials.squad-compact', ['players' => $players, 'showRelease' => true])
         @else
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 @forelse ($players as $player)
-                    <a href="{{ route('manager.players.show', $player) }}" class="card-section lift-on-hover p-4 block">
-                        <div class="player-portrait mb-3" style="aspect-ratio: 3/4;">
-                            @if($player->image)
-                                <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
-                            @else
-                                <div class="initials">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
-                            @endif
-                        </div>
-                        <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
-                        <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->is_manager_player ? 'Manager' : $player->tier }}</p>
-                        <p class="text-sm font-semibold mt-2" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
-                    </a>
+                    <div class="card-section lift-on-hover p-4">
+                        <a href="{{ route('manager.players.show', $player) }}" style="display:block; text-decoration:none;">
+                            <div class="player-portrait mb-3" style="aspect-ratio: 3/4;">
+                                @if($player->image)
+                                    <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
+                                @else
+                                    <div class="initials">{{ strtoupper(substr($player->name, 0, 2)) }}</div>
+                                @endif
+                            </div>
+                            <p class="text-sm font-semibold truncate" style="color: var(--paper);">{{ $player->name }}</p>
+                            <p class="text-xs" style="color: var(--paper-faint);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->is_manager_player ? 'Manager' : $player->tier }}</p>
+                            <p class="text-sm font-semibold mt-2" style="color: var(--gold);"><x-money :amount="$player->current_value" /></p>
+                        </a>
+                        @unless ($player->is_manager_player)
+                            <form method="POST" action="{{ route('manager.team.players.release', $player) }}" onsubmit="return confirm('Release {{ $player->name }}? They become a free agent again — your budget spent on them is not refunded.');" class="mt-3">
+                                @csrf
+                                <button type="submit" class="btn-ghost w-full py-1.5 text-xs" style="color: var(--live);">Release</button>
+                            </form>
+                        @endunless
+                    </div>
                 @empty
                     <div class="col-span-full card-section p-12 text-center" style="color: var(--paper-faint);">No players in squad yet</div>
                 @endforelse

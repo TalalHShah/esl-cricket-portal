@@ -359,4 +359,127 @@ class AuctionDraftService
             $draft->update(['status' => 'completed', 'ended_at' => now(), 'turn_deadline_at' => null]);
         }
     }
+
+    /**
+     * Admin override: end the draft right now, whatever state it's in
+     * (mid-rotation or bonus round). Nothing about the pool already
+     * queued for auction is affected — this only stops further picking.
+     */
+    public function endDraft(AuctionDraft $draft): array
+    {
+        return DB::transaction(function () use ($draft) {
+            $locked = AuctionDraft::whereKey($draft->id)->lockForUpdate()->first();
+
+            if (! in_array($locked->status, ['active', 'bonus_round'], true)) {
+                return ['error' => 'This draft is not currently running.'];
+            }
+
+            $locked->update([
+                'status' => 'completed',
+                'current_country' => null,
+                'active_picker_index' => null,
+                'turn_deadline_at' => null,
+                'ended_at' => now(),
+            ]);
+
+            return ['success' => true];
+        });
+    }
+
+    /**
+     * Admin opens a free-for-all Bonus Round once normal picking has
+     * finished — squads might still be short of players to auction
+     * from. No turn order, no timer, no passing: any manager can pick
+     * any country/player, as many times as they like, until the admin
+     * ends it.
+     */
+    public function startBonusRound(AuctionDraft $draft): array
+    {
+        return DB::transaction(function () use ($draft) {
+            $locked = AuctionDraft::whereKey($draft->id)->lockForUpdate()->first();
+
+            if ($locked->status !== 'completed') {
+                return ['error' => 'The bonus round can only be opened after the normal draft has finished.'];
+            }
+
+            if (! $this->anyPlayersRemain()) {
+                return ['error' => 'There are no undrafted players left to pick from.'];
+            }
+
+            $locked->update([
+                'status' => 'bonus_round',
+                'ended_at' => null,
+                'current_country' => null,
+                'active_picker_index' => null,
+                'turn_deadline_at' => null,
+            ]);
+
+            return ['success' => true];
+        });
+    }
+
+    /**
+     * A free pick during the Bonus Round: any manager, any country,
+     * any available player — no turn to check, no rotation to advance.
+     */
+    public function bonusNominate(AuctionDraft $draft, int $teamId, string $country, int $playerId): array
+    {
+        return DB::transaction(function () use ($draft, $teamId, $country, $playerId) {
+            $locked = AuctionDraft::whereKey($draft->id)->lockForUpdate()->first();
+
+            if ($locked->status !== 'bonus_round') {
+                return ['error' => 'The bonus round is not open.'];
+            }
+
+            $player = Player::whereKey($playerId)->lockForUpdate()->first();
+
+            if (! $player || $player->is_manager_player || $player->team_id !== null || ! $player->is_active) {
+                return ['error' => 'That player is not available.'];
+            }
+
+            if ($player->country !== $country) {
+                return ['error' => "That player isn't from {$country}."];
+            }
+
+            if (AuctionSession::where('player_id', $player->id)->whereIn('status', ['scheduled', 'live', 'paused'])->exists()) {
+                return ['error' => 'That player has already been picked for the auction pool.'];
+            }
+
+            $baseValue = (float) $player->base_value;
+            $increment = $baseValue < 1_000_000 ? 50_000 : 100_000;
+
+            $session = AuctionSession::create([
+                'name' => 'Bonus round pick: ' . $player->name,
+                'status' => 'scheduled',
+                'player_id' => $player->id,
+                'tier' => $player->tier,
+                'starting_bid' => $baseValue,
+                'bid_increment' => $increment,
+                'current_bid' => 0,
+                'nominated_by_team_id' => $teamId,
+                'auction_draft_id' => $locked->id,
+                'source' => 'draft',
+            ]);
+
+            return ['success' => true, 'session' => $session];
+        });
+    }
+
+    /**
+     * Countries with at least one undrafted player — used by the
+     * Bonus Round's free country picker (no burned-countries concept
+     * applies there, every country with players left is fair game).
+     */
+    public function bonusRoundCountries(): array
+    {
+        return Player::query()
+            ->transferable()
+            ->notNominated()
+            ->whereNull('team_id')
+            ->where('is_active', true)
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country')
+            ->all();
+    }
 }

@@ -105,6 +105,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::post('/draft/{draft}/nominate', [AuctionDraftController::class, 'nominate'])->name('draft.nominate');
     Route::post('/draft/{draft}/skip', [AuctionDraftController::class, 'skip'])->name('draft.skip');
     Route::post('/draft/{draft}/rejoin', [AuctionDraftController::class, 'rejoin'])->name('draft.rejoin');
+    Route::post('/draft/{draft}/bonus-nominate', [AuctionDraftController::class, 'bonusNominate'])->name('draft.bonus-nominate');
     Route::get('/call/{roomKey}', [CallController::class, 'show'])->name('call');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');
@@ -117,6 +118,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 
     Route::get('/team', [ManagerTeamController::class, 'show'])->name('team');
     Route::post('/team/logo', [ManagerTeamController::class, 'updateLogo'])->name('team.logo.update');
+    Route::post('/team/players/{player}/release', [ManagerTeamController::class, 'releasePlayer'])->name('team.players.release');
 
     Route::get('/teams', [LeagueTeamController::class, 'index'])->name('teams.index');
     Route::get('/teams/{team}', [LeagueTeamController::class, 'show'])->name('teams.show');
@@ -181,6 +183,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('draft/create', [AdminAuctionDraftController::class, 'create'])->name('draft.create');
     Route::post('draft', [AdminAuctionDraftController::class, 'store'])->name('draft.store');
     Route::post('draft/{draft}/cancel', [AdminAuctionDraftController::class, 'cancel'])->name('draft.cancel');
+    Route::post('draft/{draft}/end', [AdminAuctionDraftController::class, 'end'])->name('draft.end');
+    Route::post('draft/{draft}/bonus-round', [AdminAuctionDraftController::class, 'startBonusRound'])->name('draft.bonus-round');
     Route::delete('auctions/{auction}', [AuctionSessionController::class, 'destroy'])->name('auctions.destroy');
 
     // Settings

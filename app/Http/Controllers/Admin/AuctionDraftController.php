@@ -49,4 +49,26 @@ class AuctionDraftController extends Controller
 
         return redirect()->route('admin.auctions.index')->with('status', 'Draft cancelled.');
     }
+
+    public function end(AuctionDraft $draft, AuctionDraftService $service): RedirectResponse
+    {
+        $result = $service->endDraft($draft);
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['draft' => $result['error']]);
+        }
+
+        return back()->with('status', 'Draft ended. Anything already queued stays available for the Auction phase.');
+    }
+
+    public function startBonusRound(AuctionDraft $draft, AuctionDraftService $service): RedirectResponse
+    {
+        $result = $service->startBonusRound($draft);
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['draft' => $result['error']]);
+        }
+
+        return back()->with('status', 'Bonus round opened — any manager can now pick freely.');
+    }
 }

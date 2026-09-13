@@ -81,6 +81,49 @@
             @if ($team)
                 <a href="{{ route('manager.teams.show', $team) }}" class="btn-ghost block w-full mt-6 py-2.5 text-center">{{ $team->name }}</a>
             @endif
+
+            @unless ($player->is_manager_player)
+                <div class="mt-6 pt-6 space-y-2" style="border-top: var(--rule);">
+                    <p class="eyebrow gold mb-1">Actions</p>
+
+                    @if (! $ownTeam)
+                        <p class="text-xs" style="color: var(--paper-faint);">You are not assigned to manage a team.</p>
+                    @elseif ($activeAuctionSession)
+                        @if (in_array($activeAuctionSession->status, ['live', 'paused'], true))
+                            <a href="{{ route('manager.auction.room', $activeAuctionSession) }}" class="btn-accent block w-full py-2.5 text-center text-sm">Auction Live — Bid Now</a>
+                        @else
+                            <p class="text-xs" style="color: var(--paper-faint);">Queued for the Auction — not open for bidding yet.</p>
+                        @endif
+                    @elseif (! $windowOpen)
+                        <p class="text-xs" style="color: var(--paper-faint);">
+                            {{ \App\Models\Setting::auctionStatus() !== 'closed' ? 'The auction is ' . \App\Models\Setting::auctionStatus() . ' — you can only shortlist right now.' : 'The transfer window is currently closed.' }}
+                        </p>
+                    @elseif (! $team)
+                        <form method="POST" action="{{ route('manager.scouts.sign', $player) }}">
+                            @csrf
+                            <button type="submit" class="btn-accent w-full py-2.5 text-sm">Open Auction</button>
+                        </form>
+                    @elseif ($team->id === $ownTeam->id)
+                        <form method="POST" action="{{ route('manager.team.players.release', $player) }}" onsubmit="return confirm('Release {{ $player->name }}? They become a free agent again — your budget spent on them is not refunded.');">
+                            @csrf
+                            <button type="submit" class="btn-ghost w-full py-2.5 text-sm" style="color: var(--live);">Release From Squad</button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
+                            @csrf
+                            <input type="number" name="fee" required min="1" placeholder="Offer amount" class="field px-3 py-2 text-sm flex-1">
+                            <button type="submit" class="btn-accent px-4 py-2 text-sm whitespace-nowrap">Offer</button>
+                        </form>
+                    @endif
+
+                    @if ($ownTeam && (! $team || $team->id !== $ownTeam->id))
+                        <form method="POST" action="{{ route('manager.scouts.shortlist', $player) }}">
+                            @csrf
+                            <button type="submit" class="btn-ghost w-full py-2 text-xs">{{ $isShortlisted ? 'Remove From Shortlist' : 'Add To Shortlist' }}</button>
+                        </form>
+                    @endif
+                </div>
+            @endunless
         </div>
 
         {{-- Career totals --}}

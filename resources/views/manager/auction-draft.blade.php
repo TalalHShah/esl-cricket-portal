@@ -76,6 +76,21 @@
             </div>
             <div class="text-center">
                 <div id="timerSlot"></div>
+                @if (auth()->user()->isAdmin())
+                    <div class="flex flex-col gap-2 mt-2">
+                        @if (in_array($draft->status, ['active', 'bonus_round'], true))
+                            <form method="POST" action="{{ route('admin.draft.end', $draft) }}" onsubmit="return confirm('End the draft now? Anything already queued stays available for the Auction phase.');">
+                                @csrf
+                                <button type="submit" class="btn-ghost px-4 py-2 text-xs" style="color: var(--live); border-color: var(--live);">End Draft</button>
+                            </form>
+                        @elseif ($draft->status === 'completed')
+                            <form method="POST" action="{{ route('admin.draft.bonus-round', $draft) }}">
+                                @csrf
+                                <button type="submit" class="btn-accent px-4 py-2 text-xs">Start Bonus Round</button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -136,6 +151,7 @@
             const nominateUrl = @json(route('manager.draft.nominate', $draft));
             const skipUrl = @json(route('manager.draft.skip', $draft));
             const rejoinUrl = @json(route('manager.draft.rejoin', $draft));
+            const bonusNominateUrl = @json(route('manager.draft.bonus-nominate', $draft));
             const callUrl = @json(route('manager.call', 'draft-' . $draft->id));
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -387,9 +403,44 @@
             }
 
             function renderCompletedPanel() {
-                setStatusLine('Every country has been drafted.');
+                setStatusLine('The draft is complete.');
                 document.getElementById('timerSlot').innerHTML = '';
-                document.getElementById('mainPanel').innerHTML = `<div class="card-section p-12 text-center"><p class="eyebrow gold mb-3">Draft Complete</p><p class="text-sm" style="color: var(--paper-faint);">All available players have been auctioned. Head to Auctions to review results.</p></div>`;
+                document.getElementById('mainPanel').innerHTML = `<div class="card-section p-12 text-center"><p class="eyebrow gold mb-3">Draft Complete</p><p class="text-sm" style="color: var(--paper-faint);">Picking has finished — the admin runs the Auction from here. If squads still need more players, the admin can open a Bonus Round.</p></div>`;
+            }
+
+            function renderBonusPanel(data) {
+                setStatusLine('Bonus round — anyone can pick any country, any time.', true);
+                document.getElementById('timerSlot').innerHTML = '';
+
+                const panel = document.getElementById('mainPanel');
+                const countries = data.bonus_countries || [];
+                const selected = selectedBonusCountry && countries.includes(selectedBonusCountry) ? selectedBonusCountry : '';
+
+                const playersHtml = selected
+                    ? renderPlayerList(data.bonus_players || [], true)
+                    : '<p class="text-sm" style="color: var(--paper-faint);">Pick a country above to see who\'s left.</p>';
+
+                panel.innerHTML = `
+                    <div class="card-section p-4 mb-4" style="border-left: 3px solid var(--gold);">
+                        <p class="text-sm font-semibold" style="color: var(--paper);">Bonus round is open — no turns, no timer. Anyone can pick anyone from any country, as many times as needed.</p>
+                    </div>
+                    <div class="card-section p-4 mb-4">
+                        <label class="eyebrow block mb-2" style="color: var(--paper-faint);">Country</label>
+                        <select id="bonusCountrySelect" class="field px-3 py-2 text-sm w-full sm:w-64">
+                            <option value="">Choose a country...</option>
+                            ${countries.map(c => `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="card-section mb-4">${playersHtml}</div>
+                    <p id="nominateError" class="text-xs text-center mt-3" style="color: var(--live);"></p>
+                `;
+
+                document.getElementById('bonusCountrySelect').addEventListener('change', (e) => {
+                    selectedBonusCountry = e.target.value || null;
+                    poll();
+                });
+                document.querySelectorAll('.nominate-btn').forEach(b => b.addEventListener('click', () => doBonusNominate(selected, b.dataset.id)));
+                attachTilt(panel);
             }
 
             function tickCountdown() {
@@ -405,11 +456,18 @@
             setInterval(tickCountdown, 1000);
 
             // ---------- Master render ----------
+            let selectedBonusCountry = null;
+
             function applyState(data) {
                 renderTurnStrip(data);
                 renderBurned(data.burned_countries || []);
                 renderShortlist(data.shortlist || []);
                 renderPool(data.pool || []);
+
+                if (data.status === 'bonus_round') {
+                    renderBonusPanel(data);
+                    return;
+                }
 
                 if (data.status === 'completed') {
                     renderCompletedPanel();
@@ -425,7 +483,8 @@
             }
 
             function poll() {
-                fetch(stateUrl, { headers: { 'Accept': 'application/json' } })
+                const url = selectedBonusCountry ? stateUrl + '?bonus_country=' + encodeURIComponent(selectedBonusCountry) : stateUrl;
+                fetch(url, { headers: { 'Accept': 'application/json' } })
                     .then(r => r.json())
                     .then(applyState)
                     .catch(() => {});
@@ -476,6 +535,15 @@
             function doRejoin() {
                 post(rejoinUrl).then(({ ok, data }) => {
                     if (!ok) alert(data.error || 'Could not rejoin.');
+                    poll();
+                });
+            }
+
+            function doBonusNominate(country, playerId) {
+                const errorEl = document.getElementById('nominateError');
+                if (errorEl) errorEl.textContent = '';
+                post(bonusNominateUrl, { country, player_id: playerId }).then(({ ok, data }) => {
+                    if (!ok) { if (errorEl) errorEl.textContent = data.error || 'Could not pick that player.'; return; }
                     poll();
                 });
             }

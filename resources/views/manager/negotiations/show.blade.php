@@ -86,7 +86,7 @@
 
                     <form method="POST" action="{{ route('manager.negotiations.counter', $transfer) }}" class="mb-3 space-y-2">
                         @csrf
-                        <input type="number" name="fee" required min="1" placeholder="Counter amount" value="{{ old('fee') }}"
+                        <input type="text" data-comma-input name="fee" required min="1" placeholder="Counter amount" value="{{ old('fee') }}"
                                class="field px-3 py-2 text-sm w-full">
                         <input type="text" name="message" maxlength="500" placeholder="Optional message" value="{{ old('message') }}"
                                class="field px-3 py-2 text-sm w-full">

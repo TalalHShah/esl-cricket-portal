@@ -105,5 +105,6 @@
             }
         };
     </script>
+    <script src="{{ asset('js/comma-input.js') }}"></script>
 </body>
 </html>

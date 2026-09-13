@@ -55,7 +55,7 @@
 
             <div>
                 <label class="block text-sm font-bold text-white mb-2">Budget (PKR)</label>
-                <input type="number" name="budget" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ old('budget', $team->budget) }}" required>
+                <input type="text" data-comma-input name="budget" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ old('budget', $team->budget) }}" required>
                 @error('budget') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 

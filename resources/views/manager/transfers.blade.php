@@ -84,7 +84,7 @@
                         @if($team && $windowOpen)
                             <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
                                 @csrf
-                                <input type="number" name="fee" required min="1" placeholder="Offer amount"
+                                <input type="text" data-comma-input name="fee" required min="1" placeholder="Offer amount"
                                        class="field px-3 py-2 text-xs flex-1" style="background: rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.4); color: #fff;">
                                 <button type="submit" class="px-4 py-2 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
                                         style="background: var(--gold); color: var(--ink); border-radius: 2px;">

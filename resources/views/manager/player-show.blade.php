@@ -111,7 +111,7 @@
                     @else
                         <form method="POST" action="{{ route('manager.transfers.offer', $player) }}" class="flex items-center gap-2">
                             @csrf
-                            <input type="number" name="fee" required min="1" placeholder="Offer amount" class="field px-3 py-2 text-sm flex-1">
+                            <input type="text" data-comma-input name="fee" required min="1" placeholder="Offer amount" class="field px-3 py-2 text-sm flex-1">
                             <button type="submit" class="btn-accent px-4 py-2 text-sm whitespace-nowrap">Offer</button>
                         </form>
                     @endif

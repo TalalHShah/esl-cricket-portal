@@ -90,7 +90,7 @@
 
             <div>
                 <label class="eyebrow block mb-2">Base Value</label>
-                <input type="number" name="base_value" class="field w-full px-4 py-3" placeholder="500000" value="{{ old('base_value', 500000) }}" required>
+                <input type="text" data-comma-input name="base_value" class="field w-full px-4 py-3" placeholder="500,000" value="{{ old('base_value', 500000) }}" required>
                 @error('base_value') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
             </div>
 

@@ -72,8 +72,8 @@
                             <form action="{{ route('admin.auctions.store') }}" method="POST" class="flex items-center justify-end gap-2">
                                 @csrf
                                 <input type="hidden" name="player_id" value="{{ $player->id }}">
-                                <input type="number" name="starting_bid" value="{{ $defaultBid }}" min="1" class="field px-2 py-1.5 text-sm" style="width: 110px;" title="Starting bid">
-                                <input type="number" name="bid_increment" value="{{ $defaultIncrement }}" min="1" class="field px-2 py-1.5 text-sm" style="width: 90px;" title="Bid increment">
+                                <input type="text" data-comma-input name="starting_bid" value="{{ $defaultBid }}" min="1" class="field px-2 py-1.5 text-sm" style="width: 110px;" title="Starting bid">
+                                <input type="text" data-comma-input name="bid_increment" value="{{ $defaultIncrement }}" min="1" class="field px-2 py-1.5 text-sm" style="width: 90px;" title="Bid increment">
                                 <button type="submit" class="btn-accent px-3 py-1.5 text-xs whitespace-nowrap">Queue</button>
                             </form>
                         </td>

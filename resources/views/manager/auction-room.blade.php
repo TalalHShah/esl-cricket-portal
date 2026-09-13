@@ -142,7 +142,7 @@
                                     Bid <span id="minBidLabel"><x-money :amount="$minimumBid" :size="16" /></span>
                                 </button>
                                 <div class="flex items-center gap-2">
-                                    <input type="number" id="customBidInput" class="field px-3 py-2 text-sm" style="width: 10rem;" placeholder="Custom amount" min="{{ (int) $minimumBid }}" step="{{ (int) $auctionSession->bid_increment }}">
+                                    <input type="text" data-comma-input id="customBidInput" class="field px-3 py-2 text-sm" style="width: 10rem;" placeholder="Custom amount" min="{{ (int) $minimumBid }}" step="{{ (int) $auctionSession->bid_increment }}">
                                     <button type="button" id="bidCustomBtn" class="btn-ghost px-4 py-2 text-sm">Bid This</button>
                                 </div>
                                 <button type="button" id="passBtn" class="btn-ghost px-6 py-3 text-base" style="color: var(--live); border-color: var(--live);">Pass</button>
@@ -547,7 +547,8 @@
 
             const bidCustomBtn = document.getElementById('bidCustomBtn');
             if (bidCustomBtn) bidCustomBtn.addEventListener('click', () => {
-                const val = document.getElementById('customBidInput').value;
+                const raw = document.getElementById('customBidInput').value;
+                const val = window.CommaInput ? window.CommaInput.strip(raw) : raw;
                 if (!val || Number(val) <= 0) {
                     document.getElementById('bidError').textContent = 'Enter a valid amount.';
                     return;

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/themes.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/themes.css') }}?v={{ filemtime(public_path('css/themes.css')) }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, input, select, button { font-family: 'Inter', sans-serif; }
@@ -91,13 +91,12 @@
         </div>
 
         <div style="background-color: var(--surface); border-top: var(--rule); border-bottom: var(--rule);">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 manager-nav-wrap">
                 <nav class="manager-nav flex items-center overflow-x-auto">
                     @php
                         $navItems = [
                             ['route' => 'manager.dashboard', 'label' => 'Home'],
-                            ['route' => 'manager.transfers', 'label' => 'Transfer Market'],
-                            ['route' => 'manager.negotiations.index', 'label' => 'Negotiations', 'active' => 'manager.negotiations.*'],
+                            ['route' => 'manager.transfers', 'label' => 'Transfer Market', 'active' => ['manager.transfers*', 'manager.negotiations.*']],
                             ['route' => 'manager.draft', 'label' => 'Draft Room'],
                             ['route' => 'manager.auction', 'label' => 'Auction', 'active' => 'manager.auction*'],
                             ['route' => 'manager.scouts', 'label' => 'Scouts'],
@@ -109,7 +108,10 @@
                         ];
                     @endphp
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['active'] ?? $item['route']) ? 'active' : '' }}">
+                        @php
+                            $patterns = (array) ($item['active'] ?? $item['route']);
+                        @endphp
+                        <a href="{{ route($item['route']) }}" class="{{ request()->routeIs(...$patterns) ? 'active' : '' }}">
                             {{ $item['label'] }}
                         </a>
                     @endforeach

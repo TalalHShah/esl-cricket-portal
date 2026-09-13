@@ -324,6 +324,30 @@ a.text-link:hover { color: var(--gold-dim); }
 }
 
 /* ---------- Nav (manager) ---------- */
+.manager-nav-wrap {
+  position: relative;
+}
+
+.manager-nav-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  background: linear-gradient(to right, transparent, var(--surface));
+  pointer-events: none;
+}
+
+.manager-nav {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.manager-nav::-webkit-scrollbar {
+  display: none;
+}
+
 .manager-nav a {
   font-size: 0.8125rem;
   font-weight: 600;

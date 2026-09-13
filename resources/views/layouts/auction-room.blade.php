@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('esl-logo.svg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/esl-logo.png') }}">
     @yield('head')
 
     <title>@yield('title', 'Auction Room') &middot; ESL Cricket</title>
@@ -24,9 +24,7 @@
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="logo-badge w-8 h-8 flex items-center justify-center p-1">
-                        @include('partials.logo-icon')
-                    </div>
+                    <img src="{{ asset('images/esl-logo.png') }}" alt="ESL" class="h-10 w-auto" style="flex-shrink: 0;">
                     <p class="eyebrow gold">Auction Room</p>
                 </div>
                 <a href="{{ route('manager.auction') }}" class="btn-ghost px-4 py-2 text-xs">Exit Room</a>

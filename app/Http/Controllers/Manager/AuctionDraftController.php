@@ -8,6 +8,7 @@ use App\Models\Player;
 use App\Models\Team;
 use App\Services\AuctionCompletionService;
 use App\Services\AuctionDraftService;
+use App\Support\AuctionStatePresenter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -98,6 +99,13 @@ class AuctionDraftController extends Controller
 
         $activeSession = $draft->sessions()->whereIn('status', ['live', 'paused'])->latest()->first();
 
+        // Everyone sitting in the merged draft room is automatically
+        // seated in whatever lot comes up — no separate "Join Auction
+        // Room" click, since they're already present in the one room.
+        if ($activeSession && $team && ! session('auction_room_joined_' . $activeSession->id, false)) {
+            session(['auction_room_joined_' . $activeSession->id => true]);
+        }
+
         $availablePlayers = [];
         if ($draft->current_country && ! $activeSession) {
             $availablePlayers = Player::query()
@@ -128,6 +136,10 @@ class AuctionDraftController extends Controller
             'available_players' => $availablePlayers,
             'active_session_id' => $activeSession?->id,
             'active_session_status' => $activeSession?->status,
+            // The full bidding payload, embedded so the merged draft room
+            // never has to redirect to a separate auction room page —
+            // one poll, one page, for the whole live event.
+            'auction' => $activeSession ? AuctionStatePresenter::present($activeSession, $team) : null,
         ]);
     }
 

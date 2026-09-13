@@ -158,11 +158,10 @@
             <div class="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <p class="eyebrow gold mb-1">Talk While You Bid</p>
-                    <p class="text-xs" style="color: var(--paper-faint);">Opens a free video &amp; voice room for everyone in this auction (powered by Jitsi Meet — a public third-party service, not hosted by ESL Cricket).</p>
+                    <p class="text-xs" style="color: var(--paper-faint);">Opens a free video &amp; voice call in its own window (powered by Jitsi Meet — a public third-party service, not hosted by ESL Cricket) — it keeps running even if you navigate around the rest of the site in this tab.</p>
                 </div>
-                <button type="button" id="toggleCallBtn" class="btn-ghost px-5 py-2.5">Start Video / Voice Call</button>
+                <button type="button" id="callBtn" class="btn-ghost px-5 py-2.5">Start Video / Voice Call</button>
             </div>
-            <div id="jitsiContainer" class="hidden mt-6" style="height: 480px; border-radius: 2px; overflow: hidden; border: 1px solid var(--line-strong);"></div>
         </div>
     @endif
 
@@ -196,7 +195,6 @@
     @endif
 
     @if($isLive || $isPaused)
-        <script src="https://meet.jit.si/external_api.js"></script>
         <script>
         (function () {
             const auctionId = {{ $auctionSession->id }};
@@ -461,30 +459,18 @@
                 });
             });
 
-            // Video/voice call (Jitsi Meet public server)
-            const toggleCallBtn = document.getElementById('toggleCallBtn');
-            let jitsiApi = null;
-            if (toggleCallBtn) {
-                toggleCallBtn.addEventListener('click', () => {
-                    const container = document.getElementById('jitsiContainer');
-                    if (jitsiApi) {
-                        jitsiApi.dispose();
-                        jitsiApi = null;
-                        container.classList.add('hidden');
-                        container.innerHTML = '';
-                        toggleCallBtn.textContent = 'Start Video / Voice Call';
+            // Video/voice call — opens in its own popup window so it
+            // keeps running independent of whatever page this tab is on.
+            const callBtn = document.getElementById('callBtn');
+            const callUrl = @json(route('manager.call', $auctionSession->auction_draft_id ? 'draft-' . $auctionSession->auction_draft_id : 'auction-' . $auctionSession->id));
+            let callWindow = null;
+            if (callBtn) {
+                callBtn.addEventListener('click', () => {
+                    if (callWindow && !callWindow.closed) {
+                        callWindow.focus();
                         return;
                     }
-                    container.classList.remove('hidden');
-                    jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
-                        roomName: 'ESLCricketAuction-' + auctionId,
-                        parentNode: container,
-                        width: '100%',
-                        height: '100%',
-                        userInfo: { displayName: @json(auth()->user()->name ?? 'Manager') },
-                        configOverwrite: { prejoinPageEnabled: false },
-                    });
-                    toggleCallBtn.textContent = 'End Video / Voice Call';
+                    callWindow = window.open(callUrl, 'ESLCall', 'width=440,height=680,resizable=yes,noopener=no');
                 });
             }
         })();

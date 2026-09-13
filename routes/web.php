@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Manager\AuctionController;
 use App\Http\Controllers\Manager\AuctionDraftController;
+use App\Http\Controllers\Manager\CallController;
 use App\Http\Controllers\Manager\FixtureController as ManagerFixtureController;
 use App\Http\Controllers\Manager\LeagueTeamController;
 use App\Http\Controllers\Manager\LiveStreamController;
@@ -91,6 +92,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::post('/draft/{draft}/spin', [AuctionDraftController::class, 'spin'])->name('draft.spin');
     Route::post('/draft/{draft}/nominate', [AuctionDraftController::class, 'nominate'])->name('draft.nominate');
     Route::post('/draft/{draft}/skip', [AuctionDraftController::class, 'skip'])->name('draft.skip');
+    Route::get('/call/{roomKey}', [CallController::class, 'show'])->name('call');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');
     Route::post('/scouts/{player}/sign', [ScoutController::class, 'sign'])->name('scouts.sign');

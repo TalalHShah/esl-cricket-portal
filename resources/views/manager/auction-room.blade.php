@@ -247,14 +247,8 @@
         <script>
         (function () {
             const auctionId = {{ $auctionSession->id }};
-            const isDraftLot = {{ $auctionSession->auction_draft_id ? 'true' : 'false' }};
-            const draftRoomUrl = @json(route('manager.draft'));
             window.continueAfterAuction = function () {
-                if (isDraftLot) {
-                    window.location.href = draftRoomUrl;
-                } else {
-                    window.location.reload();
-                }
+                window.location.reload();
             };
             const stateUrl = @json(route('manager.auction.state', $auctionSession));
             const bidUrl = @json(route('manager.auction.bid', $auctionSession));

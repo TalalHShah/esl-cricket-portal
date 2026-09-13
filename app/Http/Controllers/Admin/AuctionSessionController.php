@@ -21,10 +21,13 @@ class AuctionSessionController extends Controller
         $query = AuctionSession::with(['player', 'currentTeam', 'highestBidder']);
 
         $sort = $this->applySort($query, $request, [
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(status, 'live', 'paused', 'scheduled', 'completed', 'cancelled')")
+                ->orderByRaw("FIELD(tier, '" . implode("','", AuctionSession::TIER_ORDER) . "')")
+                ->orderByDesc('starting_bid'),
             'created_desc' => fn ($q) => $q->orderByDesc('created_at'),
             'status' => fn ($q) => $q->orderByRaw("FIELD(status, 'live', 'paused', 'scheduled', 'completed', 'cancelled')"),
             'bid_desc' => fn ($q) => $q->orderByDesc('current_bid'),
-        ], 'created_desc');
+        ], 'tier');
 
         $sessions = $query->paginate(20)->withQueryString();
 

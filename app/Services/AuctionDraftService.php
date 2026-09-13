@@ -6,7 +6,6 @@ use App\Models\AuctionDraft;
 use App\Models\AuctionSession;
 use App\Models\Player;
 use App\Models\Setting;
-use App\Models\Team;
 use Illuminate\Support\Facades\DB;
 
 class AuctionDraftService
@@ -40,6 +39,7 @@ class AuctionDraftService
 
         $countries = Player::query()
             ->transferable()
+            ->notNominated()
             ->whereNull('team_id')
             ->where('is_active', true)
             ->whereNotIn('country', $burned)
@@ -55,6 +55,7 @@ class AuctionDraftService
 
             return Player::query()
                 ->transferable()
+                ->notNominated()
                 ->whereNull('team_id')
                 ->where('is_active', true)
                 ->distinct()
@@ -67,7 +68,7 @@ class AuctionDraftService
 
     public function anyPlayersRemain(): bool
     {
-        return Player::query()->transferable()->whereNull('team_id')->where('is_active', true)->exists();
+        return Player::query()->transferable()->notNominated()->whereNull('team_id')->where('is_active', true)->exists();
     }
 
     /**
@@ -137,9 +138,14 @@ class AuctionDraftService
     }
 
     /**
-     * The active picker brings a player from the current country into
-     * the auction — their nomination counts as the opening bid at the
-     * player's base value, and the floor opens to everyone else.
+     * The active picker reserves a player from the current country for
+     * the auction — this is a selection, not a purchase. No money
+     * changes hands and nobody bids here; the player is simply queued
+     * (as a 'scheduled' AuctionSession, tagged with their tier) for the
+     * separate Auction phase, which the admin runs later — possibly on
+     * a different day — working through the queue one tier at a time
+     * (Platinum, then Diamond, then Gold, then Silver). The picking
+     * rotation moves on immediately afterward, same as a pass.
      */
     public function nominate(AuctionDraft $draft, int $teamId, int $playerId): array
     {
@@ -154,10 +160,6 @@ class AuctionDraftService
                 return ['error' => "It's not your turn to pick."];
             }
 
-            if (AuctionSession::where('auction_draft_id', $locked->id)->whereIn('status', ['live', 'paused'])->exists()) {
-                return ['error' => 'A player from this country is already up for bidding.'];
-            }
-
             $player = Player::whereKey($playerId)->lockForUpdate()->first();
 
             if (! $player || $player->is_manager_player || $player->team_id !== null || ! $player->is_active) {
@@ -168,39 +170,67 @@ class AuctionDraftService
                 return ['error' => "That player isn't from {$locked->current_country}."];
             }
 
+            if (AuctionSession::where('player_id', $player->id)->whereIn('status', ['scheduled', 'live', 'paused'])->exists()) {
+                return ['error' => 'That player has already been picked for the auction pool.'];
+            }
+
             $baseValue = (float) $player->base_value;
-
-            $team = Team::whereKey($teamId)->lockForUpdate()->first();
-
-            if (! $team || ! $team->hasSquadSpace()) {
-                return ['error' => 'Your squad is full — you cannot nominate another player.'];
-            }
-
-            if ($team->remainingBudget() < $baseValue) {
-                return ['error' => 'You do not have enough budget to open the bidding at this player\'s base value.'];
-            }
-
             $increment = $baseValue < 1_000_000 ? 50_000 : 100_000;
 
             $session = AuctionSession::create([
                 'name' => 'Draft pick: ' . $player->name,
-                'status' => 'live',
+                'status' => 'scheduled',
                 'player_id' => $player->id,
+                'tier' => $player->tier,
                 'starting_bid' => $baseValue,
                 'bid_increment' => $increment,
-                'current_bid' => $baseValue,
-                'current_team_id' => $teamId,
-                'highest_bidder_team_id' => $teamId,
+                'current_bid' => 0,
                 'nominated_by_team_id' => $teamId,
                 'auction_draft_id' => $locked->id,
-                'started_at' => now(),
-                'bid_deadline_at' => now()->addSeconds(AuctionSession::BID_WINDOW_SECONDS),
+                'source' => 'draft',
             ]);
 
-            $locked->update(['consecutive_skips' => 0, 'turn_deadline_at' => null]);
+            $this->advanceAfterPick($locked);
 
             return ['success' => true, 'session' => $session];
         });
+    }
+
+    /**
+     * Move the picking rotation on to the next eligible manager after a
+     * pick, or retire the country if it's out of signable players or
+     * out of managers willing to pick from it. Assumes the caller
+     * already holds the lock on $draft.
+     */
+    private function advanceAfterPick(AuctionDraft $draft): void
+    {
+        $remaining = Player::query()
+            ->transferable()
+            ->notNominated()
+            ->whereNull('team_id')
+            ->where('is_active', true)
+            ->where('country', $draft->current_country)
+            ->exists();
+
+        if (! $remaining) {
+            $this->burnCurrentCountry($draft);
+
+            return;
+        }
+
+        $nextIndex = $draft->nextEligibleIndex($draft->active_picker_index);
+
+        if ($nextIndex === null) {
+            $this->burnCurrentCountry($draft);
+
+            return;
+        }
+
+        $draft->update([
+            'active_picker_index' => $nextIndex,
+            'consecutive_skips' => 0,
+            'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
+        ]);
     }
 
     /**
@@ -307,54 +337,6 @@ class AuctionDraftService
         }
 
         return $draft->fresh();
-    }
-
-    /**
-     * Called once a nominated player's mini-auction resolves (sold or
-     * unsold): hand the floor to the next picker who hasn't passed on
-     * this country, or burn the country if no signable players are
-     * left in it (or nobody's left in the rotation to offer them to).
-     */
-    public function advanceAfterSale(AuctionSession $session): void
-    {
-        if (! $session->auction_draft_id) {
-            return;
-        }
-
-        DB::transaction(function () use ($session) {
-            $draft = AuctionDraft::whereKey($session->auction_draft_id)->lockForUpdate()->first();
-
-            if (! $draft || $draft->status !== 'active' || $draft->current_country === null) {
-                return;
-            }
-
-            $remaining = Player::query()
-                ->transferable()
-                ->whereNull('team_id')
-                ->where('is_active', true)
-                ->where('country', $draft->current_country)
-                ->exists();
-
-            if (! $remaining) {
-                $this->burnCurrentCountry($draft);
-
-                return;
-            }
-
-            $nextIndex = $draft->nextEligibleIndex($draft->active_picker_index);
-
-            if ($nextIndex === null) {
-                $this->burnCurrentCountry($draft);
-
-                return;
-            }
-
-            $draft->update([
-                'active_picker_index' => $nextIndex,
-                'consecutive_skips' => 0,
-                'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
-            ]);
-        });
     }
 
     private function burnCurrentCountry(AuctionDraft $draft): void

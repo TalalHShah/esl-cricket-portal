@@ -35,6 +35,12 @@ class AuctionSession extends Model
     public const MARKET_WINDOW_SECONDS = 3600;
 
     /**
+     * Auction category order — the main auction phase works through
+     * the nominated pool one tier at a time, most premium first.
+     */
+    public const TIER_ORDER = ['Platinum', 'Diamond', 'Gold', 'Silver'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -44,6 +50,7 @@ class AuctionSession extends Model
         'description',
         'status',
         'player_id',
+        'tier',
         'current_team_id',
         'current_bid',
         'starting_bid',

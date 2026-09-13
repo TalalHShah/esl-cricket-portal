@@ -81,17 +81,6 @@ class AuctionController extends Controller
         $auctionSession->load(['player', 'currentTeam', 'highestBidder']);
         $team = Auth::user()->managedTeam;
 
-        // A lot nominated through the country draft seats everyone
-        // automatically — they were just redirected here by the draft
-        // room, so there's no separate "Join" step to click through.
-        if ($auctionSession->auction_draft_id && $team && ! session('auction_room_joined_' . $auctionSession->id, false)) {
-            session(['auction_room_joined_' . $auctionSession->id => true]);
-            AuctionParticipant::updateOrCreate(
-                ['auction_session_id' => $auctionSession->id, 'team_id' => $team->id],
-                ['user_id' => Auth::id(), 'joined_at' => now(), 'last_seen_at' => now()]
-            );
-        }
-
         $joined = session('auction_room_joined_' . $auctionSession->id, false);
 
         return view('manager.auction-room', compact('auctionSession', 'team', 'joined'));

@@ -10,10 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class AuctionCompletionService
 {
-    public function __construct(private readonly AuctionDraftService $draftService)
-    {
-    }
-
     /**
      * If this lot's bidding window has lapsed with no further action,
      * finalize it automatically — nobody should have to remember to
@@ -102,10 +98,6 @@ class AuctionCompletionService
         });
 
         $auction = $auction->fresh();
-
-        if (! $alreadyDone && $auction->auction_draft_id) {
-            $this->draftService->advanceAfterSale($auction);
-        }
 
         return ['sold' => $sold, 'squad_full' => $squadFull, 'auction' => $auction];
     }

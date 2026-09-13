@@ -115,6 +115,19 @@ class Player extends Model
     }
 
     /**
+     * Scope out players who are already queued for auction — nominated
+     * during a country draft but not yet sold — so the same player
+     * can't be picked twice while they're waiting their turn on the
+     * auction block.
+     */
+    public function scopeNotNominated($query)
+    {
+        return $query->whereDoesntHave('auctionSessions', function ($q) {
+            $q->whereIn('status', ['scheduled', 'live', 'paused']);
+        });
+    }
+
+    /**
      * Shorthand for the batting hand, e.g. "RHB" or "LHB".
      */
     public function battingShorthand(): ?string

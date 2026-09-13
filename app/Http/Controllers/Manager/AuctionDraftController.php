@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuctionDraft;
+use App\Models\AuctionSession;
 use App\Models\Player;
 use App\Models\Team;
-use App\Services\AuctionCompletionService;
 use App\Services\AuctionDraftService;
-use App\Support\AuctionStatePresenter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -57,10 +55,6 @@ class AuctionDraftController extends Controller
             return response()->json(['error' => $result['error']], 422);
         }
 
-        // Seat the nominator in the new lot's room automatically so
-        // they don't have to click "Join" on a player they just picked.
-        session(['auction_room_joined_' . $result['session']->id => true]);
-
         return response()->json(['success' => true, 'session_id' => $result['session']->id]);
     }
 
@@ -98,38 +92,26 @@ class AuctionDraftController extends Controller
 
     /**
      * Polled by the draft room: draft-level state (whose turn, country,
-     * burned list) plus, if a lot is currently up for bidding, the
-     * players available to nominate next.
+     * burned list, players available to pick next) plus a look at the
+     * auction pool building up behind the scenes. Picking here never
+     * opens a live bid — that's a separate Auction phase the admin
+     * runs later — so there's no "active session" concept anymore.
      */
-    public function state(AuctionDraft $draft, AuctionCompletionService $completion, AuctionDraftService $draftService): JsonResponse
+    public function state(AuctionDraft $draft, AuctionDraftService $draftService): JsonResponse
     {
-        $liveSession = $draft->sessions()->where('status', 'live')->latest()->first();
-        if ($liveSession) {
-            $completion->completeIfExpired($liveSession);
-        }
-
-        $draft->refresh();
         $draft = $draftService->autoAdvanceIfExpired($draft);
         $team = Auth::user()->managedTeam;
 
         $teams = Team::whereIn('id', $draft->turn_order)->with('manager')->get()->keyBy('id');
         $order = collect($draft->turn_order)->map(fn ($id) => $teams->get($id))->filter()->values();
 
-        $activeSession = $draft->sessions()->whereIn('status', ['live', 'paused'])->latest()->first();
-
-        // Everyone sitting in the merged draft room is automatically
-        // seated in whatever lot comes up — no separate "Join Auction
-        // Room" click, since they're already present in the one room.
-        if ($activeSession && $team && ! session('auction_room_joined_' . $activeSession->id, false)) {
-            session(['auction_room_joined_' . $activeSession->id => true]);
-        }
-
         $shortlistedIds = $team ? $team->shortlistedPlayers()->pluck('players.id')->all() : [];
 
         $availablePlayers = [];
-        if ($draft->current_country && ! $activeSession) {
+        if ($draft->current_country) {
             $availablePlayers = Player::query()
                 ->transferable()
+                ->notNominated()
                 ->whereNull('team_id')
                 ->where('is_active', true)
                 ->where('country', $draft->current_country)
@@ -145,6 +127,24 @@ class AuctionDraftController extends Controller
                     'is_shortlisted' => in_array($p->id, $shortlistedIds, true),
                 ]);
         }
+
+        $pool = AuctionSession::with(['player', 'nominatedBy'])
+            ->where('auction_draft_id', $draft->id)
+            ->where('status', 'scheduled')
+            ->get()
+            ->sortBy([
+                fn ($a, $b) => array_search($a->tier, AuctionSession::TIER_ORDER) <=> array_search($b->tier, AuctionSession::TIER_ORDER),
+                fn ($a, $b) => (float) $b->starting_bid <=> (float) $a->starting_bid,
+            ])
+            ->values()
+            ->map(fn (AuctionSession $s) => [
+                'id' => $s->id,
+                'player_name' => $s->player?->name,
+                'tier' => $s->tier,
+                'country' => $s->player?->country,
+                'base_value' => (float) $s->starting_bid,
+                'nominated_by' => $s->nominatedBy?->short_name ?? $s->nominatedBy?->name,
+            ]);
 
         $shortlist = $team
             ? $team->shortlistedPlayers()
@@ -174,20 +174,14 @@ class AuctionDraftController extends Controller
             'active_picker' => $this->teamPayload($teams->get($draft->activePickerTeamId())),
             'turn_order' => $order->map(fn (Team $t) => $this->teamPayload($t)),
             'is_your_turn_to_spin' => $team && $draft->current_country === null && $draft->countryPickerTeamId() === $team->id,
-            'is_your_turn_to_pick' => $team && $draft->current_country !== null && $draft->activePickerTeamId() === $team->id && ! $activeSession,
-            'turn_deadline_at' => (! $activeSession && $draft->current_country !== null) || ($draft->current_country === null && $draft->status === 'active')
-                ? $draft->turn_deadline_at?->toIso8601String()
-                : null,
+            'is_your_turn_to_pick' => $team && $draft->current_country !== null && $draft->activePickerTeamId() === $team->id,
+            'turn_deadline_at' => $draft->status === 'active' ? $draft->turn_deadline_at?->toIso8601String() : null,
             'passed_team_ids' => $passedTeamIds,
             'passed_teams' => collect($passedTeamIds)->map(fn ($id) => $this->teamPayload($teams->get($id)))->filter()->values(),
             'you_have_passed' => $team && $draft->hasTeamPassed($team->id),
             'available_players' => $availablePlayers,
-            'active_session_id' => $activeSession?->id,
-            'active_session_status' => $activeSession?->status,
-            // The full bidding payload, embedded so the merged draft room
-            // never has to redirect to a separate auction room page —
-            // one poll, one page, for the whole live event.
-            'auction' => $activeSession ? AuctionStatePresenter::present($activeSession, $team) : null,
+            'pool' => $pool,
+            'pool_count' => $pool->count(),
         ]);
     }
 

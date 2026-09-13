@@ -11,6 +11,7 @@
         </div>
         <div class="flex items-center gap-3">
             @include('partials.sort-bar', ['current' => $sort, 'sortId' => 'auctions', 'options' => [
+                'tier' => 'Auction Order — Platinum First',
                 'created_desc' => 'Newest First',
                 'status' => 'Status',
                 'bid_desc' => 'Current Bid — High to Low',
@@ -25,6 +26,7 @@
             <thead>
                 <tr>
                     <th>Player</th>
+                    <th>Category</th>
                     <th>Status</th>
                     <th style="text-align:right;">Current Bid</th>
                     <th>Leading Team</th>
@@ -36,7 +38,17 @@
                     <tr>
                         <td>
                             <p class="font-semibold" style="color: var(--paper);">{{ $session->player?->name ?? $session->name }}</p>
-                            <p class="text-xs" style="color: var(--paper-faint);">Starting bid — {{ number_format((float) $session->starting_bid, 0) }}</p>
+                            <p class="text-xs" style="color: var(--paper-faint);">
+                                Starting bid — {{ number_format((float) $session->starting_bid, 0) }}
+                                @if ($session->source === 'draft') &middot; From Country Draft @endif
+                            </p>
+                        </td>
+                        <td>
+                            @if ($session->tier)
+                                <span class="tag gold" style="font-size:0.65rem;">{{ $session->tier }}</span>
+                            @else
+                                <span style="color: var(--paper-faint);">—</span>
+                            @endif
                         </td>
                         <td>
                             <span class="status-pill {{ $session->status === 'live' ? 'live' : ($session->status === 'completed' ? 'confirmed' : 'pending') }}">
@@ -92,7 +104,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" style="text-align:center; padding: 3rem 0; color: var(--paper-faint);">No auction sessions yet</td>
+                        <td colspan="6" style="text-align:center; padding: 3rem 0; color: var(--paper-faint);">No auction sessions yet</td>
                     </tr>
                 @endforelse
             </tbody>

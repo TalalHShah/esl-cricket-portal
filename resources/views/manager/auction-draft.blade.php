@@ -41,36 +41,18 @@
         .player-card-value { font-size: 0.85rem; font-weight: 700; color: var(--gold); margin-bottom: 0.75rem; }
         .player-card .nominate-btn { width: 100%; }
 
-        @keyframes bidFlash { 0% { background-color: rgba(232, 178, 61, 0.35); } 100% { background-color: transparent; } }
-        @keyframes leaderPop { 0% { transform: scale(0.85); opacity: 0.4; } 60% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-        .bid-flash { animation: bidFlash 900ms ease-out; }
-        .leader-pop { animation: leaderPop 420ms cubic-bezier(.2,.9,.3,1.3); }
         .countdown-ring { width: 72px; height: 72px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; border: 4px solid var(--line-strong); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.4rem; color: var(--paper); transition: border-color 200ms, color 200ms; margin: 0 auto; }
         .countdown-ring.urgent { border-color: var(--live); color: var(--live); }
-        .leader-crest-avatar { display: flex; align-items: center; justify-content: center; }
-        .leader-crest-avatar .crest-box, .leader-crest-avatar .avatar-box { width: 56px; height: 56px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--line-strong); background-color: var(--surface-raised); }
-        .leader-crest-avatar .avatar-box { margin-left: -14px; border-color: var(--gold); }
-        .leader-crest-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-        @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes overlayCardIn { 0% { transform: scale(0.7) translateY(40px); opacity: 0; } 70% { transform: scale(1.03) translateY(-6px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-        @keyframes overlayLogoSpin { 0% { transform: scale(1.4) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 0.18; } }
-        #soldOverlay { position: fixed; inset: 0; z-index: 999; display: none; align-items: center; justify-content: center; animation: overlayFadeIn 400ms ease-out; }
-        #soldOverlay.is-visible { display: flex; }
-        #soldOverlay .overlay-bg { position: absolute; inset: 0; }
-        #soldOverlay .overlay-logo-watermark { position: absolute; top: 50%; left: 50%; width: 70vh; height: 70vh; transform: translate(-50%, -50%); animation: overlayLogoSpin 900ms ease-out forwards; }
-        #soldOverlay .overlay-logo-watermark img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); }
-        #soldOverlay .overlay-card { position: relative; text-align: center; padding: 3rem 3.5rem; animation: overlayCardIn 650ms cubic-bezier(.2,.9,.25,1.2); max-width: 90vw; }
-        #soldOverlay .overlay-avatars { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
-        #soldOverlay .overlay-crest, #soldOverlay .overlay-avatar { width: 96px; height: 96px; border-radius: 9999px; overflow: hidden; border: 3px solid rgba(255,255,255,0.85); background-color: rgba(0,0,0,0.25); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-        #soldOverlay .overlay-avatar { margin-left: -24px; }
-        #soldOverlay .overlay-crest img, #soldOverlay .overlay-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        #soldOverlay .overlay-sold-tag { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; font-size: 1rem; color: rgba(255,255,255,0.85); margin-bottom: 0.75rem; }
-        #soldOverlay .overlay-player { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: clamp(2rem, 5vw, 3.25rem); color: #fff; margin-bottom: 0.5rem; line-height: 1.05; }
-        #soldOverlay .overlay-price { font-size: clamp(1.5rem, 3vw, 2rem); color: #fff; font-weight: 700; margin-bottom: 1rem; }
-        #soldOverlay .overlay-team { font-size: 1.15rem; color: rgba(255,255,255,0.9); margin-bottom: 0.25rem; }
-        #soldOverlay .overlay-manager { font-size: 0.95rem; color: rgba(255,255,255,0.7); margin-bottom: 2rem; }
-        #soldOverlay .overlay-continue { background: rgba(255,255,255,0.95); color: #111; border: none; padding: 0.75rem 2rem; border-radius: 2px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; cursor: pointer; }
+        /* ---------- Auction pool (queued for the later Auction phase) ---------- */
+        .pool-tier-heading { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; }
+        .pool-tier-dot { width: 8px; height: 8px; border-radius: 9999px; flex-shrink: 0; }
+        .pool-tier-dot.tier-platinum { background: #B9A9D0; }
+        .pool-tier-dot.tier-diamond { background: #7FD8E8; }
+        .pool-tier-dot.tier-gold { background: var(--gold); }
+        .pool-tier-dot.tier-silver { background: #B8C0CC; }
+        .pool-row { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--line); font-size: 0.75rem; }
+        .pool-row:last-child { border-bottom: none; }
     </style>
 @endsection
 
@@ -86,7 +68,7 @@
     @else
         <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
             <div>
-                <p class="eyebrow gold mb-2">Country Draft — One Room</p>
+                <p class="eyebrow gold mb-2">Country Draft — Player Selection</p>
                 <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: var(--paper);" id="countryHeading">
                     {{ $draft->current_country ?? 'Awaiting Next Country' }}
                 </h1>
@@ -99,8 +81,8 @@
 
         <div class="card-section p-4 mb-6">
             <p class="text-xs" style="color: var(--paper-faint);">
-                <strong style="color: var(--paper-dim);">How turns work:</strong>
-                the manager marked <span class="tag gold" style="font-size:0.6rem;">Spins Next</span> spins a random country; the manager after them in order gets first pick from it. Picking rotates through everyone in order — nominate a player (opens bidding at their base value) or pass. <strong style="color: var(--paper-dim);">Passing is permanent for this country</strong> — you're out of the rotation until it's retired, though you can jump back in any time before that. Every turn has a {{ $turnTimeoutSeconds }}-second clock; if it runs out, that manager is passed automatically. Once everyone's passed or the country runs out of players, it's retired and the <em>next</em> manager in order spins for the next country. The current turn order and the live call stay one click away in the panel on the right — nothing here ever swaps out from under you.
+                <strong style="color: var(--paper-dim);">How this works:</strong>
+                this is drafting, not auctioning — nobody bids or spends money here. The manager marked <span class="tag gold" style="font-size:0.6rem;">Spins Next</span> spins a random country; the manager after them in order gets first pick from it. Picking rotates through everyone in order — pick a player to queue them for the auction, or pass. <strong style="color: var(--paper-dim);">Passing is permanent for this country</strong> — you're out of the rotation until it's retired, though you can jump back in any time before that. Every turn has a {{ $turnTimeoutSeconds }}-second clock; if it runs out, that manager is passed automatically. Once everyone's passed or the country runs out of players, it's retired and the <em>next</em> manager in order spins for the next country. Once the draft is done, the admin runs the actual Auction — a separate event, worked through Platinum, Diamond, Gold, then Silver — where every manager can bid on any queued player.
             </p>
         </div>
 
@@ -110,6 +92,7 @@
             <aside class="draft-sidebar">
                 <div class="sidebar-tabs">
                     <button type="button" class="sidebar-tab is-active" data-sidebar-tab="order">Turn Order</button>
+                    <button type="button" class="sidebar-tab" data-sidebar-tab="pool">Auction Pool <span id="poolCountBadge"></span></button>
                     <button type="button" class="sidebar-tab" data-sidebar-tab="shortlist">Shortlist</button>
                     <button type="button" class="sidebar-tab" data-sidebar-tab="call">Live Call</button>
                 </div>
@@ -118,6 +101,12 @@
                     <p class="eyebrow mb-2" style="color: var(--paper-faint);">Draft Order</p>
                     <div id="turnStrip" class="flex flex-col gap-2"></div>
                     <div id="burnedRow" class="mt-4"></div>
+                </div>
+
+                <div class="sidebar-panel hidden" id="sidebarPool">
+                    <p class="eyebrow mb-2" style="color: var(--paper-faint);">Queued For Auction</p>
+                    <p class="text-xs mb-3" style="color: var(--paper-faint);">Players picked so far, grouped by category. The admin runs the actual auction separately, working through Platinum first.</p>
+                    <div id="poolList"></div>
                 </div>
 
                 <div class="sidebar-panel hidden" id="sidebarShortlist">
@@ -135,8 +124,6 @@
                 </div>
             </aside>
         </div>
-
-        <div id="soldOverlay" class="hidden"></div>
     @endif
 
     @if ($draft)
@@ -150,16 +137,10 @@
             const skipUrl = @json(route('manager.draft.skip', $draft));
             const rejoinUrl = @json(route('manager.draft.rejoin', $draft));
             const callUrl = @json(route('manager.call', 'draft-' . $draft->id));
-            const bidUrlTemplate = @json(route('manager.auction.bid', ['auctionSession' => '__ID__']));
-            const passUrlTemplate = @json(route('manager.auction.pass', ['auctionSession' => '__ID__']));
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
             let spinning = false;
-            let lastBid = null;
-            let lastLeaderId = 'unset';
             let deadline = null;
-            let currentAuctionId = null;
-            let overlayShownFor = null;
 
             function post(url, body) {
                 return fetch(url, {
@@ -194,16 +175,50 @@
                 });
             }
 
-            // ---------- Sidebar tabs (Turn Order / Shortlist / Live Call) ----------
+            // ---------- Sidebar tabs (Turn Order / Auction Pool / Shortlist / Live Call) ----------
             document.querySelectorAll('.sidebar-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
                     tab.classList.add('is-active');
                     document.getElementById('sidebarOrder').classList.toggle('hidden', tab.dataset.sidebarTab !== 'order');
+                    document.getElementById('sidebarPool').classList.toggle('hidden', tab.dataset.sidebarTab !== 'pool');
                     document.getElementById('sidebarShortlist').classList.toggle('hidden', tab.dataset.sidebarTab !== 'shortlist');
                     document.getElementById('sidebarCall').classList.toggle('hidden', tab.dataset.sidebarTab !== 'call');
                 });
             });
+
+            const TIER_ORDER = ['Platinum', 'Diamond', 'Gold', 'Silver'];
+
+            function renderPool(pool) {
+                const badge = document.getElementById('poolCountBadge');
+                if (badge) badge.textContent = pool.length ? `(${pool.length})` : '';
+
+                const el = document.getElementById('poolList');
+                if (!el) return;
+                if (!pool.length) {
+                    el.innerHTML = '<p class="text-xs" style="color: var(--paper-faint);">No players queued yet — picks made during the draft show up here.</p>';
+                    return;
+                }
+
+                el.innerHTML = TIER_ORDER.map(tier => {
+                    const players = pool.filter(p => p.tier === tier);
+                    if (!players.length) return '';
+                    return `
+                        <div class="mb-4">
+                            <div class="pool-tier-heading">
+                                <span class="pool-tier-dot tier-${tier.toLowerCase()}"></span>
+                                <p class="eyebrow" style="color: var(--paper-dim);">${tier} (${players.length})</p>
+                            </div>
+                            ${players.map(p => `
+                                <div class="pool-row">
+                                    <span style="color: var(--paper);">${p.player_name}</span>
+                                    <span style="color: var(--paper-faint);">${fmtMoney(p.base_value, 12)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }).join('');
+            }
 
             function renderShortlist(shortlist) {
                 const el = document.getElementById('shortlistList');
@@ -225,14 +240,12 @@
             }
 
             // ---------- Turn strip ----------
-            function renderTeamCard(team, roleLabel, isActive, bidInfo, hasPassedCountry) {
+            function renderTeamCard(team, roleLabel, isActive, hasPassedCountry) {
                 if (!team) return '';
-                const isAway = (bidInfo && !bidInfo.is_online) || hasPassedCountry;
                 return `
-                    <div class="turn-card ${isActive ? 'is-active' : ''} ${isAway ? 'is-away' : ''}">
+                    <div class="turn-card ${isActive ? 'is-active' : ''} ${hasPassedCountry ? 'is-away' : ''}">
                         <div class="seat-avatar">
                             ${team.manager_avatar ? `<img src="${team.manager_avatar}" alt="">` : `<div class="initials">${(team.manager_name || '?').substring(0,2).toUpperCase()}</div>`}
-                            ${bidInfo ? '<span class="seat-dot"></span>' : ''}
                             ${team.team_logo ? `<span class="seat-crest"><img src="${team.team_logo}" alt=""></span>` : ''}
                         </div>
                         <div class="min-w-0">
@@ -240,9 +253,7 @@
                             <p class="text-xs truncate" style="color: var(--paper-faint);">${team.team_short_name || ''}</p>
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${roleLabel ? `<span class="tag gold role-tag">${roleLabel}</span>` : ''}
-                                ${bidInfo && bidInfo.is_leading ? '<span class="tag gold role-tag">Leading</span>' : ''}
-                                ${bidInfo && !bidInfo.is_leading && bidInfo.has_passed ? '<span class="tag passed role-tag">Passed</span>' : ''}
-                                ${!bidInfo && hasPassedCountry ? '<span class="tag passed role-tag">Out — Passed</span>' : ''}
+                                ${hasPassedCountry ? '<span class="tag passed role-tag">Out — Passed</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -252,19 +263,12 @@
             function renderTurnStrip(data) {
                 const strip = document.getElementById('turnStrip');
                 if (!strip) return;
-                const bidByTeam = {};
-                if (data.auction) {
-                    (data.auction.participants || []).forEach(p => { bidByTeam[p.team_id] = p; });
-                }
                 const passedIds = data.passed_team_ids || [];
                 strip.innerHTML = data.turn_order.map(team => {
                     const roles = [];
-                    if (!data.auction) {
-                        if (data.country_picker && team.team_id === data.country_picker.team_id) roles.push('Spins Next');
-                        if (data.active_picker && team.team_id === data.active_picker.team_id) roles.push('Picking Now');
-                    }
-                    const isActive = roles.length > 0 || (data.auction && bidByTeam[team.team_id] && bidByTeam[team.team_id].is_leading);
-                    return renderTeamCard(team, roles.join(' / '), isActive, bidByTeam[team.team_id] || null, passedIds.includes(team.team_id));
+                    if (data.country_picker && team.team_id === data.country_picker.team_id) roles.push('Spins Next');
+                    if (data.active_picker && team.team_id === data.active_picker.team_id) roles.push('Picking Now');
+                    return renderTeamCard(team, roles.join(' / '), roles.length > 0, passedIds.includes(team.team_id));
                 }).join('');
             }
 
@@ -290,7 +294,7 @@
                         <p class="player-card-name">${p.name}</p>
                         <p class="player-card-meta">${p.role} — ${p.tier}</p>
                         <p class="player-card-value">${fmtMoney(p.base_value, 16)}</p>
-                        ${isYourTurn ? `<button type="button" class="btn-accent py-2 text-xs nominate-btn" data-id="${p.id}">Nominate</button>` : ''}
+                        ${isYourTurn ? `<button type="button" class="btn-accent py-2 text-xs nominate-btn" data-id="${p.id}">Pick For Auction</button>` : ''}
                     </div>
                 `).join('') + `</div>`;
             }
@@ -388,7 +392,6 @@
                 document.getElementById('mainPanel').innerHTML = `<div class="card-section p-12 text-center"><p class="eyebrow gold mb-3">Draft Complete</p><p class="text-sm" style="color: var(--paper-faint);">All available players have been auctioned. Head to Auctions to review results.</p></div>`;
             }
 
-            // ---------- Embedded bidding panel ----------
             function tickCountdown() {
                 const ring = document.getElementById('countdownRing');
                 if (!ring) return;
@@ -401,212 +404,17 @@
             }
             setInterval(tickCountdown, 1000);
 
-            function renderLeader(leader) {
-                const el = document.getElementById('leaderDisplay');
-                const nameEl = document.getElementById('leaderName');
-                if (!el) return;
-                if (!leader) {
-                    el.innerHTML = '<p class="text-sm" style="color: var(--paper-faint);">No bids yet — be the first.</p>';
-                    if (nameEl) nameEl.textContent = ' ';
-                    return;
-                }
-                el.innerHTML = `
-                    <div class="leader-crest-avatar leader-pop">
-                        <div class="crest-box">${leader.team_logo ? `<img src="${leader.team_logo}" alt="">` : ''}</div>
-                        <div class="avatar-box">${leader.manager_avatar ? `<img src="${leader.manager_avatar}" alt="">` : ''}</div>
-                    </div>
-                `;
-                if (nameEl) nameEl.textContent = 'Leading — ' + leader.team_name + (leader.manager_name ? ' (' + leader.manager_name + ')' : '');
-            }
-
-            function renderBiddingPanel(auction, player) {
-                document.getElementById('timerSlot').innerHTML = `<div class="countdown-ring" id="countdownRing">—</div><p class="text-xs mt-1" style="color: var(--paper-faint);">time left</p>`;
-
-                const panel = document.getElementById('mainPanel');
-                panel.innerHTML = `
-                    <div class="flex items-start gap-6 mb-6">
-                        <div class="player-portrait" style="width: 100px; height: 130px; flex-shrink: 0;">
-                            <div class="initials">${(auction.player_name || '?').substring(0,2).toUpperCase()}</div>
-                        </div>
-                        <div>
-                            <p class="eyebrow live mb-1">Now Bidding</p>
-                            <h2 class="font-display text-2xl font-semibold" style="color: var(--paper);">${auction.player_name || ''} ${auction.is_shortlisted ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.5" style="display:inline-block; vertical-align:-2px;" title="On your shortlist"><polygon points="12 2 15.09 8.63 22 9.24 16.5 14.14 18.18 21 12 17.27 5.82 21 7.5 14.14 2 9.24 8.91 8.63 12 2"/></svg>' : ''}</h2>
-                        </div>
-                    </div>
-                    <div class="masthead text-center">
-                        <p class="stat-caption mb-3">Current Bid</p>
-                        <div class="flex items-center justify-center mb-4" id="leaderDisplay">
-                            <p class="text-sm" style="color: var(--paper-faint);">No bids yet — be the first.</p>
-                        </div>
-                        <p class="stat-figure gold" id="currentBidFigure" style="font-size: 2.25rem;">${fmtMoney(auction.current_bid, 26)}</p>
-                        <p class="text-sm mt-2" id="leaderName" style="color: var(--paper-dim);">&nbsp;</p>
-
-                        <div class="mt-6 pt-6" style="border-top: var(--rule);">
-                            <div id="timeExpiredNotice" class="hidden mb-3"><span class="status-pill live">Time's Up — Waiting For The Call</span></div>
-                            <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                                <button type="button" id="bidMinBtn" class="btn-accent px-8 py-3 text-base">Bid <span id="minBidLabel"></span></button>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="customBidInput" class="field px-3 py-2 text-sm" style="width: 10rem;" placeholder="Custom amount">
-                                    <button type="button" id="bidCustomBtn" class="btn-ghost px-4 py-2 text-sm">Bid This</button>
-                                </div>
-                                <button type="button" id="passBtn" class="btn-ghost px-6 py-3 text-base" style="color: var(--live); border-color: var(--live);">Pass</button>
-                            </div>
-                            <p class="text-xs mt-2" id="passedNotice" style="color: var(--paper-faint); display:none;">You've passed on this bid — you'll get another chance if someone bids higher.</p>
-                            <p class="text-xs mt-3" id="bidError" style="color: var(--live);"></p>
-                        </div>
-                    </div>
-                `;
-
-                const bidMinBtn = document.getElementById('bidMinBtn');
-                const bidCustomBtn = document.getElementById('bidCustomBtn');
-                const passBtn = document.getElementById('passBtn');
-                if (bidMinBtn) bidMinBtn.addEventListener('click', () => placeBid(auction.session_id, null));
-                if (bidCustomBtn) bidCustomBtn.addEventListener('click', () => {
-                    const val = document.getElementById('customBidInput').value;
-                    if (!val || Number(val) <= 0) { document.getElementById('bidError').textContent = 'Enter a valid amount.'; return; }
-                    placeBid(auction.session_id, val);
-                });
-                if (passBtn) passBtn.addEventListener('click', () => doPass(auction.session_id));
-            }
-
-            function applyBiddingState(auction) {
-                if (auction.session_id !== currentAuctionId) {
-                    // A different lot just opened — (re)build the panel fresh.
-                    currentAuctionId = auction.session_id;
-                    lastBid = null;
-                    lastLeaderId = 'unset';
-                    renderBiddingPanel(auction, auction.player_name);
-                }
-
-                if (auction.you) {
-                    if (auction.time_expired) {
-                        setStatusLine("Time's up — waiting for the sale to be called.");
-                    } else if (auction.you.is_leading) {
-                        setStatusLine('You\'re leading this bid — sit tight to see if anyone tops it.');
-                    } else if (auction.you.has_passed) {
-                        setStatusLine("You've passed — you'll get another chance if someone bids higher.");
-                    } else if (!auction.you.has_squad_space) {
-                        setStatusLine('Your squad is full — you can watch, but can\'t bid on this lot.');
-                    } else {
-                        setStatusLine('Bidding is live — outbid the leader or pass.');
-                    }
-                } else {
-                    setStatusLine('Bidding is live.');
-                }
-
-                deadline = auction.deadline_at;
-                tickCountdown();
-
-                if (auction.current_bid !== lastBid) {
-                    const fig = document.getElementById('currentBidFigure');
-                    if (fig) {
-                        fig.innerHTML = fmtMoney(auction.current_bid, 26);
-                        fig.classList.remove('bid-flash'); void fig.offsetWidth; fig.classList.add('bid-flash');
-                    }
-                    lastBid = auction.current_bid;
-                }
-
-                if (auction.leader && auction.leader.team_id !== lastLeaderId) {
-                    renderLeader(auction.leader);
-                    lastLeaderId = auction.leader.team_id;
-                } else if (!auction.leader && lastLeaderId !== null) {
-                    renderLeader(null);
-                    lastLeaderId = null;
-                }
-
-                const minLabel = document.getElementById('minBidLabel');
-                if (minLabel) minLabel.innerHTML = fmtMoney(auction.minimum_bid, 14);
-                const customInput = document.getElementById('customBidInput');
-                if (customInput) customInput.min = Math.ceil(auction.minimum_bid);
-
-                const expiredNotice = document.getElementById('timeExpiredNotice');
-                const bidMinBtn = document.getElementById('bidMinBtn');
-                const bidCustomBtn = document.getElementById('bidCustomBtn');
-                const passBtn = document.getElementById('passBtn');
-                const passedNotice = document.getElementById('passedNotice');
-                if (expiredNotice) expiredNotice.classList.toggle('hidden', !auction.time_expired);
-                if (auction.you) {
-                    const disableBid = auction.time_expired || auction.you.is_leading || !auction.you.has_squad_space || auction.you.has_passed;
-                    if (bidMinBtn) bidMinBtn.disabled = disableBid;
-                    if (bidCustomBtn) bidCustomBtn.disabled = disableBid;
-                    if (passBtn) passBtn.disabled = auction.you.is_leading || auction.you.has_passed || !auction.leader;
-                    if (passedNotice) passedNotice.style.display = (auction.you.has_passed && !auction.you.is_leading) ? 'block' : 'none';
-                }
-            }
-
-            function coloredCrestBg(leader) {
-                const c1 = (leader && leader.primary_color) || '#1D4ED8';
-                const c2 = (leader && leader.secondary_color) || '#0D1220';
-                return `linear-gradient(155deg, ${c1} 0%, ${c2} 85%)`;
-            }
-
-            function showConclusionOverlay(auction) {
-                if (overlayShownFor === auction.session_id) return;
-                overlayShownFor = auction.session_id;
-
-                const overlay = document.getElementById('soldOverlay');
-                if (!overlay) return;
-
-                if (auction.sale_result === 'sold' && auction.leader) {
-                    const leader = auction.leader;
-                    overlay.innerHTML = `
-                        <div class="overlay-bg" style="background: ${coloredCrestBg(leader)};"></div>
-                        ${leader.team_logo ? `<div class="overlay-logo-watermark"><img src="${leader.team_logo}" alt=""></div>` : ''}
-                        <div class="overlay-card">
-                            <p class="overlay-sold-tag">Sold!</p>
-                            <div class="overlay-avatars">
-                                <div class="overlay-crest">${leader.team_logo ? `<img src="${leader.team_logo}" alt="">` : ''}</div>
-                                <div class="overlay-avatar">${leader.manager_avatar ? `<img src="${leader.manager_avatar}" alt="">` : ''}</div>
-                            </div>
-                            <p class="overlay-player">${auction.player_name || ''}</p>
-                            <p class="overlay-price">${fmtMoney(auction.current_bid, 22)}</p>
-                            <p class="overlay-team">Won by ${leader.team_name}</p>
-                            <p class="overlay-manager">Managed by ${leader.manager_name || '—'}</p>
-                            <button type="button" class="overlay-continue" id="overlayContinueBtn">Continue</button>
-                        </div>
-                    `;
-                } else {
-                    overlay.innerHTML = `
-                        <div class="overlay-bg" style="background: linear-gradient(155deg, #313C5C 0%, #0D1220 85%);"></div>
-                        <div class="overlay-card">
-                            <p class="overlay-sold-tag">Unsold</p>
-                            <p class="overlay-player">${auction.player_name || ''}</p>
-                            <p class="overlay-manager" style="margin-bottom:2rem;">No winning bid was finalized for this lot.</p>
-                            <button type="button" class="overlay-continue" id="overlayContinueBtn">Continue</button>
-                        </div>
-                    `;
-                }
-
-                overlay.classList.add('is-visible');
-                document.getElementById('overlayContinueBtn').addEventListener('click', () => {
-                    overlay.classList.remove('is-visible');
-                    currentAuctionId = null;
-                    poll();
-                });
-            }
-
             // ---------- Master render ----------
             function applyState(data) {
                 renderTurnStrip(data);
                 renderBurned(data.burned_countries || []);
                 renderShortlist(data.shortlist || []);
+                renderPool(data.pool || []);
 
                 if (data.status === 'completed') {
                     renderCompletedPanel();
                     return;
                 }
-
-                if (data.auction && in_array_status(data.auction.status)) {
-                    applyBiddingState(data.auction);
-                    return;
-                }
-
-                if (data.auction && (data.auction.status === 'completed' || data.auction.status === 'cancelled')) {
-                    showConclusionOverlay(data.auction);
-                    return;
-                }
-
-                currentAuctionId = null;
 
                 if (!data.current_country) {
                     renderSpinPanel(data);
@@ -614,10 +422,6 @@
                 }
 
                 renderNominatePanel(data);
-            }
-
-            function in_array_status(status) {
-                return status === 'live' || status === 'paused';
             }
 
             function poll() {
@@ -672,27 +476,6 @@
             function doRejoin() {
                 post(rejoinUrl).then(({ ok, data }) => {
                     if (!ok) alert(data.error || 'Could not rejoin.');
-                    poll();
-                });
-            }
-
-            function placeBid(sessionId, amount) {
-                const errorEl = document.getElementById('bidError');
-                if (errorEl) errorEl.textContent = '';
-                const url = bidUrlTemplate.replace('__ID__', sessionId);
-                const body = amount ? { amount } : {};
-                post(url, body).then(({ ok, data }) => {
-                    if (!ok) { if (errorEl) errorEl.textContent = data.error || 'Could not place bid.'; return; }
-                    poll();
-                });
-            }
-
-            function doPass(sessionId) {
-                const errorEl = document.getElementById('bidError');
-                if (errorEl) errorEl.textContent = '';
-                const url = passUrlTemplate.replace('__ID__', sessionId);
-                post(url).then(({ ok, data }) => {
-                    if (!ok) { if (errorEl) errorEl.textContent = data.error || 'Could not pass.'; return; }
                     poll();
                 });
             }

@@ -31,8 +31,10 @@ class ProfileController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = $path;
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user->update($validated);

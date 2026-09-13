@@ -7,6 +7,7 @@ use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class AdminPlayerController extends Controller
 {
@@ -87,11 +88,15 @@ class AdminPlayerController extends Controller
     {
         $validated = $this->validatePlayer($request);
 
-        if ($request->boolean('remove_photo')) {
+        if ($request->boolean('remove_photo') && $player->image) {
+            Storage::disk('public')->delete($player->image);
             $validated['image'] = null;
         }
 
         if ($request->hasFile('photo')) {
+            if ($player->image) {
+                Storage::disk('public')->delete($player->image);
+            }
             $validated['image'] = $request->file('photo')->store('player-photos', 'public');
         }
 
@@ -105,6 +110,9 @@ class AdminPlayerController extends Controller
     public function destroy(Player $player)
     {
         $name = $player->name;
+        if ($player->image) {
+            Storage::disk('public')->delete($player->image);
+        }
         $player->delete();
         return redirect()->route('admin.players.index')->with('status', "Player '$name' deleted.");
     }

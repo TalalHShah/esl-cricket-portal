@@ -111,6 +111,10 @@ class AdminTeamController extends Controller
             return back()->withErrors(['team' => "Cannot delete '{$name}' — it still has signed players. Release them to free agency first."]);
         }
 
+        if ($team->logo) {
+            Storage::disk('public')->delete($team->logo);
+        }
+
         $team->delete();
         return redirect()->route('admin.teams.index')->with('status', "Team '$name' deleted.");
     }

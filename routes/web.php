@@ -98,6 +98,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
     Route::post('/draft/{draft}/spin', [AuctionDraftController::class, 'spin'])->name('draft.spin');
     Route::post('/draft/{draft}/nominate', [AuctionDraftController::class, 'nominate'])->name('draft.nominate');
     Route::post('/draft/{draft}/skip', [AuctionDraftController::class, 'skip'])->name('draft.skip');
+    Route::post('/draft/{draft}/rejoin', [AuctionDraftController::class, 'rejoin'])->name('draft.rejoin');
     Route::get('/call/{roomKey}', [CallController::class, 'show'])->name('call');
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');

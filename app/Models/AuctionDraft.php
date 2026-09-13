@@ -14,6 +14,8 @@ class AuctionDraft extends Model
         'active_picker_index',
         'current_country',
         'consecutive_skips',
+        'passed_team_ids',
+        'turn_deadline_at',
         'burned_countries',
         'started_at',
         'ended_at',
@@ -24,6 +26,8 @@ class AuctionDraft extends Model
         return [
             'turn_order' => 'array',
             'burned_countries' => 'array',
+            'passed_team_ids' => 'array',
+            'turn_deadline_at' => 'datetime',
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
         ];
@@ -59,5 +63,66 @@ class AuctionDraft extends Model
     {
         $count = count($this->turn_order);
         $this->active_picker_index = ($this->active_picker_index + 1) % $count;
+    }
+
+    /**
+     * Teams who have passed (explicitly, or by letting their turn
+     * timer expire) on the country currently in play — they're skipped
+     * over in the picking rotation until either the country changes or
+     * they choose to jump back in.
+     */
+    public function passedTeamIds(): array
+    {
+        return $this->passed_team_ids ?? [];
+    }
+
+    /**
+     * Teams from the turn order still eligible to be asked for a pick
+     * on the current country.
+     */
+    public function remainingTeamIds(): array
+    {
+        return array_values(array_diff($this->turn_order ?? [], $this->passedTeamIds()));
+    }
+
+    public function hasTeamPassed(?int $teamId): bool
+    {
+        return $teamId !== null && in_array($teamId, $this->passedTeamIds(), true);
+    }
+
+    /**
+     * Whether the turn timer (spin or pick) has lapsed with no action
+     * taken.
+     */
+    public function turnExpired(): bool
+    {
+        return $this->turn_deadline_at !== null && now()->greaterThan($this->turn_deadline_at);
+    }
+
+    /**
+     * Walk forward from the given turn_order index to the next index
+     * whose team hasn't passed on the current country, wrapping around.
+     * Returns null if every team has passed.
+     */
+    public function nextEligibleIndex(int $fromIndex): ?int
+    {
+        $count = count($this->turn_order);
+        $remaining = $this->remainingTeamIds();
+
+        if (empty($remaining)) {
+            return null;
+        }
+
+        $index = $fromIndex;
+
+        for ($i = 0; $i < $count; $i++) {
+            $index = ($index + 1) % $count;
+
+            if (in_array($this->turn_order[$index], $remaining, true)) {
+                return $index;
+            }
+        }
+
+        return null;
     }
 }

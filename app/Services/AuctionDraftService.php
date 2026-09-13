@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\DB;
 class AuctionDraftService
 {
     /**
+     * How long a manager gets to act on their turn — spinning for a
+     * country, or nominating a player / passing — before it's treated
+     * as an automatic pass. Keeps the room from stalling for 30 minutes
+     * on one manager who stepped away.
+     */
+    public const TURN_TIMEOUT_SECONDS = 90;
+
+    /**
      * Countries still worth spinning for: have at least one signable
      * (transferable, active, free-agent) player and haven't been burned
      * this cycle.
@@ -65,6 +73,8 @@ class AuctionDraftService
             'active_picker_index' => null,
             'current_country' => null,
             'consecutive_skips' => 0,
+            'passed_team_ids' => [],
+            'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
             'burned_countries' => [],
             'started_at' => now(),
         ]);
@@ -107,6 +117,8 @@ class AuctionDraftService
                 'current_country' => $country,
                 'active_picker_index' => ($locked->country_picker_index + 1) % $count,
                 'consecutive_skips' => 0,
+                'passed_team_ids' => [],
+                'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
             ]);
 
             return ['success' => true, 'country' => $country];
@@ -174,7 +186,7 @@ class AuctionDraftService
                 'bid_deadline_at' => now()->addSeconds(AuctionSession::BID_WINDOW_SECONDS),
             ]);
 
-            $locked->update(['consecutive_skips' => 0]);
+            $locked->update(['consecutive_skips' => 0, 'turn_deadline_at' => null]);
 
             return ['success' => true, 'session' => $session];
         });
@@ -182,12 +194,16 @@ class AuctionDraftService
 
     /**
      * The active picker declines to bring anyone else in from this
-     * country right now. A full lap of skips with nobody nominating
-     * burns the country.
+     * country — whether by clicking Pass themselves, or by letting
+     * their turn timer run out (see autoAdvanceIfExpired). They're
+     * permanently out of the picking rotation for this country: the
+     * turn moves to the next manager who hasn't passed, and this one
+     * won't be asked again until either the country changes or they
+     * explicitly rejoin() while it's still in play.
      */
-    public function skipTurn(AuctionDraft $draft, int $teamId): array
+    public function skipTurn(AuctionDraft $draft, int $teamId, bool $auto = false): array
     {
-        return DB::transaction(function () use ($draft, $teamId) {
+        return DB::transaction(function () use ($draft, $teamId, $auto) {
             $locked = AuctionDraft::whereKey($draft->id)->lockForUpdate()->first();
 
             if ($locked->status !== 'active' || ! $locked->current_country) {
@@ -198,27 +214,95 @@ class AuctionDraftService
                 return ['error' => "It's not your turn to pick."];
             }
 
-            $count = count($locked->turn_order);
-            $skips = $locked->consecutive_skips + 1;
+            $passed = $locked->passedTeamIds();
+            if (! in_array($teamId, $passed, true)) {
+                $passed[] = $teamId;
+            }
+            $locked->passed_team_ids = $passed;
 
-            if ($skips >= $count) {
-                $this->burnCurrentCountry($locked);
+            $nextIndex = $locked->nextEligibleIndex($locked->active_picker_index);
 
-                return ['success' => true, 'burned' => true];
+            if ($nextIndex === null) {
+                $locked->save();
+                $this->burnCurrentCountry($locked->fresh());
+
+                return ['success' => true, 'burned' => true, 'auto' => $auto];
             }
 
-            $locked->active_picker_index = ($locked->active_picker_index + 1) % $count;
-            $locked->consecutive_skips = $skips;
-            $locked->save();
+            $locked->update([
+                'passed_team_ids' => $passed,
+                'active_picker_index' => $nextIndex,
+                'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+            ]);
 
-            return ['success' => true, 'burned' => false];
+            return ['success' => true, 'burned' => false, 'auto' => $auto];
         });
     }
 
     /**
+     * A manager who passed on this country changes their mind while
+     * it's still in play — they rejoin the picking rotation. Doesn't
+     * jump the queue; they'll simply be asked again once the rotation
+     * comes back around to their original seat.
+     */
+    public function rejoin(AuctionDraft $draft, int $teamId): array
+    {
+        return DB::transaction(function () use ($draft, $teamId) {
+            $locked = AuctionDraft::whereKey($draft->id)->lockForUpdate()->first();
+
+            if ($locked->status !== 'active' || ! $locked->current_country) {
+                return ['error' => 'No country is currently in play.'];
+            }
+
+            if (! $locked->hasTeamPassed($teamId)) {
+                return ['error' => "You haven't passed on this country."];
+            }
+
+            $locked->update([
+                'passed_team_ids' => array_values(array_diff($locked->passedTeamIds(), [$teamId])),
+            ]);
+
+            return ['success' => true];
+        });
+    }
+
+    /**
+     * The current turn — spinning for a country, or nominating/passing
+     * from one — has run past its deadline with nobody acting. Auto-
+     * spin on the country picker's behalf, or auto-pass the active
+     * picker, so the room never stalls indefinitely on one manager.
+     * Safe to call on every poll; it's a no-op unless truly expired.
+     */
+    public function autoAdvanceIfExpired(AuctionDraft $draft): AuctionDraft
+    {
+        if ($draft->status !== 'active' || ! $draft->turnExpired()) {
+            return $draft;
+        }
+
+        if (AuctionSession::where('auction_draft_id', $draft->id)->whereIn('status', ['live', 'paused'])->exists()) {
+            return $draft;
+        }
+
+        if ($draft->current_country === null) {
+            $pickerId = $draft->countryPickerTeamId();
+            if ($pickerId !== null) {
+                $this->spinCountry($draft, $pickerId);
+            }
+        } else {
+            $pickerId = $draft->activePickerTeamId();
+            if ($pickerId !== null) {
+                $this->skipTurn($draft, $pickerId, auto: true);
+            }
+        }
+
+        return $draft->fresh();
+    }
+
+    /**
      * Called once a nominated player's mini-auction resolves (sold or
-     * unsold): hand the floor to the next picker for the same country,
-     * or burn the country if no signable players are left in it.
+     * unsold): hand the floor to the next picker who hasn't passed on
+     * this country, or burn the country if no signable players are
+     * left in it (or nobody's left in the rotation to offer them to).
      */
     public function advanceAfterSale(AuctionSession $session): void
     {
@@ -246,10 +330,19 @@ class AuctionDraftService
                 return;
             }
 
-            $count = count($draft->turn_order);
-            $draft->active_picker_index = ($draft->active_picker_index + 1) % $count;
-            $draft->consecutive_skips = 0;
-            $draft->save();
+            $nextIndex = $draft->nextEligibleIndex($draft->active_picker_index);
+
+            if ($nextIndex === null) {
+                $this->burnCurrentCountry($draft);
+
+                return;
+            }
+
+            $draft->update([
+                'active_picker_index' => $nextIndex,
+                'consecutive_skips' => 0,
+                'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+            ]);
         });
     }
 
@@ -263,12 +356,14 @@ class AuctionDraftService
             'burned_countries' => array_values(array_unique($burned)),
             'current_country' => null,
             'active_picker_index' => null,
+            'passed_team_ids' => [],
             'consecutive_skips' => 0,
             'country_picker_index' => ($draft->country_picker_index + 1) % $count,
+            'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
         ]);
 
         if (! $this->anyPlayersRemain()) {
-            $draft->update(['status' => 'completed', 'ended_at' => now()]);
+            $draft->update(['status' => 'completed', 'ended_at' => now(), 'turn_deadline_at' => null]);
         }
     }
 }

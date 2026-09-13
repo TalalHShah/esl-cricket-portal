@@ -100,7 +100,7 @@
         <div class="card-section p-4 mb-6">
             <p class="text-xs" style="color: var(--paper-faint);">
                 <strong style="color: var(--paper-dim);">How turns work:</strong>
-                the manager marked <span class="tag gold" style="font-size:0.6rem;">Spins Next</span> spins a random country; the manager after them in order gets first pick from it. Picking rotates through everyone in order — nominate a player (opens bidding at their base value) or skip your turn. Once a country runs out of players, or everyone skips in a row, it's retired and the <em>next</em> manager in order spins for the next country. The current turn order and the live call stay one click away in the panel on the right — nothing here ever swaps out from under you.
+                the manager marked <span class="tag gold" style="font-size:0.6rem;">Spins Next</span> spins a random country; the manager after them in order gets first pick from it. Picking rotates through everyone in order — nominate a player (opens bidding at their base value) or pass. <strong style="color: var(--paper-dim);">Passing is permanent for this country</strong> — you're out of the rotation until it's retired, though you can jump back in any time before that. Every turn has a 90-second clock; if it runs out, that manager is passed automatically. Once everyone's passed or the country runs out of players, it's retired and the <em>next</em> manager in order spins for the next country. The current turn order and the live call stay one click away in the panel on the right — nothing here ever swaps out from under you.
             </p>
         </div>
 
@@ -148,6 +148,7 @@
             const spinUrl = @json(route('manager.draft.spin', $draft));
             const nominateUrl = @json(route('manager.draft.nominate', $draft));
             const skipUrl = @json(route('manager.draft.skip', $draft));
+            const rejoinUrl = @json(route('manager.draft.rejoin', $draft));
             const callUrl = @json(route('manager.call', 'draft-' . $draft->id));
             const bidUrlTemplate = @json(route('manager.auction.bid', ['auctionSession' => '__ID__']));
             const passUrlTemplate = @json(route('manager.auction.pass', ['auctionSession' => '__ID__']));
@@ -224,9 +225,9 @@
             }
 
             // ---------- Turn strip ----------
-            function renderTeamCard(team, roleLabel, isActive, bidInfo) {
+            function renderTeamCard(team, roleLabel, isActive, bidInfo, hasPassedCountry) {
                 if (!team) return '';
-                const isAway = bidInfo && !bidInfo.is_online;
+                const isAway = (bidInfo && !bidInfo.is_online) || hasPassedCountry;
                 return `
                     <div class="turn-card ${isActive ? 'is-active' : ''} ${isAway ? 'is-away' : ''}">
                         <div class="seat-avatar">
@@ -241,6 +242,7 @@
                                 ${roleLabel ? `<span class="tag gold role-tag">${roleLabel}</span>` : ''}
                                 ${bidInfo && bidInfo.is_leading ? '<span class="tag gold role-tag">Leading</span>' : ''}
                                 ${bidInfo && !bidInfo.is_leading && bidInfo.has_passed ? '<span class="tag passed role-tag">Passed</span>' : ''}
+                                ${!bidInfo && hasPassedCountry ? '<span class="tag passed role-tag">Out — Passed</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -254,6 +256,7 @@
                 if (data.auction) {
                     (data.auction.participants || []).forEach(p => { bidByTeam[p.team_id] = p; });
                 }
+                const passedIds = data.passed_team_ids || [];
                 strip.innerHTML = data.turn_order.map(team => {
                     const roles = [];
                     if (!data.auction) {
@@ -261,7 +264,7 @@
                         if (data.active_picker && team.team_id === data.active_picker.team_id) roles.push('Picking Now');
                     }
                     const isActive = roles.length > 0 || (data.auction && bidByTeam[team.team_id] && bidByTeam[team.team_id].is_leading);
-                    return renderTeamCard(team, roles.join(' / '), isActive, bidByTeam[team.team_id] || null);
+                    return renderTeamCard(team, roles.join(' / '), isActive, bidByTeam[team.team_id] || null, passedIds.includes(team.team_id));
                 }).join('');
             }
 
@@ -314,39 +317,63 @@
                 if (window.setLiveStatus) window.setLiveStatus(html, !!urgent || /your turn/i.test(html));
             }
 
+            function renderTurnTimer(data, label) {
+                const slot = document.getElementById('timerSlot');
+                if (!slot) return;
+                if (!data.turn_deadline_at) { slot.innerHTML = ''; deadline = null; return; }
+                deadline = data.turn_deadline_at;
+                slot.innerHTML = `<div class="countdown-ring" id="countdownRing">—</div><p class="text-xs mt-1" style="color: var(--paper-faint);">${label}</p>`;
+                tickCountdown();
+            }
+
+            function passedBanner(data) {
+                if (!data.you_have_passed) return '';
+                return `
+                    <div class="card-section p-4 mb-4" style="border-left: 3px solid var(--live);">
+                        <p class="text-sm font-semibold mb-2" style="color: var(--paper);">You've passed on ${data.current_country} — you're out of the picking order for this country.</p>
+                        <button type="button" id="rejoinBtn" class="btn-ghost px-6 py-2 text-xs">Jump Back In</button>
+                    </div>
+                `;
+            }
+
             function renderNominatePanel(data) {
                 const panel = document.getElementById('mainPanel');
-                document.getElementById('timerSlot').innerHTML = '';
+                renderTurnTimer(data, 'auto-pass in');
 
                 if (data.is_your_turn_to_pick) {
-                    setStatusLine(`Your turn — nominate a player from ${data.current_country}, or skip.`);
+                    setStatusLine(`Your turn — nominate a player from ${data.current_country}, or pass.`, true);
+                } else if (data.you_have_passed) {
+                    setStatusLine(`You've passed on ${data.current_country} — jump back in any time before it's retired.`);
                 } else {
                     setStatusLine(`Waiting for <strong style="color: var(--paper-dim);">${data.active_picker ? data.active_picker.manager_name : 'the next manager'}</strong> to pick from ${data.current_country}.`);
                 }
 
                 const banner = data.is_your_turn_to_pick
-                    ? `<div class="card-section p-4 mb-4" style="border-left: 3px solid var(--gold);"><p class="text-sm font-semibold" style="color: var(--paper);">Your turn — pick a player below, or skip.</p></div>`
-                    : `<div class="card-section p-4 mb-4" style="color: var(--paper-faint);"><p class="text-sm">Waiting for <strong style="color: var(--paper-dim);">${data.active_picker ? data.active_picker.manager_name : 'the next manager'}</strong> to pick — you'll get a turn once they nominate or skip. (Nominate buttons only appear for the manager whose turn it is.)</p></div>`;
+                    ? `<div class="card-section p-4 mb-4" style="border-left: 3px solid var(--gold);"><p class="text-sm font-semibold" style="color: var(--paper);">Your turn — pick a player below, or pass. If time runs out, you'll be passed automatically.</p></div>`
+                    : `<div class="card-section p-4 mb-4" style="color: var(--paper-faint);"><p class="text-sm">Waiting for <strong style="color: var(--paper-dim);">${data.active_picker ? data.active_picker.manager_name : 'the next manager'}</strong> to pick — you'll get a turn once they nominate or pass. (Nominate buttons only appear for the manager whose turn it is.)</p></div>`;
 
                 panel.innerHTML = `
+                    ${passedBanner(data)}
                     ${banner}
                     <div class="card-section mb-4">
                         ${renderPlayerList(data.available_players, data.is_your_turn_to_pick)}
                     </div>
-                    ${data.is_your_turn_to_pick ? `<div class="text-center"><button type="button" id="skipBtn" class="btn-ghost px-8 py-3">Skip My Turn</button></div>` : ''}
+                    ${data.is_your_turn_to_pick ? `<div class="text-center"><button type="button" id="skipBtn" class="btn-ghost px-8 py-3" style="color: var(--live); border-color: var(--live);">Pass — I'm Out For This Country</button></div>` : ''}
                     <p id="nominateError" class="text-xs text-center mt-3" style="color: var(--live);"></p>
                 `;
                 document.querySelectorAll('.nominate-btn').forEach(b => b.addEventListener('click', () => doNominate(b.dataset.id)));
                 attachTilt(panel);
                 const skipBtn = document.getElementById('skipBtn');
                 if (skipBtn) skipBtn.addEventListener('click', doSkip);
+                const rejoinBtn = document.getElementById('rejoinBtn');
+                if (rejoinBtn) rejoinBtn.addEventListener('click', doRejoin);
             }
 
             function renderSpinPanel(data) {
                 const panel = document.getElementById('mainPanel');
-                document.getElementById('timerSlot').innerHTML = '';
+                renderTurnTimer(data, 'auto-spin in');
                 if (data.is_your_turn_to_spin) {
-                    setStatusLine('Your turn — spin to reveal the next country.');
+                    setStatusLine('Your turn — spin to reveal the next country.', true);
                     panel.innerHTML = `<div class="card-section p-12 text-center"><button type="button" id="spinBtn" class="btn-accent px-10 py-4 text-lg">Spin For Country</button></div>`;
                     document.getElementById('spinBtn').addEventListener('click', doSpin);
                 } else {
@@ -635,8 +662,16 @@
             }
 
             function doSkip() {
+                if (!confirm("Pass on this country? You'll be out of the picking order until it's retired or you jump back in.")) return;
                 post(skipUrl).then(({ ok, data }) => {
-                    if (!ok) alert(data.error || 'Could not skip.');
+                    if (!ok) alert(data.error || 'Could not pass.');
+                    poll();
+                });
+            }
+
+            function doRejoin() {
+                post(rejoinUrl).then(({ ok, data }) => {
+                    if (!ok) alert(data.error || 'Could not rejoin.');
                     poll();
                 });
             }

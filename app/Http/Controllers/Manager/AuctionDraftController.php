@@ -79,12 +79,28 @@ class AuctionDraftController extends Controller
         return response()->json($result);
     }
 
+    public function rejoin(AuctionDraft $draft, AuctionDraftService $service): JsonResponse
+    {
+        $team = $this->requireTeam();
+        if (! $team) {
+            return response()->json(['error' => 'You are not assigned to manage a team.'], 422);
+        }
+
+        $result = $service->rejoin($draft, $team->id);
+
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], 422);
+        }
+
+        return response()->json($result);
+    }
+
     /**
      * Polled by the draft room: draft-level state (whose turn, country,
      * burned list) plus, if a lot is currently up for bidding, the
      * players available to nominate next.
      */
-    public function state(AuctionDraft $draft, AuctionCompletionService $completion): JsonResponse
+    public function state(AuctionDraft $draft, AuctionCompletionService $completion, AuctionDraftService $draftService): JsonResponse
     {
         $liveSession = $draft->sessions()->where('status', 'live')->latest()->first();
         if ($liveSession) {
@@ -92,6 +108,7 @@ class AuctionDraftController extends Controller
         }
 
         $draft->refresh();
+        $draft = $draftService->autoAdvanceIfExpired($draft);
         $team = Auth::user()->managedTeam;
 
         $teams = Team::whereIn('id', $draft->turn_order)->with('manager')->get()->keyBy('id');
@@ -145,6 +162,8 @@ class AuctionDraftController extends Controller
                 ])
             : [];
 
+        $passedTeamIds = $draft->passedTeamIds();
+
         return response()->json([
             'shortlist' => $shortlist,
             'status' => $draft->status,
@@ -155,6 +174,12 @@ class AuctionDraftController extends Controller
             'turn_order' => $order->map(fn (Team $t) => $this->teamPayload($t)),
             'is_your_turn_to_spin' => $team && $draft->current_country === null && $draft->countryPickerTeamId() === $team->id,
             'is_your_turn_to_pick' => $team && $draft->current_country !== null && $draft->activePickerTeamId() === $team->id && ! $activeSession,
+            'turn_deadline_at' => (! $activeSession && $draft->current_country !== null) || ($draft->current_country === null && $draft->status === 'active')
+                ? $draft->turn_deadline_at?->toIso8601String()
+                : null,
+            'passed_team_ids' => $passedTeamIds,
+            'passed_teams' => collect($passedTeamIds)->map(fn ($id) => $this->teamPayload($teams->get($id)))->filter()->values(),
+            'you_have_passed' => $team && $draft->hasTeamPassed($team->id),
             'available_players' => $availablePlayers,
             'active_session_id' => $activeSession?->id,
             'active_session_status' => $activeSession?->status,

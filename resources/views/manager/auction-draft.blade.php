@@ -4,21 +4,42 @@
 
 @section('head')
     <style>
-        .seat-avatar { position: relative; width: 64px; height: 64px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--line-strong); background-color: var(--surface-raised); flex-shrink: 0; }
+        /* ---------- Split-room layout: stage + sidebar, side by side ---------- */
+        .draft-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
+        @media (min-width: 1024px) {
+            .draft-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+            .draft-sidebar { position: sticky; top: 1.5rem; }
+        }
+        .sidebar-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .sidebar-tab { flex: 1; padding: 0.55rem 0.5rem; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border: 1px solid var(--line); background: transparent; color: var(--paper-faint); cursor: pointer; border-radius: 3px; transition: color 150ms, border-color 150ms; }
+        .sidebar-tab.is-active { border-color: var(--gold); color: var(--gold); }
+        .sidebar-panel.hidden { display: none; }
+
+        .seat-avatar { position: relative; width: 52px; height: 52px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--line-strong); background-color: var(--surface-raised); flex-shrink: 0; }
         .seat-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .seat-crest { position: absolute; bottom: -4px; right: -4px; width: 22px; height: 22px; border-radius: 9999px; border: 2px solid var(--surface); background-color: var(--surface-raised); overflow: hidden; }
+        .seat-crest { position: absolute; bottom: -4px; right: -4px; width: 20px; height: 20px; border-radius: 9999px; border: 2px solid var(--surface); background-color: var(--surface-raised); overflow: hidden; }
         .seat-crest img { width: 100%; height: 100%; object-fit: cover; }
-        .seat-dot { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; border-radius: 9999px; background-color: var(--up); border: 2px solid var(--surface); }
-        .turn-card { text-align: center; opacity: 0.55; transition: opacity 200ms, transform 200ms; position: relative; }
-        .turn-card.is-active { opacity: 1; transform: translateY(-4px); }
+        .seat-dot { position: absolute; top: -2px; right: -2px; width: 11px; height: 11px; border-radius: 9999px; background-color: var(--up); border: 2px solid var(--surface); }
+        .turn-card { display: flex; align-items: center; gap: 0.65rem; text-align: left; opacity: 0.55; padding: 0.5rem; border-radius: 6px; transition: opacity 200ms, background-color 200ms; }
+        .turn-card.is-active { opacity: 1; background-color: var(--surface-raised); }
         .turn-card.is-away .seat-avatar { filter: grayscale(70%); opacity: 0.5; }
         .turn-card.is-away .seat-dot { background-color: var(--paper-faint); }
-        .turn-card .role-tag { font-size: 0.6rem; margin-top: 0.35rem; display: inline-block; }
+        .turn-card .role-tag { font-size: 0.55rem; display: inline-block; }
         @keyframes spinCycle { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .spinning { animation: spinCycle 120ms linear infinite; }
-        .player-pick-row { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; border-bottom: 1px solid var(--line); }
-        .player-pick-row:last-child { border-bottom: none; }
         .tag.passed { border-color: var(--paper-faint); color: var(--paper-faint); }
+
+        /* ---------- Player nomination cards: 3D tilt on hover ---------- */
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; perspective: 1000px; }
+        .player-card { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 1rem; background: var(--surface-raised); transition: transform 150ms ease-out, box-shadow 200ms ease-out; transform-style: preserve-3d; will-change: transform; }
+        .player-card.is-tiltable:hover { box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px var(--gold-dim); z-index: 2; }
+        .player-card-portrait { width: 100%; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; background: var(--surface); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; transform: translateZ(20px); }
+        .player-card-portrait img { width: 100%; height: 100%; object-fit: cover; }
+        .player-card-portrait .initials { font-size: 1.4rem; }
+        .player-card-name { font-size: 0.85rem; font-weight: 600; color: var(--paper); line-height: 1.2; margin-bottom: 0.15rem; }
+        .player-card-meta { font-size: 0.65rem; color: var(--paper-faint); margin-bottom: 0.6rem; }
+        .player-card-value { font-size: 0.85rem; font-weight: 700; color: var(--gold); margin-bottom: 0.75rem; }
+        .player-card .nominate-btn { width: 100%; }
 
         @keyframes bidFlash { 0% { background-color: rgba(232, 178, 61, 0.35); } 100% { background-color: transparent; } }
         @keyframes leaderPop { 0% { transform: scale(0.85); opacity: 0.4; } 60% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
@@ -63,7 +84,7 @@
             @endif
         </div>
     @else
-        <div class="flex items-start justify-between flex-wrap gap-4 mb-8">
+        <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
             <div>
                 <p class="eyebrow gold mb-2">Country Draft — One Room</p>
                 <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: var(--paper);" id="countryHeading">
@@ -73,22 +94,40 @@
             </div>
             <div class="text-center">
                 <div id="timerSlot"></div>
-                <button type="button" id="callBtn" class="btn-ghost px-5 py-2.5 mt-2">Start Video / Voice Call</button>
             </div>
         </div>
 
         <div class="card-section p-4 mb-6">
             <p class="text-xs" style="color: var(--paper-faint);">
                 <strong style="color: var(--paper-dim);">How turns work:</strong>
-                the manager marked <span class="tag gold" style="font-size:0.6rem;">Spins Next</span> spins a random country; the manager after them in order gets first pick from it. Picking rotates through everyone in order — nominate a player (opens bidding at their base value) or skip your turn. Once a country runs out of players, or everyone skips in a row, it's retired and the <em>next</em> manager in order spins for the next country.
+                the manager marked <span class="tag gold" style="font-size:0.6rem;">Spins Next</span> spins a random country; the manager after them in order gets first pick from it. Picking rotates through everyone in order — nominate a player (opens bidding at their base value) or skip your turn. Once a country runs out of players, or everyone skips in a row, it's retired and the <em>next</em> manager in order spins for the next country. The current turn order and the live call stay one click away in the panel on the right — nothing here ever swaps out from under you.
             </p>
         </div>
 
-        <div class="flex items-start justify-center gap-4 mb-8 flex-wrap" id="turnStrip"></div>
+        <div class="draft-grid">
+            <div class="draft-stage" id="mainPanel"></div>
 
-        <div class="mb-6" id="burnedRow"></div>
+            <aside class="draft-sidebar">
+                <div class="sidebar-tabs">
+                    <button type="button" class="sidebar-tab is-active" data-sidebar-tab="order">Turn Order</button>
+                    <button type="button" class="sidebar-tab" data-sidebar-tab="call">Live Call</button>
+                </div>
 
-        <div id="mainPanel"></div>
+                <div class="sidebar-panel" id="sidebarOrder">
+                    <p class="eyebrow mb-2" style="color: var(--paper-faint);">Draft Order</p>
+                    <div id="turnStrip" class="flex flex-col gap-2"></div>
+                    <div id="burnedRow" class="mt-4"></div>
+                </div>
+
+                <div class="sidebar-panel hidden" id="sidebarCall">
+                    <div class="card-section p-4">
+                        <p class="eyebrow gold mb-1">Talk While You Draft</p>
+                        <p class="text-xs mb-4" style="color: var(--paper-faint);">Opens a free video &amp; voice call in its own window (powered by Jitsi Meet — a public third-party service, not hosted by ESL Cricket). It keeps running even if you navigate around the rest of the site in this tab.</p>
+                        <button type="button" id="callBtn" class="btn-accent px-5 py-2.5 w-full">Start Video / Voice Call</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
 
         <div id="soldOverlay" class="hidden"></div>
     @endif
@@ -147,22 +186,36 @@
                 });
             }
 
+            // ---------- Sidebar tabs (Turn Order / Live Call) ----------
+            document.querySelectorAll('.sidebar-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
+                    tab.classList.add('is-active');
+                    document.getElementById('sidebarOrder').classList.toggle('hidden', tab.dataset.sidebarTab !== 'order');
+                    document.getElementById('sidebarCall').classList.toggle('hidden', tab.dataset.sidebarTab !== 'call');
+                });
+            });
+
             // ---------- Turn strip ----------
             function renderTeamCard(team, roleLabel, isActive, bidInfo) {
                 if (!team) return '';
                 const isAway = bidInfo && !bidInfo.is_online;
                 return `
                     <div class="turn-card ${isActive ? 'is-active' : ''} ${isAway ? 'is-away' : ''}">
-                        <div class="seat-avatar" style="margin: 0 auto;">
+                        <div class="seat-avatar">
                             ${team.manager_avatar ? `<img src="${team.manager_avatar}" alt="">` : `<div class="initials">${(team.manager_name || '?').substring(0,2).toUpperCase()}</div>`}
                             ${bidInfo ? '<span class="seat-dot"></span>' : ''}
                             ${team.team_logo ? `<span class="seat-crest"><img src="${team.team_logo}" alt=""></span>` : ''}
                         </div>
-                        <p class="text-xs font-semibold mt-2" style="color: var(--paper);">${team.manager_name || ''}</p>
-                        <p class="text-xs" style="color: var(--paper-faint);">${team.team_short_name || ''}</p>
-                        ${roleLabel ? `<span class="tag gold role-tag">${roleLabel}</span>` : ''}
-                        ${bidInfo && bidInfo.is_leading ? '<span class="tag gold role-tag" style="margin-left:2px;">Leading</span>' : ''}
-                        ${bidInfo && !bidInfo.is_leading && bidInfo.has_passed ? '<span class="tag passed role-tag" style="margin-left:2px;">Passed</span>' : ''}
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold truncate" style="color: var(--paper);">${team.manager_name || ''}</p>
+                            <p class="text-xs truncate" style="color: var(--paper-faint);">${team.team_short_name || ''}</p>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${roleLabel ? `<span class="tag gold role-tag">${roleLabel}</span>` : ''}
+                                ${bidInfo && bidInfo.is_leading ? '<span class="tag gold role-tag">Leading</span>' : ''}
+                                ${bidInfo && !bidInfo.is_leading && bidInfo.has_passed ? '<span class="tag passed role-tag">Passed</span>' : ''}
+                            </div>
+                        </div>
                     </div>
                 `;
             }
@@ -198,18 +251,33 @@
                 if (!players.length) {
                     return '<p class="text-sm" style="color: var(--paper-faint);">No available players left from this country.</p>';
                 }
-                return players.map(p => `
-                    <div class="player-pick-row">
-                        <div>
-                            <p class="text-sm font-semibold" style="color: var(--paper);">${p.name}</p>
-                            <p class="text-xs" style="color: var(--paper-faint);">${p.role} — ${p.tier}</p>
+                return `<div class="player-grid">` + players.map(p => `
+                    <div class="player-card is-tiltable">
+                        <div class="player-card-portrait">
+                            ${p.image ? `<img src="${p.image}" alt="">` : `<div class="initials">${(p.name || '?').substring(0,2).toUpperCase()}</div>`}
                         </div>
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-semibold" style="color: var(--gold);">${fmtMoney(p.base_value)}</span>
-                            ${isYourTurn ? `<button type="button" class="btn-accent px-4 py-2 text-xs nominate-btn" data-id="${p.id}">Nominate</button>` : ''}
-                        </div>
+                        <p class="player-card-name">${p.name}</p>
+                        <p class="player-card-meta">${p.role} — ${p.tier}</p>
+                        <p class="player-card-value">${fmtMoney(p.base_value, 16)}</p>
+                        ${isYourTurn ? `<button type="button" class="btn-accent py-2 text-xs nominate-btn" data-id="${p.id}">Nominate</button>` : ''}
                     </div>
-                `).join('');
+                `).join('') + `</div>`;
+            }
+
+            // 3D tilt-on-hover for player cards — purely cosmetic, degrades
+            // to a flat card if the pointer never moves over it.
+            function attachTilt(container) {
+                container.querySelectorAll('.player-card.is-tiltable').forEach(card => {
+                    card.addEventListener('mousemove', (e) => {
+                        const r = card.getBoundingClientRect();
+                        const px = (e.clientX - r.left) / r.width;
+                        const py = (e.clientY - r.top) / r.height;
+                        const rotY = (px - 0.5) * 16;
+                        const rotX = (0.5 - py) * 16;
+                        card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.05)`;
+                    });
+                    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+                });
             }
 
             function setStatusLine(html) {
@@ -240,6 +308,7 @@
                     <p id="nominateError" class="text-xs text-center mt-3" style="color: var(--live);"></p>
                 `;
                 document.querySelectorAll('.nominate-btn').forEach(b => b.addEventListener('click', () => doNominate(b.dataset.id)));
+                attachTilt(panel);
                 const skipBtn = document.getElementById('skipBtn');
                 if (skipBtn) skipBtn.addEventListener('click', doSkip);
             }

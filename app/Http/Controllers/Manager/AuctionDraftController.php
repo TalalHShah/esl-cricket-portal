@@ -114,13 +114,14 @@ class AuctionDraftController extends Controller
                 ->where('is_active', true)
                 ->where('country', $draft->current_country)
                 ->orderByDesc('current_value')
-                ->get(['id', 'name', 'role', 'tier', 'base_value'])
+                ->get(['id', 'name', 'role', 'tier', 'base_value', 'image'])
                 ->map(fn (Player $p) => [
                     'id' => $p->id,
                     'name' => $p->name,
                     'role' => $p->role,
                     'tier' => $p->tier,
                     'base_value' => (float) $p->base_value,
+                    'image' => $p->image ? asset('storage/' . $p->image) : null,
                 ]);
         }
 

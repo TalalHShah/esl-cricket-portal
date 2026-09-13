@@ -63,6 +63,17 @@
             </div>
 
             <div class="space-y-4 border-b border-slate-700 pb-6">
+                <h3 class="text-lg font-bold text-white">Country Draft Timer</h3>
+                <p class="text-xs text-slate-400">How long a manager gets to act on their turn — spinning for a country, or nominating a player / passing — before they're passed automatically. Applies to every draft going forward.</p>
+
+                <div>
+                    <label class="block text-sm font-bold text-white mb-2">Turn Timer (seconds)</label>
+                    <input type="number" name="draft_turn_timeout_seconds" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ $draftTurnTimeoutSeconds }}" min="10" max="600" required>
+                    <p class="text-xs text-slate-500 mt-1">Currently {{ $draftTurnTimeoutSeconds }} seconds — takes effect on the very next turn, even mid-draft</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 border-b border-slate-700 pb-6">
                 <h3 class="text-lg font-bold text-white">Valuation Rules</h3>
 
                 <div>

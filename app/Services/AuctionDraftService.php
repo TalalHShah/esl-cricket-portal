@@ -5,18 +5,29 @@ namespace App\Services;
 use App\Models\AuctionDraft;
 use App\Models\AuctionSession;
 use App\Models\Player;
+use App\Models\Setting;
 use App\Models\Team;
 use Illuminate\Support\Facades\DB;
 
 class AuctionDraftService
 {
     /**
+     * Fallback if the admin hasn't configured one yet. Prefer
+     * turnTimeoutSeconds() below, which reads the live admin setting.
+     */
+    public const DEFAULT_TURN_TIMEOUT_SECONDS = 90;
+
+    /**
      * How long a manager gets to act on their turn — spinning for a
      * country, or nominating a player / passing — before it's treated
-     * as an automatic pass. Keeps the room from stalling for 30 minutes
-     * on one manager who stepped away.
+     * as an automatic pass. Admin-configurable (Settings > Draft Timer)
+     * so the league can tune it without a code change; keeps the room
+     * from stalling indefinitely on one manager who stepped away.
      */
-    public const TURN_TIMEOUT_SECONDS = 90;
+    public function turnTimeoutSeconds(): int
+    {
+        return max(10, (int) Setting::getValue('draft.turn_timeout_seconds', self::DEFAULT_TURN_TIMEOUT_SECONDS));
+    }
 
     /**
      * Countries still worth spinning for: have at least one signable
@@ -74,7 +85,7 @@ class AuctionDraftService
             'current_country' => null,
             'consecutive_skips' => 0,
             'passed_team_ids' => [],
-            'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+            'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
             'burned_countries' => [],
             'started_at' => now(),
         ]);
@@ -118,7 +129,7 @@ class AuctionDraftService
                 'active_picker_index' => ($locked->country_picker_index + 1) % $count,
                 'consecutive_skips' => 0,
                 'passed_team_ids' => [],
-                'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+                'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
             ]);
 
             return ['success' => true, 'country' => $country];
@@ -232,7 +243,7 @@ class AuctionDraftService
             $locked->update([
                 'passed_team_ids' => $passed,
                 'active_picker_index' => $nextIndex,
-                'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+                'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
             ]);
 
             return ['success' => true, 'burned' => false, 'auto' => $auto];
@@ -341,7 +352,7 @@ class AuctionDraftService
             $draft->update([
                 'active_picker_index' => $nextIndex,
                 'consecutive_skips' => 0,
-                'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+                'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
             ]);
         });
     }
@@ -359,7 +370,7 @@ class AuctionDraftService
             'passed_team_ids' => [],
             'consecutive_skips' => 0,
             'country_picker_index' => ($draft->country_picker_index + 1) % $count,
-            'turn_deadline_at' => now()->addSeconds(self::TURN_TIMEOUT_SECONDS),
+            'turn_deadline_at' => now()->addSeconds($this->turnTimeoutSeconds()),
         ]);
 
         if (! $this->anyPlayersRemain()) {

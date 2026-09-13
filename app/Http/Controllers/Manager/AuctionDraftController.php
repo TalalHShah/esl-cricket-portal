@@ -17,12 +17,13 @@ use Illuminate\Support\Facades\Auth;
 
 class AuctionDraftController extends Controller
 {
-    public function room(): View
+    public function room(AuctionDraftService $service): View
     {
         $draft = AuctionDraft::where('status', 'active')->latest()->first();
         $team = Auth::user()->managedTeam;
+        $turnTimeoutSeconds = $service->turnTimeoutSeconds();
 
-        return view('manager.auction-draft', compact('draft', 'team'));
+        return view('manager.auction-draft', compact('draft', 'team', 'turnTimeoutSeconds'));
     }
 
     public function spin(AuctionDraft $draft, AuctionDraftService $service): JsonResponse

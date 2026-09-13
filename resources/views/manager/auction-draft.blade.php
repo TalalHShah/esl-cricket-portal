@@ -34,7 +34,8 @@
         @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes overlayCardIn { 0% { transform: scale(0.7) translateY(40px); opacity: 0; } 70% { transform: scale(1.03) translateY(-6px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         @keyframes overlayLogoSpin { 0% { transform: scale(1.4) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 0.18; } }
-        #soldOverlay { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; animation: overlayFadeIn 400ms ease-out; }
+        #soldOverlay { position: fixed; inset: 0; z-index: 999; display: none; align-items: center; justify-content: center; animation: overlayFadeIn 400ms ease-out; }
+        #soldOverlay.is-visible { display: flex; }
         #soldOverlay .overlay-bg { position: absolute; inset: 0; }
         #soldOverlay .overlay-logo-watermark { position: absolute; top: 50%; left: 50%; width: 70vh; height: 70vh; transform: translate(-50%, -50%); animation: overlayLogoSpin 900ms ease-out forwards; }
         #soldOverlay .overlay-logo-watermark img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); }
@@ -451,9 +452,9 @@
                     `;
                 }
 
-                overlay.classList.remove('hidden');
+                overlay.classList.add('is-visible');
                 document.getElementById('overlayContinueBtn').addEventListener('click', () => {
-                    overlay.classList.add('hidden');
+                    overlay.classList.remove('is-visible');
                     currentAuctionId = null;
                     poll();
                 });

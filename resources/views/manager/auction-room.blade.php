@@ -39,6 +39,17 @@
         .leader-crest-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .tag.passed { border-color: var(--paper-faint); color: var(--paper-faint); }
 
+        /* ---------- Split-room layout: bid stage + sidebar, side by side ---------- */
+        .draft-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
+        @media (min-width: 1024px) {
+            .draft-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+            .draft-sidebar { position: sticky; top: 1.5rem; }
+        }
+        .sidebar-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .sidebar-tab { flex: 1; padding: 0.55rem 0.5rem; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border: 1px solid var(--line); background: transparent; color: var(--paper-faint); cursor: pointer; border-radius: 3px; transition: color 150ms, border-color 150ms; }
+        .sidebar-tab.is-active { border-color: var(--gold); color: var(--gold); }
+        .sidebar-panel.hidden { display: none; }
+
         @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes overlayCardIn { 0% { transform: scale(0.7) translateY(40px); opacity: 0; } 70% { transform: scale(1.03) translateY(-6px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         @keyframes overlayLogoSpin { 0% { transform: scale(1.4) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 0.18; } }
@@ -102,67 +113,68 @@
     </div>
 
     @if($isLive || $isPaused)
-        {{-- Auction floor: seats left / bid center / seats right --}}
-        <div class="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-[1fr_2.2fr_1fr]">
-            <div>
-                <p class="eyebrow gold mb-3">Seats — Left</p>
-                <div class="flex flex-col gap-4" id="seatsLeft"></div>
-            </div>
-
-            <div class="masthead text-center">
-                <p class="stat-caption mb-3">Current Bid</p>
-                <div class="flex items-center justify-center mb-4" id="leaderDisplay">
-                    <p class="text-sm" style="color: var(--paper-faint);">No bids yet — be the first.</p>
-                </div>
-                <p class="stat-figure gold" id="currentBidFigure" style="font-size: 2.5rem;"><x-money :amount="$auctionSession->current_bid ?: 0" :size="30" /></p>
-                <p class="text-sm mt-2" id="leaderName" style="color: var(--paper-dim);">&nbsp;</p>
-
-                @if($isPaused)
-                    <p class="text-sm mt-6" style="color: var(--paper-faint);">The auctioneer has paused bidding. Stay seated — it will resume shortly.</p>
-                @elseif(!$joined)
-                    <form method="POST" action="{{ route('manager.auction.join', $auctionSession) }}" class="mt-6">
-                        @csrf
-                        <button type="submit" class="btn-accent px-8 py-3">Join Auction Room</button>
-                    </form>
-                @elseif($team)
-                    <div class="mt-6 pt-6" style="border-top: var(--rule);">
-                        <p class="text-xs mb-2" style="color: var(--paper-faint);">Your remaining budget — <x-money :amount="$team->remainingBudget()" /></p>
-                        <div id="timeExpiredNotice" class="hidden mb-3">
-                            <span class="status-pill live">Time's Up — Waiting For The Call</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                            <button type="button" id="bidMinBtn" class="btn-accent px-8 py-3 text-base">
-                                Bid <span id="minBidLabel"><x-money :amount="$minimumBid" :size="16" /></span>
-                            </button>
-                            <div class="flex items-center gap-2">
-                                <input type="number" id="customBidInput" class="field px-3 py-2 text-sm" style="width: 10rem;" placeholder="Custom amount" min="{{ (int) $minimumBid }}" step="{{ (int) $auctionSession->bid_increment }}">
-                                <button type="button" id="bidCustomBtn" class="btn-ghost px-4 py-2 text-sm">Bid This</button>
-                            </div>
-                            <button type="button" id="passBtn" class="btn-ghost px-6 py-3 text-base" style="color: var(--live); border-color: var(--live);">Pass</button>
-                        </div>
-                        <p class="text-xs mt-2" id="passedNotice" style="color: var(--paper-faint); display:none;">You've passed on this bid — you'll get another chance if someone bids higher.</p>
-                        <p class="text-xs mt-3" id="bidError" style="color: var(--live);"></p>
+        {{-- Bid stage + sidebar (seated managers / live call), side by side --}}
+        <div class="draft-grid mb-8">
+            <div class="draft-stage">
+                <div class="masthead text-center">
+                    <p class="stat-caption mb-3">Current Bid</p>
+                    <div class="flex items-center justify-center mb-4" id="leaderDisplay">
+                        <p class="text-sm" style="color: var(--paper-faint);">No bids yet — be the first.</p>
                     </div>
-                @else
-                    <p class="text-sm mt-6" style="color: var(--paper-faint);">You are not assigned to manage a team, so you cannot bid.</p>
-                @endif
-            </div>
+                    <p class="stat-figure gold" id="currentBidFigure" style="font-size: 2.5rem;"><x-money :amount="$auctionSession->current_bid ?: 0" :size="30" /></p>
+                    <p class="text-sm mt-2" id="leaderName" style="color: var(--paper-dim);">&nbsp;</p>
 
-            <div>
-                <p class="eyebrow gold mb-3">Seats — Right</p>
-                <div class="flex flex-col gap-4" id="seatsRight"></div>
-            </div>
-        </div>
-
-        {{-- Video / Voice --}}
-        <div class="card-section p-6 mb-8">
-            <div class="flex items-center justify-between flex-wrap gap-3">
-                <div>
-                    <p class="eyebrow gold mb-1">Talk While You Bid</p>
-                    <p class="text-xs" style="color: var(--paper-faint);">Opens a free video &amp; voice call in its own window (powered by Jitsi Meet — a public third-party service, not hosted by ESL Cricket) — it keeps running even if you navigate around the rest of the site in this tab.</p>
+                    @if($isPaused)
+                        <p class="text-sm mt-6" style="color: var(--paper-faint);">The auctioneer has paused bidding. Stay seated — it will resume shortly.</p>
+                    @elseif(!$joined)
+                        <form method="POST" action="{{ route('manager.auction.join', $auctionSession) }}" class="mt-6">
+                            @csrf
+                            <button type="submit" class="btn-accent px-8 py-3">Join Auction Room</button>
+                        </form>
+                    @elseif($team)
+                        <div class="mt-6 pt-6" style="border-top: var(--rule);">
+                            <p class="text-xs mb-2" style="color: var(--paper-faint);">Your remaining budget — <x-money :amount="$team->remainingBudget()" /></p>
+                            <div id="timeExpiredNotice" class="hidden mb-3">
+                                <span class="status-pill live">Time's Up — Waiting For The Call</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                                <button type="button" id="bidMinBtn" class="btn-accent px-8 py-3 text-base">
+                                    Bid <span id="minBidLabel"><x-money :amount="$minimumBid" :size="16" /></span>
+                                </button>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="customBidInput" class="field px-3 py-2 text-sm" style="width: 10rem;" placeholder="Custom amount" min="{{ (int) $minimumBid }}" step="{{ (int) $auctionSession->bid_increment }}">
+                                    <button type="button" id="bidCustomBtn" class="btn-ghost px-4 py-2 text-sm">Bid This</button>
+                                </div>
+                                <button type="button" id="passBtn" class="btn-ghost px-6 py-3 text-base" style="color: var(--live); border-color: var(--live);">Pass</button>
+                            </div>
+                            <p class="text-xs mt-2" id="passedNotice" style="color: var(--paper-faint); display:none;">You've passed on this bid — you'll get another chance if someone bids higher.</p>
+                            <p class="text-xs mt-3" id="bidError" style="color: var(--live);"></p>
+                        </div>
+                    @else
+                        <p class="text-sm mt-6" style="color: var(--paper-faint);">You are not assigned to manage a team, so you cannot bid.</p>
+                    @endif
                 </div>
-                <button type="button" id="callBtn" class="btn-ghost px-5 py-2.5">Start Video / Voice Call</button>
             </div>
+
+            <aside class="draft-sidebar">
+                <div class="sidebar-tabs">
+                    <button type="button" class="sidebar-tab is-active" data-sidebar-tab="seats">Seated Managers</button>
+                    <button type="button" class="sidebar-tab" data-sidebar-tab="call">Live Call</button>
+                </div>
+
+                <div class="sidebar-panel" id="sidebarSeats">
+                    <p class="eyebrow mb-2" style="color: var(--paper-faint);">At The Table</p>
+                    <div class="flex flex-col gap-3" id="seatsList"></div>
+                </div>
+
+                <div class="sidebar-panel hidden" id="sidebarCall">
+                    <div class="card-section p-4">
+                        <p class="eyebrow gold mb-1">Talk While You Bid</p>
+                        <p class="text-xs mb-4" style="color: var(--paper-faint);">Opens a free video &amp; voice call in its own window (powered by Jitsi Meet — a public third-party service, not hosted by ESL Cricket). It keeps running even if you navigate around the rest of the site in this tab.</p>
+                        <button type="button" id="callBtn" class="btn-accent px-5 py-2.5 w-full">Start Video / Voice Call</button>
+                    </div>
+                </div>
+            </aside>
         </div>
     @endif
 
@@ -230,36 +242,43 @@
                 return `<span class="inline-flex items-center gap-1.5">${coinSvg(size)}<span>${Math.round(n).toLocaleString('en-US')}</span></span>`;
             }
 
+            // ---------- Sidebar tabs (Seated Managers / Live Call) ----------
+            document.querySelectorAll('.sidebar-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
+                    tab.classList.add('is-active');
+                    document.getElementById('sidebarSeats').classList.toggle('hidden', tab.dataset.sidebarTab !== 'seats');
+                    document.getElementById('sidebarCall').classList.toggle('hidden', tab.dataset.sidebarTab !== 'call');
+                });
+            });
+
             function renderSeats(participants) {
-                const left = document.getElementById('seatsLeft');
-                const right = document.getElementById('seatsRight');
-                if (!left || !right) return;
-                left.innerHTML = '';
-                right.innerHTML = '';
-                participants.forEach((p, i) => {
-                    const seat = document.createElement('div');
-                    seat.className = 'card-section p-3 flex items-center gap-3 ' + (p.is_online ? 'seat-online' : 'seat-away');
+                const list = document.getElementById('seatsList');
+                if (!list) return;
+                if (participants.length === 0) {
+                    list.innerHTML = '<p class="text-xs" style="color: var(--paper-faint);">No one seated yet</p>';
+                    return;
+                }
+                list.innerHTML = participants.map(p => {
                     const avatarSrc = p.manager_avatar || null;
                     const crestSrc = p.team_logo || null;
-                    seat.innerHTML = `
-                        <div class="seat-avatar">
-                            ${avatarSrc ? `<img src="${avatarSrc}" alt="${p.manager_name || ''}">` : `<div class="initials" style="font-size:0.85rem;">${(p.manager_name || '?').substring(0,2).toUpperCase()}</div>`}
-                            <span class="seat-dot"></span>
-                            ${crestSrc ? `<span class="seat-crest"><img src="${crestSrc}" alt=""></span>` : ''}
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-semibold truncate" style="color: var(--paper);">${p.manager_name || 'Manager'}${p.is_you ? ' (You)' : ''}</p>
-                            <p class="text-xs truncate" style="color: var(--paper-faint);">${p.team_short_name || p.team_name || ''}</p>
-                            ${p.is_leading ? '<span class="tag gold" style="font-size:0.6rem;">Leading</span>' : ''}
-                            ${!p.is_leading && p.has_passed ? '<span class="tag passed" style="font-size:0.6rem;">Passed</span>' : ''}
-                            ${!p.is_online ? '<span class="text-xs" style="color: var(--paper-faint);"> — away</span>' : ''}
+                    return `
+                        <div class="card-section p-3 flex items-center gap-3 ${p.is_online ? 'seat-online' : 'seat-away'}">
+                            <div class="seat-avatar">
+                                ${avatarSrc ? `<img src="${avatarSrc}" alt="${p.manager_name || ''}">` : `<div class="initials" style="font-size:0.85rem;">${(p.manager_name || '?').substring(0,2).toUpperCase()}</div>`}
+                                <span class="seat-dot"></span>
+                                ${crestSrc ? `<span class="seat-crest"><img src="${crestSrc}" alt=""></span>` : ''}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold truncate" style="color: var(--paper);">${p.manager_name || 'Manager'}${p.is_you ? ' (You)' : ''}</p>
+                                <p class="text-xs truncate" style="color: var(--paper-faint);">${p.team_short_name || p.team_name || ''}</p>
+                                ${p.is_leading ? '<span class="tag gold" style="font-size:0.6rem;">Leading</span>' : ''}
+                                ${!p.is_leading && p.has_passed ? '<span class="tag passed" style="font-size:0.6rem;">Passed</span>' : ''}
+                                ${!p.is_online ? '<span class="text-xs" style="color: var(--paper-faint);"> — away</span>' : ''}
+                            </div>
                         </div>
                     `;
-                    (i % 2 === 0 ? left : right).appendChild(seat);
-                });
-                if (participants.length === 0) {
-                    left.innerHTML = '<p class="text-xs" style="color: var(--paper-faint);">No one seated yet</p>';
-                }
+                }).join('');
             }
 
             function renderLeader(leader) {

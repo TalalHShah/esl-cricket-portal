@@ -6,6 +6,7 @@ use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\AuctionParticipant;
 use App\Models\AuctionSession;
+use App\Models\Setting;
 use App\Models\Team;
 use App\Services\AuctionCompletionService;
 use App\Support\AuctionStatePresenter;
@@ -136,6 +137,10 @@ class AuctionController extends Controller
             return $fail('Join the auction room before placing a bid.');
         }
 
+        if ($this->officialAuctionClosed($auctionSession)) {
+            return $fail('The Auction is closed — bidding is no longer available.');
+        }
+
         $requestedAmount = $request->filled('amount') ? (float) $request->input('amount') : null;
 
         $result = DB::transaction(function () use ($auctionSession, $team, $requestedAmount) {
@@ -219,6 +224,10 @@ class AuctionController extends Controller
             return response()->json(['error' => 'Join the auction room first.'], 422);
         }
 
+        if ($this->officialAuctionClosed($auctionSession)) {
+            return response()->json(['error' => 'The Auction is closed — this lot is no longer accepting action.'], 422);
+        }
+
         $result = DB::transaction(function () use ($auctionSession, $team, $completion) {
             $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
 
@@ -264,5 +273,19 @@ class AuctionController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Whether the admin has marked the season-level Auction 'closed'
+     * while this lot still belongs to that official event (admin- or
+     * draft-sourced). Market lots (manager-opened free-agent auctions)
+     * are exempt — they only ever open during the free-agent transfer
+     * window, which is itself gated on the auction being closed, so
+     * gating them again here would make it impossible to ever bid on
+     * one.
+     */
+    private function officialAuctionClosed(AuctionSession $auctionSession): bool
+    {
+        return $auctionSession->source !== 'market' && Setting::auctionStatus() === 'closed';
     }
 }

@@ -43,6 +43,10 @@ class ScoutController extends Controller
             $query->where('country', 'like', '%' . $request->input('country') . '%');
         }
 
+        if ($request->filled('team_id')) {
+            $query->where('team_id', $request->input('team_id'));
+        }
+
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->input('search') . '%');
         }
@@ -80,8 +84,9 @@ class ScoutController extends Controller
 
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
         $tiers = ['Platinum', 'Diamond', 'Gold', 'Silver'];
+        $teams = \App\Models\Team::orderBy('name')->get(['id', 'name']);
 
-        return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen', 'sort', 'shortlistedIds', 'activeAuctions'));
+        return view('manager.scouts', compact('players', 'roles', 'tiers', 'teams', 'windowOpen', 'sort', 'shortlistedIds', 'activeAuctions'));
     }
 
     public function toggleShortlist(Player $player): RedirectResponse

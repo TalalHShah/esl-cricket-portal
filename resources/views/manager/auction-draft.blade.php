@@ -369,7 +369,12 @@
                 }
 
                 const banner = data.is_your_turn_to_pick
-                    ? `<div class="card-section p-4 mb-4" style="border-left: 3px solid var(--gold);"><p class="text-sm font-semibold" style="color: var(--paper);">Your turn — pick a player below, or pass. If time runs out, you'll be passed automatically.</p></div>`
+                    ? `<div class="card-section p-4 mb-4" style="border-left: 3px solid var(--gold);">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <p class="text-sm font-semibold" style="color: var(--paper);">Your turn — pick a player below, or pass. If time runs out, you'll be passed automatically.</p>
+                            <button type="button" id="skipBtn" class="btn-ghost px-5 py-2 text-xs whitespace-nowrap" style="color: var(--live); border-color: var(--live);">Pass — I'm Out For This Country</button>
+                        </div>
+                       </div>`
                     : `<div class="card-section p-4 mb-4" style="color: var(--paper-faint);"><p class="text-sm">Waiting for <strong style="color: var(--paper-dim);">${data.active_picker ? data.active_picker.manager_name : 'the next manager'}</strong> to pick — you'll get a turn once they nominate or pass. (Nominate buttons only appear for the manager whose turn it is.)</p></div>`;
 
                 panel.innerHTML = `
@@ -378,7 +383,6 @@
                     <div class="card-section mb-4">
                         ${renderPlayerList(data.available_players, data.is_your_turn_to_pick)}
                     </div>
-                    ${data.is_your_turn_to_pick ? `<div class="text-center"><button type="button" id="skipBtn" class="btn-ghost px-8 py-3" style="color: var(--live); border-color: var(--live);">Pass — I'm Out For This Country</button></div>` : ''}
                     <p id="nominateError" class="text-xs text-center mt-3" style="color: var(--live);"></p>
                 `;
                 document.querySelectorAll('.nominate-btn').forEach(b => b.addEventListener('click', () => doNominate(b.dataset.id)));

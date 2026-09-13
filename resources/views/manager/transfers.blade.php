@@ -39,6 +39,28 @@
                 </select>
             </div>
             <div>
+                <label class="eyebrow block mb-2">Tier</label>
+                <select name="tier" class="field px-3 py-2 text-sm">
+                    <option value="">All Tiers</option>
+                    @foreach ($tiers as $tier)
+                        <option value="{{ $tier }}" @selected(request('tier') === $tier)>{{ $tier }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="eyebrow block mb-2">Team</label>
+                <select name="team_id" class="field px-3 py-2 text-sm">
+                    <option value="">All Teams</option>
+                    @foreach ($teams as $t)
+                        <option value="{{ $t->id }}" @selected((string) request('team_id') === (string) $t->id)>{{ $t->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="eyebrow block mb-2">Country</label>
+                <input type="text" name="country" value="{{ request('country') }}" placeholder="e.g. Pakistan" class="field px-3 py-2 text-sm">
+            </div>
+            <div>
                 <label class="eyebrow block mb-2">Sort</label>
                 <select name="sort" class="field px-3 py-2 text-sm">
                     <option value="value_desc" @selected($sort === 'value_desc')>Value — High to Low</option>

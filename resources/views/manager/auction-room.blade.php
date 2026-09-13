@@ -388,7 +388,9 @@
                     window.setLiveStatus(`Bidding is live on <strong>${data.player_name || 'this lot'}</strong>.`, false);
                     return;
                 }
-                if (data.time_expired) {
+                if (data.bidding_closed) {
+                    window.setLiveStatus("The Auction is closed — this lot is frozen until an admin reopens it.", true);
+                } else if (data.time_expired) {
                     window.setLiveStatus("Time's up — waiting for the sale to be called.", true);
                 } else if (data.you.is_leading) {
                     window.setLiveStatus("You're leading this bid — sit tight to see if anyone tops it.", false);
@@ -445,10 +447,10 @@
                     expiredNotice.classList.toggle('hidden', !data.time_expired);
                 }
                 if (data.you) {
-                    const disableBid = data.time_expired || data.you.is_leading || !data.you.has_squad_space || data.you.has_passed;
+                    const disableBid = data.bidding_closed || data.time_expired || data.you.is_leading || !data.you.has_squad_space || data.you.has_passed;
                     if (bidMinBtn) bidMinBtn.disabled = disableBid;
                     if (bidCustomBtn) bidCustomBtn.disabled = disableBid;
-                    if (passBtn) passBtn.disabled = data.you.is_leading || data.you.has_passed || !data.leader;
+                    if (passBtn) passBtn.disabled = data.bidding_closed || data.you.is_leading || data.you.has_passed || !data.leader;
                     if (passedNotice) passedNotice.style.display = (data.you.has_passed && !data.you.is_leading) ? 'block' : 'none';
                 }
 

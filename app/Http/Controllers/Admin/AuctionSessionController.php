@@ -97,6 +97,10 @@ class AuctionSessionController extends Controller
 
     public function start(AuctionSession $auction): RedirectResponse
     {
+        if ($auction->source !== 'market' && \App\Models\Setting::auctionStatus() === 'closed') {
+            return back()->withErrors(['auction' => 'The Auction is marked Closed — reopen it (Auction Status) before starting a lot.']);
+        }
+
         $error = DB::transaction(function () use ($auction) {
             $locked = AuctionSession::whereKey($auction->id)->lockForUpdate()->first();
 
@@ -139,6 +143,10 @@ class AuctionSessionController extends Controller
     {
         if ($auction->status !== 'paused') {
             return back()->withErrors(['auction' => 'Only paused auctions can be resumed.']);
+        }
+
+        if ($auction->source !== 'market' && \App\Models\Setting::auctionStatus() === 'closed') {
+            return back()->withErrors(['auction' => 'The Auction is marked Closed — reopen it (Auction Status) before resuming a lot.']);
         }
 
         $auction->update([

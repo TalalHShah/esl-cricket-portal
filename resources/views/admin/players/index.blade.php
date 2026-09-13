@@ -24,6 +24,52 @@
         </div>
     </div>
 
+    <div class="cricket-card rounded-2xl p-5 mb-6">
+        <form method="GET" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 items-end">
+            <input type="hidden" name="sort" value="{{ $sort }}">
+            <div class="col-span-2 lg:col-span-1">
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Player name..." class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Team</label>
+                <select name="team_id" class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm">
+                    <option value="">All Teams</option>
+                    <option value="free_agent" @selected(request('team_id') === 'free_agent')>Free Agents Only</option>
+                    @foreach ($teams as $t)
+                        <option value="{{ $t->id }}" @selected((string) request('team_id') === (string) $t->id)>{{ $t->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Country</label>
+                <input type="text" name="country" value="{{ request('country') }}" placeholder="e.g. Pakistan" class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Tier</label>
+                <select name="tier" class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm">
+                    <option value="">All Tiers</option>
+                    @foreach (['Platinum', 'Diamond', 'Gold', 'Silver'] as $tier)
+                        <option value="{{ $tier }}" @selected(request('tier') === $tier)>{{ $tier }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Category</label>
+                <select name="role" class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm">
+                    <option value="">All Categories</option>
+                    @foreach (['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'] as $role)
+                        <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm transition">Filter</button>
+                <a href="{{ route('admin.players.index') }}" class="flex-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm text-center transition">Reset</a>
+            </div>
+        </form>
+    </div>
+
     {{-- Table --}}
     <div class="cricket-card rounded-2xl overflow-x-auto">
         <table class="w-full">

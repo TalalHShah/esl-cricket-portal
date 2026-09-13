@@ -35,6 +35,30 @@ class AdminPlayerController extends Controller
     {
         $query = Player::with('team');
 
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
+        if ($request->filled('team_id')) {
+            if ($request->input('team_id') === 'free_agent') {
+                $query->whereNull('team_id');
+            } else {
+                $query->where('team_id', $request->input('team_id'));
+            }
+        }
+
+        if ($request->filled('country')) {
+            $query->where('country', 'like', '%' . $request->input('country') . '%');
+        }
+
+        if ($request->filled('tier')) {
+            $query->where('tier', $request->input('tier'));
+        }
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->input('role'));
+        }
+
         $sort = $this->applySort($query, $request, [
             'name_asc' => fn ($q) => $q->orderBy('name'),
             'name_desc' => fn ($q) => $q->orderByDesc('name'),
@@ -47,7 +71,9 @@ class AdminPlayerController extends Controller
 
         $players = $query->paginate(15)->withQueryString();
 
-        return view('admin.players.index', compact('players', 'sort'));
+        $teams = Team::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.players.index', compact('players', 'sort', 'teams'));
     }
 
     public function create()

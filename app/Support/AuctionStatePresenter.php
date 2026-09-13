@@ -88,10 +88,13 @@ class AuctionStatePresenter
             ])->values();
         }
 
+        $biddingClosed = $auctionSession->source !== 'market' && \App\Models\Setting::auctionStatus() === 'closed';
+
         return [
             'session_id' => $auctionSession->id,
             'status' => $auctionSession->status,
             'sale_result' => $saleResult,
+            'bidding_closed' => $biddingClosed,
             'player_name' => $auctionSession->player?->name,
             'is_shortlisted' => $isPlayerShortlisted,
             'shortlist' => $shortlist,

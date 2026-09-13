@@ -9,7 +9,9 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\AdminMatchController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AuctionDraftController as AdminAuctionDraftController;
+use App\Http\Controllers\Admin\CompetitionController as AdminCompetitionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Manager\AuctionController;
 use App\Http\Controllers\Manager\AuctionDraftController;
@@ -54,6 +56,10 @@ Route::get('/players/{player}', [PlayerController::class, 'show'])->name('player
 // Matches
 Route::get('/matches', [MatchController::class, 'index'])->name('matches.index');
 Route::get('/matches/{match}', [MatchController::class, 'show'])->name('matches.show');
+
+// Competitions (leagues & cups)
+Route::get('/competitions', [CompetitionController::class, 'index'])->name('competitions.index');
+Route::get('/competitions/{competition:slug}', [CompetitionController::class, 'show'])->name('competitions.show');
 
 // News
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
@@ -145,6 +151,13 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('matches/{match}', [AdminMatchController::class, 'destroy'])->name('matches.destroy');
     Route::post('matches/{match}/screenshots', [AdminMatchController::class, 'uploadScreenshot'])->name('matches.screenshots.store');
     Route::delete('matches/{match}/screenshots/{screenshot}', [AdminMatchController::class, 'destroyScreenshot'])->name('matches.screenshots.destroy');
+
+    // Competitions (leagues & cups): fixtures, points table, playoff bracket
+    Route::resource('competitions', AdminCompetitionController::class);
+    Route::post('competitions/{competition}/teams', [AdminCompetitionController::class, 'addTeam'])->name('competitions.teams.add');
+    Route::delete('competitions/{competition}/teams/{team}', [AdminCompetitionController::class, 'removeTeam'])->name('competitions.teams.remove');
+    Route::post('competitions/{competition}/generate-fixtures', [AdminCompetitionController::class, 'generateFixtures'])->name('competitions.generate-fixtures');
+    Route::post('competitions/{competition}/generate-playoffs', [AdminCompetitionController::class, 'generatePlayoffs'])->name('competitions.generate-playoffs');
 
     // News CRUD
     Route::get('news', [AdminNewsController::class, 'index'])->name('news.index');

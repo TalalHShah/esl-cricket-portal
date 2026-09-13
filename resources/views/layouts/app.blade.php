@@ -36,6 +36,7 @@
                     <a href="{{ route('dashboard') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Home</a>
                     <a href="{{ route('news.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">News</a>
                     <a href="{{ route('teams.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Teams</a>
+                    <a href="{{ route('competitions.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Competitions</a>
                     <a href="{{ route('managers.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Managers</a>
                     <a href="{{ route('transfers.index') }}" class="text-sm font-medium underline-hover" style="color: var(--paper-dim);">Transfers</a>
                 </nav>
@@ -59,6 +60,7 @@
                 <a href="{{ route('dashboard') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Home</a>
                 <a href="{{ route('news.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">News</a>
                 <a href="{{ route('teams.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Teams</a>
+                <a href="{{ route('competitions.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Competitions</a>
                 <a href="{{ route('managers.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Managers</a>
                 <a href="{{ route('transfers.index') }}" class="whitespace-nowrap px-3 py-1.5" style="background-color: var(--surface-raised); color: var(--paper);">Transfers</a>
                 @auth

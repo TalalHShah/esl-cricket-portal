@@ -54,6 +54,50 @@
             </div>
         </div>
 
+        @if ($match->competition_id)
+            <div class="card-section p-8">
+                <h2 class="font-display text-xl font-semibold mb-2" style="color: var(--paper);">Scoreline</h2>
+                <p class="text-sm mb-6" style="color: var(--paper-faint);">Needed for the {{ $match->competition->name }} points table's Net Run Rate. Overs use cricket notation — 19.4 means 19 overs and 4 balls, not 19.4 decimal overs. Tick "All Out" if the side was bowled out before facing its full quota — NRR then credits them the competition's full {{ $match->competition->total_overs }} overs.</p>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div class="space-y-3">
+                        <p class="eyebrow gold">{{ $match->homeTeam->name }}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="eyebrow block mb-2">Runs</label>
+                                <input type="number" min="0" name="home_runs" class="field w-full px-3 py-2" value="{{ old('home_runs', $match->home_runs) }}" @disabled($readOnly)>
+                            </div>
+                            <div>
+                                <label class="eyebrow block mb-2">Overs</label>
+                                <input type="number" min="0" max="{{ $match->competition->total_overs }}" step="0.1" name="home_overs" class="field w-full px-3 py-2" value="{{ old('home_overs', $match->home_overs) }}" @disabled($readOnly)>
+                            </div>
+                        </div>
+                        <label class="inline-flex items-center gap-2 text-xs" style="color: var(--paper-dim);">
+                            <input type="checkbox" name="home_all_out" value="1" @checked(old('home_all_out', $match->home_all_out)) @disabled($readOnly)>
+                            All Out
+                        </label>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="eyebrow gold">{{ $match->awayTeam->name }}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="eyebrow block mb-2">Runs</label>
+                                <input type="number" min="0" name="away_runs" class="field w-full px-3 py-2" value="{{ old('away_runs', $match->away_runs) }}" @disabled($readOnly)>
+                            </div>
+                            <div>
+                                <label class="eyebrow block mb-2">Overs</label>
+                                <input type="number" min="0" max="{{ $match->competition->total_overs }}" step="0.1" name="away_overs" class="field w-full px-3 py-2" value="{{ old('away_overs', $match->away_overs) }}" @disabled($readOnly)>
+                            </div>
+                        </div>
+                        <label class="inline-flex items-center gap-2 text-xs" style="color: var(--paper-dim);">
+                            <input type="checkbox" name="away_all_out" value="1" @checked(old('away_all_out', $match->away_all_out)) @disabled($readOnly)>
+                            All Out
+                        </label>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @foreach ([$match->homeTeam, $match->awayTeam] as $team)
             <div class="card-section overflow-x-auto">
                 <div class="px-6 py-5" style="border-bottom: var(--rule);">

@@ -24,6 +24,9 @@ class CricketMatch extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'competition_id',
+        'stage',
+        'leg',
         'home_team_id',
         'away_team_id',
         'winner_team_id',
@@ -32,6 +35,12 @@ class CricketMatch extends Model
         'submitted_by_user_id',
         'confirmed_by_user_id',
         'summary_notes',
+        'home_runs',
+        'home_overs',
+        'home_all_out',
+        'away_runs',
+        'away_overs',
+        'away_all_out',
     ];
 
     /**
@@ -43,7 +52,59 @@ class CricketMatch extends Model
     {
         return [
             'match_date' => 'datetime',
+            'home_overs' => 'decimal:1',
+            'away_overs' => 'decimal:1',
+            'home_all_out' => 'boolean',
+            'away_all_out' => 'boolean',
         ];
+    }
+
+    /**
+     * The competition (league or cup) this fixture belongs to, if any
+     * — ad-hoc matches created outside a competition leave this null.
+     */
+    public function competition(): BelongsTo
+    {
+        return $this->belongsTo(Competition::class);
+    }
+
+    /**
+     * Convert an overs value stored in cricket notation (19.4 = 19
+     * overs and 4 balls, NOT 19.4 decimal overs) into the actual
+     * fractional overs bowled, for run-rate arithmetic.
+     */
+    public static function oversToFloat(null|int|float|string $overs): float
+    {
+        if ($overs === null) {
+            return 0.0;
+        }
+
+        $overs = (float) $overs;
+        $wholeOvers = floor($overs);
+        $balls = round(($overs - $wholeOvers) * 10);
+
+        if ($balls > 5) {
+            $balls = 5;
+        }
+
+        return $wholeOvers + ($balls / 6);
+    }
+
+    /**
+     * Overs actually faced by a side, for NRR purposes — bumped up to
+     * the competition's full quota if that side was bowled out before
+     * using all of it (the standard cricket NRR convention).
+     */
+    public function effectiveOvers(string $side, int $competitionTotalOvers): float
+    {
+        $allOut = $side === 'home' ? $this->home_all_out : $this->away_all_out;
+        $overs = $side === 'home' ? $this->home_overs : $this->away_overs;
+
+        if ($allOut) {
+            return (float) $competitionTotalOvers;
+        }
+
+        return self::oversToFloat($overs);
     }
 
     /**

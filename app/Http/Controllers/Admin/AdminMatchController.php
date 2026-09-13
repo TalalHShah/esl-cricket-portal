@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
+use App\Models\Competition;
 use App\Models\CricketMatch;
 use App\Models\MatchScreenshot;
 use App\Models\MatchStat;
 use App\Models\Team;
+use App\Services\CompetitionBracketService;
 use App\Services\PlayerValuationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -38,8 +40,9 @@ class AdminMatchController extends Controller
     public function create(): View
     {
         $teams = Team::orderBy('name')->get();
+        $competitions = Competition::orderByDesc('created_at')->get();
 
-        return view('admin.matches.create', compact('teams'));
+        return view('admin.matches.create', compact('teams', 'competitions'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -48,10 +51,12 @@ class AdminMatchController extends Controller
             'home_team_id' => 'required|exists:teams,id|different:away_team_id',
             'away_team_id' => 'required|exists:teams,id',
             'match_date' => 'required|date',
+            'competition_id' => 'nullable|exists:competitions,id',
         ]);
 
         $match = CricketMatch::create([
             ...$validated,
+            'stage' => ! empty($validated['competition_id']) ? Competition::STAGE_LEAGUE : null,
             'status' => 'pending_review',
             'submitted_by_user_id' => Auth::id(),
         ]);
@@ -79,6 +84,12 @@ class AdminMatchController extends Controller
             'winner_team_id' => 'nullable|exists:teams,id',
             'status' => 'required|in:pending_review,pending_confirmation,disputed',
             'summary_notes' => 'nullable|string|max:2000',
+            'home_runs' => 'nullable|integer|min:0',
+            'home_overs' => 'nullable|numeric|min:0|max:' . ($match->competition->total_overs ?? 50),
+            'home_all_out' => 'nullable|boolean',
+            'away_runs' => 'nullable|integer|min:0',
+            'away_overs' => 'nullable|numeric|min:0|max:' . ($match->competition->total_overs ?? 50),
+            'away_all_out' => 'nullable|boolean',
             'stats' => 'array',
             'stats.*.runs_scored' => 'nullable|integer|min:0',
             'stats.*.balls_faced' => 'nullable|integer|min:0',
@@ -104,6 +115,12 @@ class AdminMatchController extends Controller
                 'winner_team_id' => $validated['winner_team_id'] ?? null,
                 'status' => $validated['status'],
                 'summary_notes' => $validated['summary_notes'] ?? null,
+                'home_runs' => $validated['home_runs'] ?? null,
+                'home_overs' => $validated['home_overs'] ?? null,
+                'home_all_out' => $request->boolean('home_all_out'),
+                'away_runs' => $validated['away_runs'] ?? null,
+                'away_overs' => $validated['away_overs'] ?? null,
+                'away_all_out' => $request->boolean('away_all_out'),
             ]);
 
             foreach ($validated['stats'] ?? [] as $playerId => $row) {
@@ -141,7 +158,7 @@ class AdminMatchController extends Controller
         return redirect()->route('admin.matches.edit', $match)->with('status', 'Match updated.');
     }
 
-    public function confirm(CricketMatch $match): RedirectResponse
+    public function confirm(CricketMatch $match, CompetitionBracketService $bracket): RedirectResponse
     {
         if (! $match->winner_team_id) {
             return back()->withErrors(['match' => 'Set a winning team before confirming the result.']);
@@ -167,6 +184,8 @@ class AdminMatchController extends Controller
         if ($alreadyConfirmed) {
             return back()->withErrors(['match' => 'This match is already confirmed.']);
         }
+
+        $bracket->onMatchConfirmed($match->fresh());
 
         return redirect()->route('admin.matches.index')->with('status', 'Match confirmed — player valuations have been updated.');
     }

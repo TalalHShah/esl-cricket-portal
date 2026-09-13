@@ -33,6 +33,18 @@
             </div>
 
             <div>
+                <label class="eyebrow block mb-2">Competition</label>
+                <select name="competition_id" class="field w-full px-4 py-3">
+                    <option value="">None — standalone friendly</option>
+                    @foreach ($competitions as $competition)
+                        <option value="{{ $competition->id }}" @selected(old('competition_id') == $competition->id)>{{ $competition->name }} ({{ ucfirst($competition->type) }})</option>
+                    @endforeach
+                </select>
+                <p class="text-xs mt-1" style="color: var(--paper-faint);">Tagging a competition here creates a one-off cup/league fixture — use the competition's own page to generate a full league schedule instead.</p>
+                @error('competition_id') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
                 <label class="eyebrow block mb-2">Match Date</label>
                 <input type="datetime-local" name="match_date" class="field w-full px-4 py-3" value="{{ old('match_date', now()->format('Y-m-d\TH:i')) }}" required>
                 @error('match_date') <p class="text-sm mt-1" style="color: var(--live);">{{ $message }}</p> @enderror

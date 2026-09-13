@@ -35,7 +35,7 @@ class LeagueTeamController extends Controller
             'value_asc' => $query->orderBy('current_value'),
             'value_desc' => $query->orderByDesc('current_value'),
             'role' => $query->orderBy('role')->orderByDesc('current_value'),
-            'tier' => $query->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'tier' => $query->orderByRaw("FIELD(tier, 'Platinum', 'Diamond', 'Gold', 'Silver')"),
             'age_asc' => $query->orderBy('age'),
             'age_desc' => $query->orderByDesc('age'),
             default => $query->orderByDesc('current_value'),

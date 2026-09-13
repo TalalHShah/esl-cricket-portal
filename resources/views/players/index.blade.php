@@ -28,7 +28,7 @@
                 <label class="eyebrow block mb-2">Tier</label>
                 <select name="tier" class="field px-3 py-2 text-sm">
                     <option value="">All Tiers</option>
-                    @foreach (['Superstar', 'Star', 'Normal', 'Low-value'] as $tier)
+                    @foreach (['Platinum', 'Diamond', 'Gold', 'Silver'] as $tier)
                         <option value="{{ $tier }}" @selected(request('tier') === $tier)>{{ $tier }}</option>
                     @endforeach
                 </select>

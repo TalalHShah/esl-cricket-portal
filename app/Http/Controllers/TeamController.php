@@ -47,7 +47,7 @@ class TeamController extends Controller
             'name_asc' => fn ($q) => $q->orderBy('name'),
             'name_desc' => fn ($q) => $q->orderByDesc('name'),
             'role' => fn ($q) => $q->orderBy('role')->orderByDesc('current_value'),
-            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Platinum', 'Diamond', 'Gold', 'Silver')"),
             'age_asc' => fn ($q) => $q->orderBy('age'),
             'age_desc' => fn ($q) => $q->orderByDesc('age'),
         ], 'value_desc');

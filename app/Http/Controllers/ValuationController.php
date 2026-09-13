@@ -44,7 +44,7 @@ class ValuationController extends Controller
             'name_asc' => fn ($q) => $q->orderBy('name'),
             'change_desc' => fn ($q) => $q->orderByRaw('(current_value - base_value) desc'),
             'change_asc' => fn ($q) => $q->orderByRaw('(current_value - base_value) asc'),
-            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Platinum', 'Diamond', 'Gold', 'Silver')"),
         ], 'value_desc');
 
         $players = $query->paginate(20)->withQueryString();

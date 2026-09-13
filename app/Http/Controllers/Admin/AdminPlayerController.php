@@ -13,7 +13,7 @@ class AdminPlayerController extends Controller
     use Sortable;
 
     private const ROLES = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
-    private const TIERS = ['Superstar', 'Star', 'Normal', 'Low-value'];
+    private const TIERS = ['Platinum', 'Diamond', 'Gold', 'Silver'];
 
     private const BATTING_STYLES = ['Right-Hand Bat', 'Left-Hand Bat'];
 
@@ -39,7 +39,7 @@ class AdminPlayerController extends Controller
             'name_desc' => fn ($q) => $q->orderByDesc('name'),
             'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
             'value_asc' => fn ($q) => $q->orderBy('current_value'),
-            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Platinum', 'Diamond', 'Gold', 'Silver')"),
             'role' => fn ($q) => $q->orderBy('role'),
             'status' => fn ($q) => $q->orderByDesc('is_active'),
         ], 'name_asc');

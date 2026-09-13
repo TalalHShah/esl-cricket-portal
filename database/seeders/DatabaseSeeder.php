@@ -154,21 +154,21 @@ class DatabaseSeeder extends Seeder
         // Players
         // ------------------------------------------------------------------
         $playersData = [
-            ['name' => 'Babar Azam', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Superstar', 'base_value' => 8000000, 'age' => 30, 'batting_style' => 'Right-Hand Bat'],
-            ['name' => 'Mohammad Rizwan', 'country' => 'Pakistan', 'role' => 'Wicketkeeper', 'tier' => 'Star', 'base_value' => 6000000, 'age' => 32, 'batting_style' => 'Right-Hand Bat'],
-            ['name' => 'Shaheen Afridi', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Superstar', 'base_value' => 7500000, 'age' => 25, 'bowling_style' => 'Left-arm Fast'],
-            ['name' => 'Shadab Khan', 'country' => 'Pakistan', 'role' => 'All-rounder', 'tier' => 'Star', 'base_value' => 5000000, 'age' => 27, 'batting_style' => 'Right-Hand Bat', 'bowling_style' => 'Right-arm Leg Spin'],
-            ['name' => 'Fakhar Zaman', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Star', 'base_value' => 4500000, 'age' => 34, 'batting_style' => 'Left-Hand Bat'],
-            ['name' => 'Haris Rauf', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Star', 'base_value' => 4000000, 'age' => 31, 'bowling_style' => 'Right-arm Fast'],
-            ['name' => 'Imad Wasim', 'country' => 'Pakistan', 'role' => 'All-rounder', 'tier' => 'Normal', 'base_value' => 2500000, 'age' => 36, 'batting_style' => 'Left-Hand Bat', 'bowling_style' => 'Left-arm Orthodox'],
-            ['name' => 'Naseem Shah', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Star', 'base_value' => 4200000, 'age' => 22, 'bowling_style' => 'Right-arm Fast'],
-            ['name' => 'Agha Salman', 'country' => 'Pakistan', 'role' => 'All-rounder', 'tier' => 'Normal', 'base_value' => 2000000, 'age' => 31, 'batting_style' => 'Right-Hand Bat', 'bowling_style' => 'Right-arm Off Spin'],
-            ['name' => 'Abrar Ahmed', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Normal', 'base_value' => 1800000, 'age' => 30, 'bowling_style' => 'Right-arm Leg Spin'],
-            ['name' => 'Saim Ayub', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Star', 'base_value' => 3500000, 'age' => 23, 'batting_style' => 'Left-Hand Bat'],
-            ['name' => 'Azam Khan', 'country' => 'Pakistan', 'role' => 'Wicketkeeper', 'tier' => 'Normal', 'base_value' => 1500000, 'age' => 27, 'batting_style' => 'Right-Hand Bat'],
-            ['name' => 'Mohammad Wasim Jr', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Low-value', 'base_value' => 900000, 'age' => 24, 'bowling_style' => 'Right-arm Fast-Medium'],
-            ['name' => 'Usman Khan', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Normal', 'base_value' => 1600000, 'age' => 30, 'batting_style' => 'Right-Hand Bat'],
-            ['name' => 'Kamran Ghulam', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Low-value', 'base_value' => 800000, 'age' => 30, 'batting_style' => 'Right-Hand Bat'],
+            ['name' => 'Babar Azam', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Platinum', 'base_value' => 8000000, 'age' => 30, 'batting_style' => 'Right-Hand Bat'],
+            ['name' => 'Mohammad Rizwan', 'country' => 'Pakistan', 'role' => 'Wicketkeeper', 'tier' => 'Diamond', 'base_value' => 6000000, 'age' => 32, 'batting_style' => 'Right-Hand Bat'],
+            ['name' => 'Shaheen Afridi', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Platinum', 'base_value' => 7500000, 'age' => 25, 'bowling_style' => 'Left-arm Fast'],
+            ['name' => 'Shadab Khan', 'country' => 'Pakistan', 'role' => 'All-rounder', 'tier' => 'Diamond', 'base_value' => 5000000, 'age' => 27, 'batting_style' => 'Right-Hand Bat', 'bowling_style' => 'Right-arm Leg Spin'],
+            ['name' => 'Fakhar Zaman', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Diamond', 'base_value' => 4500000, 'age' => 34, 'batting_style' => 'Left-Hand Bat'],
+            ['name' => 'Haris Rauf', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Diamond', 'base_value' => 4000000, 'age' => 31, 'bowling_style' => 'Right-arm Fast'],
+            ['name' => 'Imad Wasim', 'country' => 'Pakistan', 'role' => 'All-rounder', 'tier' => 'Gold', 'base_value' => 2500000, 'age' => 36, 'batting_style' => 'Left-Hand Bat', 'bowling_style' => 'Left-arm Orthodox'],
+            ['name' => 'Naseem Shah', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Diamond', 'base_value' => 4200000, 'age' => 22, 'bowling_style' => 'Right-arm Fast'],
+            ['name' => 'Agha Salman', 'country' => 'Pakistan', 'role' => 'All-rounder', 'tier' => 'Gold', 'base_value' => 2000000, 'age' => 31, 'batting_style' => 'Right-Hand Bat', 'bowling_style' => 'Right-arm Off Spin'],
+            ['name' => 'Abrar Ahmed', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Gold', 'base_value' => 1800000, 'age' => 30, 'bowling_style' => 'Right-arm Leg Spin'],
+            ['name' => 'Saim Ayub', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Diamond', 'base_value' => 3500000, 'age' => 23, 'batting_style' => 'Left-Hand Bat'],
+            ['name' => 'Azam Khan', 'country' => 'Pakistan', 'role' => 'Wicketkeeper', 'tier' => 'Gold', 'base_value' => 1500000, 'age' => 27, 'batting_style' => 'Right-Hand Bat'],
+            ['name' => 'Mohammad Wasim Jr', 'country' => 'Pakistan', 'role' => 'Bowler', 'tier' => 'Silver', 'base_value' => 900000, 'age' => 24, 'bowling_style' => 'Right-arm Fast-Medium'],
+            ['name' => 'Usman Khan', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Gold', 'base_value' => 1600000, 'age' => 30, 'batting_style' => 'Right-Hand Bat'],
+            ['name' => 'Kamran Ghulam', 'country' => 'Pakistan', 'role' => 'Batsman', 'tier' => 'Silver', 'base_value' => 800000, 'age' => 30, 'batting_style' => 'Right-Hand Bat'],
         ];
 
         $players = collect($playersData)->map(function (array $data) {

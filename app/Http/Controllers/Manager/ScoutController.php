@@ -66,7 +66,7 @@ class ScoutController extends Controller
             'name_asc' => fn ($q) => $q->orderBy('name'),
             'name_desc' => fn ($q) => $q->orderByDesc('name'),
             'role' => fn ($q) => $q->orderBy('role')->orderByDesc('current_value'),
-            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Superstar', 'Star', 'Normal', 'Low-value')"),
+            'tier' => fn ($q) => $q->orderByRaw("FIELD(tier, 'Platinum', 'Diamond', 'Gold', 'Silver')"),
             'age_asc' => fn ($q) => $q->orderBy('age'),
             'age_desc' => fn ($q) => $q->orderByDesc('age'),
             'country_asc' => fn ($q) => $q->orderBy('country'),
@@ -79,7 +79,7 @@ class ScoutController extends Controller
             ->pluck('id', 'player_id');
 
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
-        $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
+        $tiers = ['Platinum', 'Diamond', 'Gold', 'Silver'];
 
         return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen', 'sort', 'shortlistedIds', 'activeAuctions'));
     }

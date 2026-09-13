@@ -46,10 +46,10 @@
                         <td class="px-6 py-4 text-slate-400 text-sm">{{ $player->role }}</td>
                         <td class="px-6 py-4">
                             <span class="px-3 py-1 rounded-full text-xs font-bold {{ match($player->tier) {
-                                'Superstar' => 'bg-purple-500/20 text-purple-300',
-                                'Star' => 'bg-amber-500/20 text-amber-300',
-                                'Normal' => 'bg-blue-500/20 text-blue-300',
-                                'Low-value' => 'bg-slate-500/20 text-slate-300',
+                                'Platinum' => 'bg-purple-500/20 text-purple-300',
+                                'Diamond' => 'bg-cyan-500/20 text-cyan-300',
+                                'Gold' => 'bg-amber-500/20 text-amber-300',
+                                'Silver' => 'bg-slate-500/20 text-slate-300',
                             } }}">
                                 {{ $player->tier }}
                             </span>

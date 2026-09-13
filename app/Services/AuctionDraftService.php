@@ -131,6 +131,10 @@ class AuctionDraftService
                 return ['error' => "It's not your turn to pick."];
             }
 
+            if (AuctionSession::where('auction_draft_id', $locked->id)->whereIn('status', ['live', 'paused'])->exists()) {
+                return ['error' => 'A player from this country is already up for bidding.'];
+            }
+
             $player = Player::whereKey($playerId)->lockForUpdate()->first();
 
             if (! $player || $player->is_manager_player || $player->team_id !== null || ! $player->is_active) {
@@ -142,6 +146,17 @@ class AuctionDraftService
             }
 
             $baseValue = (float) $player->base_value;
+
+            $team = Team::whereKey($teamId)->lockForUpdate()->first();
+
+            if (! $team || ! $team->hasSquadSpace()) {
+                return ['error' => 'Your squad is full — you cannot nominate another player.'];
+            }
+
+            if ($team->remainingBudget() < $baseValue) {
+                return ['error' => 'You do not have enough budget to open the bidding at this player\'s base value.'];
+            }
+
             $increment = $baseValue < 1_000_000 ? 50_000 : 100_000;
 
             $session = AuctionSession::create([

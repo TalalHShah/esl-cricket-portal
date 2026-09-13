@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\AuctionSession;
+use App\Models\Player;
+use App\Models\Team;
 use App\Models\Transfer;
 use Illuminate\Support\Facades\DB;
 
@@ -30,12 +32,15 @@ class AuctionCompletionService
 
     /**
      * Conclude an auction: if there's a highest bidder with room left in
-     * their squad, transfer the player, deduct the buyer's budget, and
-     * log the sale as an approved auction Transfer. If nobody bid, or the
-     * winning team's squad filled up before the sale could be finalized,
-     * the player simply stays a free agent and the session closes as
-     * unsold. Shared by the admin's manual "Complete" action and the
-     * manager room's auto-complete-once-everyone-else-passes flow.
+     * their squad and budget to cover the fee, transfer the player,
+     * deduct the buyer's budget, and log the sale as an approved auction
+     * Transfer. If nobody bid, or the winning team can no longer afford
+     * or fit the player, it simply stays a free agent and the session
+     * closes as unsold. Shared by the admin's manual "Complete" action,
+     * the manager room's auto-complete-once-everyone-passes flow, and
+     * the timer-expiry auto-complete polled from multiple browsers —
+     * so this locks and rechecks the session's own status first to stay
+     * safe against being called more than once for the same lot.
      *
      * @return array{sold: bool, squad_full: bool, auction: AuctionSession}
      */
@@ -43,26 +48,38 @@ class AuctionCompletionService
     {
         $sold = false;
         $squadFull = false;
+        $alreadyDone = false;
 
-        DB::transaction(function () use ($auction, $completedByUserId, &$sold, &$squadFull) {
-            if ($auction->highest_bidder_team_id && $auction->current_bid > 0) {
-                $player = $auction->player;
-                $team = $auction->highestBidder;
+        DB::transaction(function () use ($auction, $completedByUserId, &$sold, &$squadFull, &$alreadyDone) {
+            $locked = AuctionSession::whereKey($auction->id)->lockForUpdate()->first();
 
-                if ($team->hasSquadSpace()) {
+            if (! in_array($locked->status, ['live', 'paused'], true)) {
+                // Already finalized by a concurrent request (e.g. two
+                // browsers polling completeIfExpired() at the same
+                // deadline, or a double-click on Complete).
+                $alreadyDone = true;
+
+                return;
+            }
+
+            if ($locked->highest_bidder_team_id && $locked->current_bid > 0) {
+                $player = Player::whereKey($locked->player_id)->lockForUpdate()->first();
+                $team = Team::whereKey($locked->highest_bidder_team_id)->lockForUpdate()->first();
+
+                if ($team && $team->hasSquadSpace() && $team->remainingBudget() >= (float) $locked->current_bid) {
                     $player->update([
                         'team_id' => $team->id,
-                        'sold_price' => $auction->current_bid,
+                        'sold_price' => $locked->current_bid,
                         'is_auctioned' => true,
                     ]);
 
-                    $team->increment('spent', $auction->current_bid);
+                    $team->increment('spent', $locked->current_bid);
 
                     Transfer::create([
                         'player_id' => $player->id,
                         'from_team_id' => null,
                         'to_team_id' => $team->id,
-                        'fee' => $auction->current_bid,
+                        'fee' => $locked->current_bid,
                         'type' => 'auction',
                         'status' => 'approved',
                         'requested_by_user_id' => $completedByUserId,
@@ -77,7 +94,7 @@ class AuctionCompletionService
                 }
             }
 
-            $auction->update([
+            $locked->update([
                 'status' => 'completed',
                 'ended_at' => now(),
                 'bid_deadline_at' => null,
@@ -86,7 +103,7 @@ class AuctionCompletionService
 
         $auction = $auction->fresh();
 
-        if ($auction->auction_draft_id) {
+        if (! $alreadyDone && $auction->auction_draft_id) {
             $this->draftService->advanceAfterSale($auction);
         }
 

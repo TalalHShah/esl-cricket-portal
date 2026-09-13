@@ -208,14 +208,11 @@ class AuctionController extends Controller
             return $fail('Join the auction room before placing a bid.');
         }
 
-        if (! $team->hasSquadSpace()) {
-            return $fail('Your squad is full (' . Team::SQUAD_LIMIT . ' players max) — you cannot bid on another player.');
-        }
-
         $requestedAmount = $request->filled('amount') ? (float) $request->input('amount') : null;
 
         $result = DB::transaction(function () use ($auctionSession, $team, $requestedAmount) {
             $locked = AuctionSession::whereKey($auctionSession->id)->lockForUpdate()->first();
+            $lockedTeam = Team::whereKey($team->id)->lockForUpdate()->first();
 
             if ($locked->status !== 'live') {
                 return ['error' => 'This auction is not currently live.'];
@@ -225,7 +222,11 @@ class AuctionController extends Controller
                 return ['error' => "Time's up on this lot — waiting for the auctioneer to call it."];
             }
 
-            if ($locked->highest_bidder_team_id === $team->id) {
+            if (! $lockedTeam->hasSquadSpace()) {
+                return ['error' => 'Your squad is full (' . Team::SQUAD_LIMIT . ' players max) — you cannot bid on another player.'];
+            }
+
+            if ($locked->highest_bidder_team_id === $lockedTeam->id) {
                 return ['error' => 'You are already the highest bidder.'];
             }
 
@@ -235,9 +236,11 @@ class AuctionController extends Controller
 
             $bidAmount = $requestedAmount && $requestedAmount > $minimumBid ? $requestedAmount : $minimumBid;
 
-            if ($team->remainingBudget() < $bidAmount) {
+            if ($lockedTeam->remainingBudget() < $bidAmount) {
                 return ['error' => 'Insufficient budget to place this bid.'];
             }
+
+            $team = $lockedTeam;
 
             $isFirstBid = (float) $locked->current_bid <= 0;
             $newDeadline = $isFirstBid

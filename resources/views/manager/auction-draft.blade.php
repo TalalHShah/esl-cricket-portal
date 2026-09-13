@@ -61,7 +61,15 @@
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams(Object.assign({ _token: csrf }, body || {})).toString(),
-                }).then(async r => ({ ok: r.ok, data: await r.json() }));
+                }).then(async r => {
+                    let data;
+                    try {
+                        data = await r.json();
+                    } catch (e) {
+                        data = { error: 'Something went wrong — please refresh and try again.' };
+                    }
+                    return { ok: r.ok, data };
+                }).catch(() => ({ ok: false, data: { error: 'Network error — please refresh and try again.' } }));
             }
 
             function fmtMoney(n) {

@@ -147,18 +147,26 @@ class AdminMatchController extends Controller
             return back()->withErrors(['match' => 'Set a winning team before confirming the result.']);
         }
 
-        if ($match->status === 'confirmed') {
-            return back()->withErrors(['match' => 'This match is already confirmed.']);
-        }
+        $alreadyConfirmed = DB::transaction(function () use ($match) {
+            $locked = CricketMatch::whereKey($match->id)->lockForUpdate()->first();
 
-        DB::transaction(function () use ($match) {
-            $match->update([
+            if ($locked->status === 'confirmed') {
+                return true;
+            }
+
+            $locked->update([
                 'status' => 'confirmed',
                 'confirmed_by_user_id' => Auth::id(),
             ]);
 
-            app(PlayerValuationService::class)->updateValuationsForMatch($match->fresh());
+            app(PlayerValuationService::class)->updateValuationsForMatch($locked->fresh());
+
+            return false;
         });
+
+        if ($alreadyConfirmed) {
+            return back()->withErrors(['match' => 'This match is already confirmed.']);
+        }
 
         return redirect()->route('admin.matches.index')->with('status', 'Match confirmed — player valuations have been updated.');
     }

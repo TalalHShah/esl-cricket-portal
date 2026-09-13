@@ -140,7 +140,7 @@ class AuctionSessionController extends Controller
         $auction = $result['auction'];
 
         if ($result['squad_full']) {
-            $message = "{$auction->player?->name} went unsold — {$auction->highestBidder?->name}'s squad was full (" . \App\Models\Team::SQUAD_LIMIT . ' players max) by the time the auction was completed.';
+            $message = "{$auction->player?->name} went unsold — {$auction->highestBidder?->name} no longer had the squad space (" . \App\Models\Team::SQUAD_LIMIT . ' max) or budget to cover this bid by the time the auction was completed.';
         } elseif ($result['sold']) {
             $message = "{$auction->player?->name} sold to {$auction->highestBidder?->name} for PKR " . number_format((float) $auction->current_bid, 0) . '.';
         } else {

@@ -106,6 +106,8 @@ class AuctionDraftController extends Controller
             session(['auction_room_joined_' . $activeSession->id => true]);
         }
 
+        $shortlistedIds = $team ? $team->shortlistedPlayers()->pluck('players.id')->all() : [];
+
         $availablePlayers = [];
         if ($draft->current_country && ! $activeSession) {
             $availablePlayers = Player::query()
@@ -122,10 +124,29 @@ class AuctionDraftController extends Controller
                     'tier' => $p->tier,
                     'base_value' => (float) $p->base_value,
                     'image' => $p->image ? asset('storage/' . $p->image) : null,
+                    'is_shortlisted' => in_array($p->id, $shortlistedIds, true),
                 ]);
         }
 
+        $shortlist = $team
+            ? $team->shortlistedPlayers()
+                ->whereNull('players.team_id')
+                ->where('players.is_active', true)
+                ->orderBy('players.name')
+                ->get(['players.id', 'players.name', 'players.country', 'players.role', 'players.tier', 'players.base_value'])
+                ->map(fn (Player $p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'country' => $p->country,
+                    'role' => $p->role,
+                    'tier' => $p->tier,
+                    'base_value' => (float) $p->base_value,
+                    'is_current_country' => $p->country === $draft->current_country,
+                ])
+            : [];
+
         return response()->json([
+            'shortlist' => $shortlist,
             'status' => $draft->status,
             'current_country' => $draft->current_country,
             'burned_countries' => $draft->burned_countries ?? [],

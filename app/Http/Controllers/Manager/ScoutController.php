@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Manager;
 use App\Concerns\Sortable;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Models\PlayerShortlist;
 use App\Models\Setting;
 use App\Models\Team;
 use App\Models\Transfer;
@@ -53,6 +54,12 @@ class ScoutController extends Controller
             $query->whereNotNull('team_id');
         }
 
+        $shortlistedIds = $ownTeam ? $ownTeam->shortlistedPlayers()->pluck('players.id')->all() : [];
+
+        if ($request->boolean('shortlisted')) {
+            $query->whereIn('players.id', $shortlistedIds ?: [0]);
+        }
+
         $sort = $this->applySort($query, $request, [
             'default' => fn ($q) => $q->orderByRaw('team_id IS NULL DESC')->orderByDesc('current_value'),
             'value_desc' => fn ($q) => $q->orderByDesc('current_value'),
@@ -71,7 +78,28 @@ class ScoutController extends Controller
         $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
         $tiers = ['Superstar', 'Star', 'Normal', 'Low-value'];
 
-        return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen', 'sort'));
+        return view('manager.scouts', compact('players', 'roles', 'tiers', 'windowOpen', 'sort', 'shortlistedIds'));
+    }
+
+    public function toggleShortlist(Player $player): RedirectResponse
+    {
+        $team = Auth::user()->managedTeam;
+
+        if (! $team) {
+            return back()->withErrors(['shortlist' => 'You are not assigned to manage a team.']);
+        }
+
+        $existing = PlayerShortlist::where('team_id', $team->id)->where('player_id', $player->id)->first();
+
+        if ($existing) {
+            $existing->delete();
+
+            return back()->with('status', "{$player->name} removed from your shortlist.");
+        }
+
+        PlayerShortlist::create(['team_id' => $team->id, 'player_id' => $player->id]);
+
+        return back()->with('status', "{$player->name} added to your shortlist.");
     }
 
     public function sign(Player $player): RedirectResponse

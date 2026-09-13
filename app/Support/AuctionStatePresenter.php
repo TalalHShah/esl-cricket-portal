@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\AuctionParticipant;
 use App\Models\AuctionSession;
+use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,11 +66,35 @@ class AuctionStatePresenter
             ? AuctionParticipant::where('auction_session_id', $auctionSession->id)->where('team_id', $team->id)->first()
             : null;
 
+        $shortlist = [];
+        $isPlayerShortlisted = false;
+        if ($team) {
+            $shortlisted = $team->shortlistedPlayers()
+                ->whereNull('players.team_id')
+                ->where('players.is_active', true)
+                ->orderBy('players.name')
+                ->get(['players.id', 'players.name', 'players.country', 'players.role', 'players.tier', 'players.base_value']);
+
+            $isPlayerShortlisted = $shortlisted->contains('id', $auctionSession->player_id);
+
+            $shortlist = $shortlisted->map(fn (Player $p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'country' => $p->country,
+                'role' => $p->role,
+                'tier' => $p->tier,
+                'base_value' => (float) $p->base_value,
+                'is_current_lot' => $p->id === $auctionSession->player_id,
+            ])->values();
+        }
+
         return [
             'session_id' => $auctionSession->id,
             'status' => $auctionSession->status,
             'sale_result' => $saleResult,
             'player_name' => $auctionSession->player?->name,
+            'is_shortlisted' => $isPlayerShortlisted,
+            'shortlist' => $shortlist,
             'current_bid' => (float) $auctionSession->current_bid,
             'starting_bid' => (float) $auctionSession->starting_bid,
             'bid_increment' => (float) $auctionSession->bid_increment,

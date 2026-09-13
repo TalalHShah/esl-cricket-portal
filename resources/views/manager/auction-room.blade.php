@@ -98,7 +98,7 @@
             <p class="eyebrow {{ $isLive ? 'live' : 'gold' }} mb-2" id="statusLabel">
                 {{ $isLive ? 'Live Now' : ($isScheduled ? 'Scheduled' : ($isPaused ? 'Paused' : 'Concluded')) }}
             </p>
-            <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: var(--paper);">{{ $player?->name ?? $auctionSession->name }}</h1>
+            <h1 class="font-display text-4xl md:text-5xl font-semibold mb-2" style="color: var(--paper);">{{ $player?->name ?? $auctionSession->name }} <span id="shortlistBadge"></span></h1>
             @if($player)
                 <p class="text-base" style="color: var(--paper-dim);">{{ $player->typeLabel() }} &nbsp;—&nbsp; {{ $player->country }} &nbsp;—&nbsp; {{ $player->tier }}</p>
                 <p class="text-sm mt-1" style="color: var(--paper-faint);">Base value <x-money :amount="$player->base_value" /></p>
@@ -159,12 +159,19 @@
             <aside class="draft-sidebar">
                 <div class="sidebar-tabs">
                     <button type="button" class="sidebar-tab is-active" data-sidebar-tab="seats">Seated Managers</button>
+                    <button type="button" class="sidebar-tab" data-sidebar-tab="shortlist">Shortlist</button>
                     <button type="button" class="sidebar-tab" data-sidebar-tab="call">Live Call</button>
                 </div>
 
                 <div class="sidebar-panel" id="sidebarSeats">
                     <p class="eyebrow mb-2" style="color: var(--paper-faint);">At The Table</p>
                     <div class="flex flex-col gap-3" id="seatsList"></div>
+                </div>
+
+                <div class="sidebar-panel hidden" id="sidebarShortlist">
+                    <p class="eyebrow mb-2" style="color: var(--paper-faint);">Your Shortlist</p>
+                    <p class="text-xs mb-3" style="color: var(--paper-faint);">Players you've starred from <a href="{{ route('manager.scouts') }}" class="underline">Scouts</a> — today's lot is highlighted if it's one of them.</p>
+                    <div id="shortlistList" class="flex flex-col gap-2"></div>
                 </div>
 
                 <div class="sidebar-panel hidden" id="sidebarCall">
@@ -179,6 +186,14 @@
     @endif
 
     <div id="soldOverlay" class="hidden"></div>
+
+    @if($isOver || $isScheduled)
+        <script>
+            if (window.setLiveStatus) {
+                window.setLiveStatus(@json($isOver ? 'This lot has concluded.' : ($joined ? "You're seated — waiting for the auctioneer to start." : 'Join now to be seated before bidding opens.')), false);
+            }
+        </script>
+    @endif
 
     {{-- Non-floor states --}}
     @if($isOver)
@@ -242,15 +257,35 @@
                 return `<span class="inline-flex items-center gap-1.5">${coinSvg(size)}<span>${Math.round(n).toLocaleString('en-US')}</span></span>`;
             }
 
-            // ---------- Sidebar tabs (Seated Managers / Live Call) ----------
+            // ---------- Sidebar tabs (Seated Managers / Shortlist / Live Call) ----------
             document.querySelectorAll('.sidebar-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
                     tab.classList.add('is-active');
                     document.getElementById('sidebarSeats').classList.toggle('hidden', tab.dataset.sidebarTab !== 'seats');
+                    document.getElementById('sidebarShortlist').classList.toggle('hidden', tab.dataset.sidebarTab !== 'shortlist');
                     document.getElementById('sidebarCall').classList.toggle('hidden', tab.dataset.sidebarTab !== 'call');
                 });
             });
+
+            function renderShortlist(shortlist) {
+                const el = document.getElementById('shortlistList');
+                if (!el) return;
+                if (!shortlist || !shortlist.length) {
+                    el.innerHTML = '<p class="text-xs" style="color: var(--paper-faint);">No shortlisted players yet — star players on the Scouts page.</p>';
+                    return;
+                }
+                el.innerHTML = shortlist.map(p => `
+                    <div class="card-section p-3" style="${p.is_current_lot ? 'border-left: 3px solid var(--gold);' : ''}">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold" style="color: var(--paper);">${p.name}</p>
+                            ${p.is_current_lot ? '<span class="tag gold" style="font-size:0.55rem;">Now Bidding</span>' : ''}
+                        </div>
+                        <p class="text-xs" style="color: var(--paper-faint);">${p.role} — ${p.country}</p>
+                        <p class="text-xs font-semibold mt-1" style="color: var(--gold);">${fmtMoney(p.base_value, 13)}</p>
+                    </div>
+                `).join('');
+            }
 
             function renderSeats(participants) {
                 const list = document.getElementById('seatsList');
@@ -311,9 +346,36 @@
             setInterval(tickCountdown, 1000);
             tickCountdown();
 
+            function updateLiveStatus(data) {
+                if (!window.setLiveStatus) return;
+                if (data.status === 'paused') {
+                    window.setLiveStatus('Bidding is paused by the auctioneer — stay seated, it will resume shortly.', false);
+                    return;
+                }
+                if (!data.you) {
+                    window.setLiveStatus(`Bidding is live on <strong>${data.player_name || 'this lot'}</strong>.`, false);
+                    return;
+                }
+                if (data.time_expired) {
+                    window.setLiveStatus("Time's up — waiting for the sale to be called.", true);
+                } else if (data.you.is_leading) {
+                    window.setLiveStatus("You're leading this bid — sit tight to see if anyone tops it.", false);
+                } else if (data.you.has_passed) {
+                    window.setLiveStatus("You've passed — you'll get another chance if someone bids higher.", false);
+                } else if (!data.you.has_squad_space) {
+                    window.setLiveStatus("Your squad is full — you can watch, but can't bid on this lot.", false);
+                } else {
+                    window.setLiveStatus('Your turn to act — outbid the leader or pass.', true);
+                }
+            }
+
             function applyState(data) {
                 document.getElementById('statusLabel').textContent =
                     data.status === 'live' ? 'Live Now' : (data.status === 'paused' ? 'Paused' : data.status);
+                updateLiveStatus(data);
+                renderShortlist(data.shortlist || []);
+                const badge = document.getElementById('shortlistBadge');
+                if (badge) badge.innerHTML = data.is_shortlisted ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.5" style="display:inline-block; vertical-align:-3px;" title="On your shortlist"><polygon points="12 2 15.09 8.63 22 9.24 16.5 14.14 18.18 21 12 17.27 5.82 21 7.5 14.14 2 9.24 8.91 8.63 12 2"/></svg>' : '';
 
                 if (data.current_bid !== lastBid) {
                     const fig = document.getElementById('currentBidFigure');

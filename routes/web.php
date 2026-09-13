@@ -96,6 +96,7 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 
     Route::get('/scouts', [ScoutController::class, 'index'])->name('scouts');
     Route::post('/scouts/{player}/sign', [ScoutController::class, 'sign'])->name('scouts.sign');
+    Route::post('/scouts/{player}/shortlist', [ScoutController::class, 'toggleShortlist'])->name('scouts.shortlist');
 
     Route::get('/fixtures', [ManagerFixtureController::class, 'index'])->name('fixtures');
 

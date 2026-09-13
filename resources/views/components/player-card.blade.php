@@ -1,4 +1,4 @@
-@props(['player', 'href' => null])
+@props(['player', 'href' => null, 'shortlistUrl' => null, 'shortlisted' => false])
 
 @php
     $team = $player->team;
@@ -8,8 +8,20 @@
     $infoTag = $href ? 'a' : 'div';
 @endphp
 
+
 @if($isFree)
-    <div {{ $attributes->merge(['class' => 'card-section lift-on-hover p-4']) }} style="border-color: var(--gold);">
+    <div {{ $attributes->merge(['class' => 'card-section lift-on-hover p-4 relative']) }} style="border-color: var(--gold);">
+        @if($shortlistUrl)
+            <form method="POST" action="{{ $shortlistUrl }}" style="position:absolute; top:0.6rem; left:0.6rem; z-index:2;">
+                @csrf
+                <button type="submit" title="{{ $shortlisted ? 'Remove from shortlist' : 'Add to shortlist' }}"
+                        style="width:28px; height:28px; border-radius:9999px; display:flex; align-items:center; justify-content:center; border:1px solid var(--line-strong); background: var(--surface-raised); cursor:pointer;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="{{ $shortlisted ? 'var(--gold)' : 'none' }}" stroke="{{ $shortlisted ? 'var(--gold)' : 'var(--paper-faint)' }}" stroke-width="1.75">
+                        <polygon points="12 2 15.09 8.63 22 9.24 16.5 14.14 18.18 21 12 17.27 5.82 21 7.5 14.14 2 9.24 8.91 8.63 12 2"/>
+                    </svg>
+                </button>
+            </form>
+        @endif
         <div class="flex items-center justify-between mb-3">
             <span class="tag gold">Free Agent</span>
             <span class="tag">{{ $player->tier }}</span>
@@ -40,6 +52,18 @@
         @if($team->logo)
             <img src="{{ asset('storage/' . $team->logo) }}" alt=""
                  style="position:absolute; top:-10%; right:-15%; width:75%; height:auto; opacity:0.22; pointer-events:none; filter: grayscale(20%);">
+        @endif
+
+        @if($shortlistUrl)
+            <form method="POST" action="{{ $shortlistUrl }}" style="position:absolute; top:0.6rem; left:0.6rem; z-index:2;">
+                @csrf
+                <button type="submit" title="{{ $shortlisted ? 'Remove from shortlist' : 'Add to shortlist' }}"
+                        style="width:28px; height:28px; border-radius:9999px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.45); cursor:pointer;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="{{ $shortlisted ? 'var(--gold)' : 'none' }}" stroke="{{ $shortlisted ? 'var(--gold)' : '#fff' }}" stroke-width="1.75">
+                        <polygon points="12 2 15.09 8.63 22 9.24 16.5 14.14 18.18 21 12 17.27 5.82 21 7.5 14.14 2 9.24 8.91 8.63 12 2"/>
+                    </svg>
+                </button>
+            </form>
         @endif
 
         <div class="relative">

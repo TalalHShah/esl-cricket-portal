@@ -110,6 +110,7 @@
             <aside class="draft-sidebar">
                 <div class="sidebar-tabs">
                     <button type="button" class="sidebar-tab is-active" data-sidebar-tab="order">Turn Order</button>
+                    <button type="button" class="sidebar-tab" data-sidebar-tab="shortlist">Shortlist</button>
                     <button type="button" class="sidebar-tab" data-sidebar-tab="call">Live Call</button>
                 </div>
 
@@ -117,6 +118,12 @@
                     <p class="eyebrow mb-2" style="color: var(--paper-faint);">Draft Order</p>
                     <div id="turnStrip" class="flex flex-col gap-2"></div>
                     <div id="burnedRow" class="mt-4"></div>
+                </div>
+
+                <div class="sidebar-panel hidden" id="sidebarShortlist">
+                    <p class="eyebrow mb-2" style="color: var(--paper-faint);">Your Shortlist</p>
+                    <p class="text-xs mb-3" style="color: var(--paper-faint);">Players you've starred from <a href="{{ route('manager.scouts') }}" class="underline">Scouts</a> — the ones from the country currently in play are highlighted.</p>
+                    <div id="shortlistList" class="flex flex-col gap-2"></div>
                 </div>
 
                 <div class="sidebar-panel hidden" id="sidebarCall">
@@ -186,15 +193,35 @@
                 });
             }
 
-            // ---------- Sidebar tabs (Turn Order / Live Call) ----------
+            // ---------- Sidebar tabs (Turn Order / Shortlist / Live Call) ----------
             document.querySelectorAll('.sidebar-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
                     tab.classList.add('is-active');
                     document.getElementById('sidebarOrder').classList.toggle('hidden', tab.dataset.sidebarTab !== 'order');
+                    document.getElementById('sidebarShortlist').classList.toggle('hidden', tab.dataset.sidebarTab !== 'shortlist');
                     document.getElementById('sidebarCall').classList.toggle('hidden', tab.dataset.sidebarTab !== 'call');
                 });
             });
+
+            function renderShortlist(shortlist) {
+                const el = document.getElementById('shortlistList');
+                if (!el) return;
+                if (!shortlist || !shortlist.length) {
+                    el.innerHTML = '<p class="text-xs" style="color: var(--paper-faint);">No shortlisted players yet — star players on the Scouts page.</p>';
+                    return;
+                }
+                el.innerHTML = shortlist.map(p => `
+                    <div class="card-section p-3" style="${p.is_current_country ? 'border-left: 3px solid var(--gold);' : ''}">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold" style="color: var(--paper);">${p.name}</p>
+                            ${p.is_current_country ? '<span class="tag gold" style="font-size:0.55rem;">In Play</span>' : ''}
+                        </div>
+                        <p class="text-xs" style="color: var(--paper-faint);">${p.role} — ${p.country}</p>
+                        <p class="text-xs font-semibold mt-1" style="color: var(--gold);">${fmtMoney(p.base_value, 13)}</p>
+                    </div>
+                `).join('');
+            }
 
             // ---------- Turn strip ----------
             function renderTeamCard(team, roleLabel, isActive, bidInfo) {
@@ -252,9 +279,10 @@
                     return '<p class="text-sm" style="color: var(--paper-faint);">No available players left from this country.</p>';
                 }
                 return `<div class="player-grid">` + players.map(p => `
-                    <div class="player-card is-tiltable">
-                        <div class="player-card-portrait">
+                    <div class="player-card is-tiltable" style="${p.is_shortlisted ? 'border-color: var(--gold-dim);' : ''}">
+                        <div class="player-card-portrait" style="position:relative;">
                             ${p.image ? `<img src="${p.image}" alt="">` : `<div class="initials">${(p.name || '?').substring(0,2).toUpperCase()}</div>`}
+                            ${p.is_shortlisted ? `<span style="position:absolute; top:6px; right:6px;" title="On your shortlist"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.5"><polygon points="12 2 15.09 8.63 22 9.24 16.5 14.14 18.18 21 12 17.27 5.82 21 7.5 14.14 2 9.24 8.91 8.63 12 2"/></svg></span>` : ''}
                         </div>
                         <p class="player-card-name">${p.name}</p>
                         <p class="player-card-meta">${p.role} — ${p.tier}</p>
@@ -280,9 +308,10 @@
                 });
             }
 
-            function setStatusLine(html) {
+            function setStatusLine(html, urgent) {
                 const el = document.getElementById('statusLine');
                 if (el) el.innerHTML = html;
+                if (window.setLiveStatus) window.setLiveStatus(html, !!urgent || /your turn/i.test(html));
             }
 
             function renderNominatePanel(data) {
@@ -374,7 +403,7 @@
                         </div>
                         <div>
                             <p class="eyebrow live mb-1">Now Bidding</p>
-                            <h2 class="font-display text-2xl font-semibold" style="color: var(--paper);">${auction.player_name || ''}</h2>
+                            <h2 class="font-display text-2xl font-semibold" style="color: var(--paper);">${auction.player_name || ''} ${auction.is_shortlisted ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.5" style="display:inline-block; vertical-align:-2px;" title="On your shortlist"><polygon points="12 2 15.09 8.63 22 9.24 16.5 14.14 18.18 21 12 17.27 5.82 21 7.5 14.14 2 9.24 8.91 8.63 12 2"/></svg>' : ''}</h2>
                         </div>
                     </div>
                     <div class="masthead text-center">
@@ -533,6 +562,7 @@
             function applyState(data) {
                 renderTurnStrip(data);
                 renderBurned(data.burned_countries || []);
+                renderShortlist(data.shortlist || []);
 
                 if (data.status === 'completed') {
                     renderCompletedPanel();

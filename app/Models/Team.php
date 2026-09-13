@@ -65,6 +65,15 @@ class Team extends Model
     }
 
     /**
+     * Players this team's manager has shortlisted for future signing —
+     * a personal watchlist, independent of squad membership.
+     */
+    public function shortlistedPlayers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Player::class, 'player_shortlists')->withTimestamps();
+    }
+
+    /**
      * Matches where this team is the home side.
      */
     public function homeMatches(): HasMany

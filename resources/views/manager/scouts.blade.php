@@ -63,6 +63,13 @@
                     <option value="country_asc" @selected($sort === 'country_asc')>Country</option>
                 </select>
             </div>
+            <div>
+                <label class="eyebrow block mb-2">&nbsp;</label>
+                <label class="inline-flex items-center gap-2 text-xs" style="color: var(--paper-dim);">
+                    <input type="checkbox" name="shortlisted" value="1" @checked(request()->boolean('shortlisted')) onchange="this.form.submit()">
+                    My Shortlist Only
+                </label>
+            </div>
             <button type="submit" class="btn-accent px-5 py-2.5">Search</button>
             <a href="{{ route('manager.scouts') }}" class="btn-ghost px-5 py-2.5">Reset</a>
         </form>
@@ -70,7 +77,9 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @forelse ($players as $player)
-            <x-player-card :player="$player" :href="route('manager.players.show', $player)">
+            <x-player-card :player="$player" :href="route('manager.players.show', $player)"
+                :shortlist-url="auth()->user()->managedTeam ? route('manager.scouts.shortlist', $player) : null"
+                :shortlisted="in_array($player->id, $shortlistedIds)">
                 @if(auth()->user()->managedTeam && $windowOpen)
                     @if($player->team)
                         <a href="{{ route('manager.transfers', ['search' => $player->name]) }}"

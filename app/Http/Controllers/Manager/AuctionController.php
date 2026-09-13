@@ -20,8 +20,23 @@ class AuctionController extends Controller
 {
     use Sortable;
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        // A manager clicking into "Auction Room" while a lot is actually
+        // live should land straight in that room — not a browsing list —
+        // so the experience matches the country draft's single-room feel.
+        // Skip this when explicitly asked to browse (e.g. via the lobby
+        // link with ?browse=1) so completed/upcoming history stays reachable.
+        if (! $request->boolean('browse')) {
+            $activeSession = AuctionSession::whereIn('status', ['live', 'paused'])
+                ->orderByDesc('started_at')
+                ->first();
+
+            if ($activeSession) {
+                return redirect()->route('manager.auction.room', $activeSession);
+            }
+        }
+
         $liveQuery = AuctionSession::with(['player', 'currentTeam', 'highestBidder'])
             ->whereIn('status', ['live', 'paused']);
 

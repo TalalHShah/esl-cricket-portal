@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('esl-logo.svg') }}">
 
     <title>@yield('title', 'ESL Cricket') &middot; E-Sports League - Cricket</title>
 
@@ -24,8 +25,8 @@
             <div class="flex h-20 items-center justify-between">
                 {{-- Logo --}}
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3 interactive">
-                    <div class="logo-badge w-10 h-10 flex items-center justify-center">
-                        <span class="font-display font-semibold text-lg" style="color: var(--paper);">EC</span>
+                    <div class="logo-badge w-10 h-10 flex items-center justify-center p-1.5">
+                        @include('partials.logo-icon')
                     </div>
                     <div class="hidden sm:block leading-none">
                         <h1 class="font-display text-xl font-semibold tracking-wide" style="color: var(--paper);">ESL CRICKET</h1>

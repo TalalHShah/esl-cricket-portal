@@ -28,6 +28,13 @@ class AuctionSession extends Model
     public const BID_EXTENSION_SECONDS = 30;
 
     /**
+     * How long a manager-initiated free-agent market auction runs from
+     * the moment it's opened — a full hour, per league rules, so anyone
+     * in the league has a real chance to see it and outbid.
+     */
+    public const MARKET_WINDOW_SECONDS = 3600;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -44,6 +51,7 @@ class AuctionSession extends Model
         'highest_bidder_team_id',
         'nominated_by_team_id',
         'auction_draft_id',
+        'source',
         'started_by_user_id',
         'started_at',
         'ended_at',

@@ -114,11 +114,29 @@ class Team extends Model
     }
 
     /**
-     * The remaining funds available to this team.
+     * Funds this team currently has tied up as the highest bidder on
+     * one or more live/paused auction lots — locked because a bidder
+     * can't retract a bid, so that money isn't free to spend elsewhere
+     * (on another lot, a direct offer, or a free-agent sign) until
+     * they're outbid or the lot resolves. Pass the session you're
+     * currently bidding on to exclude its own prior lock from the
+     * total (you're replacing that commitment, not adding to it).
      */
-    public function remainingBudget(): float
+    public function lockedFunds(?int $excludingSessionId = null): float
     {
-        return (float) $this->budget - (float) $this->spent;
+        return (float) AuctionSession::where('highest_bidder_team_id', $this->id)
+            ->whereIn('status', ['live', 'paused'])
+            ->when($excludingSessionId, fn ($q) => $q->where('id', '!=', $excludingSessionId))
+            ->sum('current_bid');
+    }
+
+    /**
+     * The remaining funds available to this team, after subtracting
+     * both money already spent and money currently locked in live bids.
+     */
+    public function remainingBudget(?int $excludingSessionId = null): float
+    {
+        return (float) $this->budget - (float) $this->spent - $this->lockedFunds($excludingSessionId);
     }
 
     /**

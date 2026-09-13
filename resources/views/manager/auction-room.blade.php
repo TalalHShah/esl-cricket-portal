@@ -160,6 +160,9 @@
                 <div class="sidebar-tabs">
                     <button type="button" class="sidebar-tab is-active" data-sidebar-tab="seats">Seated Managers</button>
                     <button type="button" class="sidebar-tab" data-sidebar-tab="shortlist">Shortlist</button>
+                    @if($auctionSession->source === 'market')
+                        <button type="button" class="sidebar-tab" data-sidebar-tab="share">Share</button>
+                    @endif
                     <button type="button" class="sidebar-tab" data-sidebar-tab="call">Live Call</button>
                 </div>
 
@@ -173,6 +176,24 @@
                     <p class="text-xs mb-3" style="color: var(--paper-faint);">Players you've starred from <a href="{{ route('manager.scouts') }}" class="underline">Scouts</a> — today's lot is highlighted if it's one of them.</p>
                     <div id="shortlistList" class="flex flex-col gap-2"></div>
                 </div>
+
+                @if($auctionSession->source === 'market')
+                    @php
+                        $shareMessage = "🏏 Free agent auction open: {$player?->name}\n"
+                            . "Starting bid: PKR " . number_format($auctionSession->starting_bid, 0) . "\n"
+                            . "Closes: " . $auctionSession->bid_deadline_at?->format('D, M j g:i A') . " (1 hour from opening)\n"
+                            . "Bid here: " . route('manager.auction.room', $auctionSession);
+                    @endphp
+                    <div class="sidebar-panel hidden" id="sidebarShare">
+                        <p class="eyebrow mb-2" style="color: var(--paper-faint);">Notify The League</p>
+                        <p class="text-xs mb-3" style="color: var(--paper-faint);">This auction won't send itself — let the WhatsApp group know it's live so everyone gets a fair chance to bid.</p>
+                        <textarea readonly id="shareMessageText" class="field px-3 py-2 text-xs w-full mb-3" rows="6" style="resize:none;">{{ $shareMessage }}</textarea>
+                        <div class="flex flex-col gap-2">
+                            <a href="https://wa.me/?text={{ rawurlencode($shareMessage) }}" target="_blank" rel="noopener" class="btn-accent w-full py-2.5 text-xs text-center">Open In WhatsApp</a>
+                            <button type="button" id="copyShareBtn" class="btn-ghost w-full py-2.5 text-xs">Copy Message</button>
+                        </div>
+                    </div>
+                @endif
 
                 <div class="sidebar-panel hidden" id="sidebarCall">
                     <div class="card-section p-4">
@@ -257,16 +278,33 @@
                 return `<span class="inline-flex items-center gap-1.5">${coinSvg(size)}<span>${Math.round(n).toLocaleString('en-US')}</span></span>`;
             }
 
-            // ---------- Sidebar tabs (Seated Managers / Shortlist / Live Call) ----------
+            // ---------- Sidebar tabs (Seated Managers / Shortlist / Share / Live Call) ----------
             document.querySelectorAll('.sidebar-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
                     tab.classList.add('is-active');
                     document.getElementById('sidebarSeats').classList.toggle('hidden', tab.dataset.sidebarTab !== 'seats');
                     document.getElementById('sidebarShortlist').classList.toggle('hidden', tab.dataset.sidebarTab !== 'shortlist');
+                    const shareEl = document.getElementById('sidebarShare');
+                    if (shareEl) shareEl.classList.toggle('hidden', tab.dataset.sidebarTab !== 'share');
                     document.getElementById('sidebarCall').classList.toggle('hidden', tab.dataset.sidebarTab !== 'call');
                 });
             });
+
+            const copyShareBtn = document.getElementById('copyShareBtn');
+            if (copyShareBtn) {
+                copyShareBtn.addEventListener('click', () => {
+                    const text = document.getElementById('shareMessageText').value;
+                    navigator.clipboard.writeText(text).then(() => {
+                        copyShareBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyShareBtn.textContent = 'Copy Message'; }, 1500);
+                    }).catch(() => {
+                        const el = document.getElementById('shareMessageText');
+                        el.select();
+                        document.execCommand('copy');
+                    });
+                });
+            }
 
             function renderShortlist(shortlist) {
                 const el = document.getElementById('shortlistList');

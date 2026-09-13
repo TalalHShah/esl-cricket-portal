@@ -12,7 +12,12 @@
     @if(!$windowOpen)
         <div class="card-section mb-10 p-6" style="border-left: 2px solid var(--live);">
             <p class="eyebrow live mb-1">Transfer Window Closed</p>
-            <p class="text-sm" style="color: var(--paper-dim);">Free agent signing and direct offers are suspended while the auction is in progress. Head to the Auction to bid on players instead.</p>
+            <p class="text-sm" style="color: var(--paper-dim);">Free agent signing and direct offers are suspended right now. Head to the Auction to bid on players instead — or star players here to shortlist them for when the window reopens.</p>
+        </div>
+    @else
+        <div class="card-section mb-10 p-6" style="border-left: 2px solid var(--gold);">
+            <p class="eyebrow gold mb-1">Free Agents Go To Auction</p>
+            <p class="text-sm" style="color: var(--paper-dim);">Opening a free agent starts a one-hour auction at their current value — anyone in the league can outbid you. Your bid locks that money until you're outbid or you win; you can't take it back.</p>
         </div>
     @endif
 
@@ -80,7 +85,12 @@
             <x-player-card :player="$player" :href="route('manager.players.show', $player)"
                 :shortlist-url="auth()->user()->managedTeam ? route('manager.scouts.shortlist', $player) : null"
                 :shortlisted="in_array($player->id, $shortlistedIds)">
-                @if(auth()->user()->managedTeam && $windowOpen)
+                @if(!$player->team && $activeAuctions->has($player->id))
+                    <a href="{{ route('manager.auction.room', $activeAuctions[$player->id]) }}"
+                       class="btn-accent block w-full text-center py-2 text-xs">
+                        Auction Live — Bid Now
+                    </a>
+                @elseif(auth()->user()->managedTeam && $windowOpen)
                     @if($player->team)
                         <a href="{{ route('manager.transfers', ['search' => $player->name]) }}"
                            class="block w-full text-center py-2 text-xs font-semibold uppercase tracking-wide"
@@ -90,7 +100,7 @@
                     @else
                         <form method="POST" action="{{ route('manager.scouts.sign', $player) }}">
                             @csrf
-                            <button type="submit" class="btn-accent w-full py-2 text-xs">Sign Player</button>
+                            <button type="submit" class="btn-accent w-full py-2 text-xs">Open Auction</button>
                         </form>
                     @endif
                 @endif

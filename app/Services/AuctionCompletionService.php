@@ -66,7 +66,7 @@ class AuctionCompletionService
                 $player = Player::whereKey($locked->player_id)->lockForUpdate()->first();
                 $team = Team::whereKey($locked->highest_bidder_team_id)->lockForUpdate()->first();
 
-                if ($team && $team->hasSquadSpace() && $team->remainingBudget() >= (float) $locked->current_bid) {
+                if ($team && $team->hasSquadSpace() && $team->remainingBudget($locked->id) >= (float) $locked->current_bid) {
                     $player->update([
                         'team_id' => $team->id,
                         'sold_price' => $locked->current_bid,

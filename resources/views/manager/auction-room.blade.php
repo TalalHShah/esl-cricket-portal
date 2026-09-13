@@ -86,7 +86,7 @@
     @endphp
 
     {{-- Player identity block --}}
-    <div class="flex items-start gap-8 mb-8">
+    <div class="flex flex-col items-center text-center gap-4 mb-8 sm:flex-row sm:items-start sm:text-left sm:gap-8">
         <div class="player-portrait" style="width: 140px; height: 180px; flex-shrink: 0;">
             @if($player?->image)
                 <img src="{{ asset('storage/' . $player->image) }}" alt="{{ $player->name }}">
@@ -94,7 +94,7 @@
                 <div class="initials">{{ $player ? strtoupper(substr($player->name, 0, 2)) : '—' }}</div>
             @endif
         </div>
-        <div class="flex-1">
+        <div class="flex-1 min-w-0">
             <p class="eyebrow {{ $isLive ? 'live' : 'gold' }} mb-2" id="statusLabel">
                 {{ $isLive ? 'Live Now' : ($isScheduled ? 'Scheduled' : ($isPaused ? 'Paused' : 'Concluded')) }}
             </p>
@@ -105,7 +105,7 @@
             @endif
         </div>
         @if($isLive)
-            <div class="text-center">
+            <div class="text-center" style="flex-shrink: 0;">
                 <div class="countdown-ring" id="countdownRing">—</div>
                 <p class="text-xs mt-2" style="color: var(--paper-faint);">time left</p>
             </div>

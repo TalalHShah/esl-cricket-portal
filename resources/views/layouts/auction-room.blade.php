@@ -47,15 +47,15 @@
 
     <header style="background-color: var(--surface); border-bottom: var(--rule);">
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-y-2 py-2 sm:h-16 sm:py-0">
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('images/esl-logo.png') }}" alt="ESL" class="h-10 w-auto" style="flex-shrink: 0;">
-                    <p class="eyebrow gold">Auction Room</p>
+                    <p class="eyebrow gold hidden sm:block">Auction Room</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('manager.draft') }}" class="btn-ghost px-4 py-2 text-xs" @if(request()->routeIs('manager.draft')) style="border-color: var(--gold); color: var(--gold);" @endif>Draft Room</a>
-                    <a href="{{ route('manager.auction') }}" class="btn-ghost px-4 py-2 text-xs" @if(request()->routeIs('manager.auction*')) style="border-color: var(--gold); color: var(--gold);" @endif>Auction Room</a>
-                    <a href="{{ route('manager.dashboard') }}" class="btn-ghost px-4 py-2 text-xs">Exit</a>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <a href="{{ route('manager.draft') }}" class="btn-ghost px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-4 sm:py-2" @if(request()->routeIs('manager.draft')) style="border-color: var(--gold); color: var(--gold);" @endif>Draft Room</a>
+                    <a href="{{ route('manager.auction') }}" class="btn-ghost px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-4 sm:py-2" @if(request()->routeIs('manager.auction*')) style="border-color: var(--gold); color: var(--gold);" @endif>Auction Room</a>
+                    <a href="{{ route('manager.dashboard') }}" class="btn-ghost px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-4 sm:py-2">Exit</a>
                 </div>
             </div>
         </div>

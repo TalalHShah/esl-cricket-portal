@@ -40,8 +40,8 @@
         </div>
     </div>
 
-    <div class="cricket-card rounded-2xl overflow-hidden">
-        <table class="w-full text-left">
+    <div class="cricket-card rounded-2xl overflow-x-auto">
+        <table class="w-full text-left" style="min-width: 640px;">
             <thead>
                 <tr class="border-b border-slate-800">
                     <th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Player</th>

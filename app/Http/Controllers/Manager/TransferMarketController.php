@@ -66,7 +66,11 @@ class TransferMarketController extends Controller
         }
 
         if (! Setting::isTransferWindowOpen()) {
-            return back()->withErrors(['offer' => 'The transfer window is currently closed. Players are being signed through the Auction instead.']);
+            $message = Setting::auctionStatus() !== 'closed'
+                ? 'The auction is ' . Setting::auctionStatus() . " — you can't make offers right now, only shortlist players for later."
+                : 'The transfer window is currently closed.';
+
+            return back()->withErrors(['offer' => $message]);
         }
 
         if ($player->is_manager_player) {

@@ -111,7 +111,11 @@ class ScoutController extends Controller
         }
 
         if (! Setting::isTransferWindowOpen()) {
-            return back()->withErrors(['sign' => 'The transfer window is currently closed. Free agents are being signed through the Auction instead.']);
+            $message = Setting::auctionStatus() !== 'closed'
+                ? 'The auction is ' . Setting::auctionStatus() . " — you can't purchase players right now, only shortlist them for later."
+                : 'The transfer window is currently closed.';
+
+            return back()->withErrors(['sign' => $message]);
         }
 
         if ($player->is_manager_player) {

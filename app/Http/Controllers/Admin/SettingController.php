@@ -11,25 +11,34 @@ class SettingController extends Controller
     public function index()
     {
         $settings = Setting::all()->keyBy('key')->toArray();
-        $transferWindowOpen = Setting::getValue('transfer_window.open', true);
-        return view('admin.settings.index', compact('settings', 'transferWindowOpen'));
+        $transferWindowOpen = Setting::isTransferWindowOpen();
+        $manuallyClosed = ! Setting::getValue('transfer_window.open', true);
+        $auctionStatus = Setting::auctionStatus();
+        $cycleSummary = Setting::transferWindowCycleSummary();
+
+        return view('admin.settings.index', compact(
+            'settings', 'transferWindowOpen', 'manuallyClosed', 'auctionStatus', 'cycleSummary'
+        ));
     }
 
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'transfer_window_days' => 'required|integer|min:1|max:90',
-            'transfer_cycle_days' => 'required|integer|min:1|max:365',
+            'transfer_window_open_days' => 'required|integer|min:1|max:90',
+            'transfer_window_closed_days' => 'required|integer|min:0|max:365',
             'win_bonus_percentage' => 'required|numeric|min:0|max:100',
             'loss_penalty_percentage' => 'required|numeric|min:0|max:100',
             'standout_threshold_runs' => 'required|integer|min:0',
             'standout_threshold_wickets' => 'required|integer|min:0',
         ]);
 
-        foreach ($validated as $key => $value) {
+        Setting::setValue('transfer_window.open_days', $validated['transfer_window_open_days'], 'integer');
+        Setting::setValue('transfer_window.closed_days', $validated['transfer_window_closed_days'], 'integer');
+
+        foreach (['win_bonus_percentage', 'loss_penalty_percentage', 'standout_threshold_runs', 'standout_threshold_wickets'] as $key) {
             Setting::updateOrCreate(
                 ['key' => $key],
-                ['value' => $value, 'updated_by_user_id' => auth()->id()]
+                ['value' => $validated[$key], 'updated_by_user_id' => auth()->id()]
             );
         }
 
@@ -45,8 +54,19 @@ class SettingController extends Controller
             ['value' => $current ? '0' : '1', 'type' => 'boolean', 'updated_by_user_id' => auth()->id()]
         );
 
-        $status = $current ? 'closed' : 'opened';
+        $status = $current ? 'force-closed' : 'released back to the schedule';
 
-        return redirect()->back()->with('status', "Transfer window {$status} successfully.");
+        return redirect()->back()->with('status', "Transfer window {$status}.");
+    }
+
+    public function updateAuctionStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'auction_status' => 'required|in:open,announced,closed',
+        ]);
+
+        Setting::setAuctionStatus($validated['auction_status'], auth()->id());
+
+        return redirect()->back()->with('status', "Auction status set to " . ucfirst($validated['auction_status']) . '.');
     }
 }

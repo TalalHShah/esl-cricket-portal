@@ -22,6 +22,9 @@ class AdminController extends Controller
             'total_budget' => Team::sum('budget'),
         ];
 
-        return view('admin.panel', compact('stats'));
+        $auctionStatus = \App\Models\Setting::auctionStatus();
+        $transferWindowOpen = \App\Models\Setting::isTransferWindowOpen();
+
+        return view('admin.panel', compact('stats', 'auctionStatus', 'transferWindowOpen'));
     }
 }

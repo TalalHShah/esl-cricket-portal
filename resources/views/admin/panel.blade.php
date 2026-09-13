@@ -8,6 +8,45 @@
         <p class="mt-2 text-slate-400">Manage managers, teams, players, and league settings</p>
     </div>
 
+    @php
+        $statusMeta = [
+            'open' => ['label' => 'Open', 'color' => 'emerald', 'desc' => 'Bidding is live. Managers cannot purchase players directly — only shortlist them from Scouts.'],
+            'announced' => ['label' => 'Announced', 'color' => 'amber', 'desc' => 'The auction has been announced but not started. Managers cannot purchase players directly — only shortlist them from Scouts.'],
+            'closed' => ['label' => 'Closed', 'color' => 'red', 'desc' => 'The auction is closed. The Transfer Window can now open on its configured schedule.'],
+        ];
+        $current = $statusMeta[$auctionStatus] ?? $statusMeta['closed'];
+    @endphp
+
+    {{-- Auction Status — the single most important control on this panel --}}
+    <div class="cricket-card rounded-2xl p-6 mb-8 border-2 border-{{ $current['color'] }}-500/40">
+        <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+            <div>
+                <p class="text-xs font-bold uppercase text-slate-500 mb-1">Auction Status</p>
+                <p class="text-3xl font-black text-{{ $current['color'] }}-400">{{ $current['label'] }}</p>
+                <p class="text-sm text-slate-400 mt-2 max-w-xl">{{ $current['desc'] }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs font-bold uppercase text-slate-500 mb-1">Transfer Window</p>
+                <p class="text-xl font-black {{ $transferWindowOpen ? 'text-emerald-400' : 'text-red-400' }}">{{ $transferWindowOpen ? 'Open' : 'Closed' }}</p>
+            </div>
+        </div>
+        <form action="{{ route('admin.settings.auction-status.update') }}" method="POST" class="flex flex-wrap gap-3">
+            @csrf
+            @foreach ($statusMeta as $value => $meta)
+                <button type="submit" name="auction_status" value="{{ $value }}"
+                        class="px-6 py-3 rounded-lg font-bold transition
+                            {{ $auctionStatus === $value
+                                ? 'bg-'.$meta['color'].'-600 text-white'
+                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700' }}">
+                    {{ $meta['label'] }}
+                </button>
+            @endforeach
+            <a href="{{ route('admin.settings.index') }}" class="ml-auto px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
+                Transfer Window Schedule &rarr;
+            </a>
+        </form>
+    </div>
+
     {{-- Stats Grid --}}
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 mb-8">
         <div class="cricket-card rounded-2xl p-6">

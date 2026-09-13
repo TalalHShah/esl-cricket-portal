@@ -167,4 +167,5 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
     Route::post('settings/transfer-window/toggle', [SettingController::class, 'toggleTransferWindow'])->name('settings.transfer-window.toggle');
+    Route::post('settings/auction-status', [SettingController::class, 'updateAuctionStatus'])->name('settings.auction-status.update');
 });

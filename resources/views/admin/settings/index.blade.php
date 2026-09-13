@@ -9,7 +9,7 @@
     </div>
 
     <div class="cricket-card rounded-2xl p-8 max-w-2xl mb-6">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-4">
             <div>
                 <h3 class="text-lg font-bold text-white">Transfer Window Status</h3>
                 <p class="text-xs text-slate-500 mt-1">
@@ -17,15 +17,27 @@
                     <span class="font-bold {{ $transferWindowOpen ? 'text-emerald-400' : 'text-red-400' }}">{{ $transferWindowOpen ? 'OPEN' : 'CLOSED' }}</span>
                     — managers {{ $transferWindowOpen ? 'can' : 'cannot' }} make transfers or scout free agents right now.
                 </p>
-            </div>
-            <form action="{{ route('admin.settings.transfer-window.toggle') }}" method="POST">
-                @csrf
-                @if ($transferWindowOpen)
-                    <button type="submit" class="px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition">Close Window</button>
-                @else
-                    <button type="submit" class="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition">Open Window</button>
+                @if ($auctionStatus !== 'closed')
+                    <p class="text-xs text-amber-400 mt-1">Locked closed while the auction is {{ $auctionStatus }} — <a href="{{ route('admin.panel') }}" class="underline">change the Auction Status</a> to Closed to let the schedule below take over.</p>
+                @elseif ($manuallyClosed)
+                    <p class="text-xs text-amber-400 mt-1">Manually force-closed — the schedule below is paused until you release it.</p>
+                @elseif ($cycleSummary)
+                    <p class="text-xs text-slate-500 mt-1">
+                        {{ $cycleSummary['is_open_portion'] ? 'Closes' : 'Opens' }} in {{ $cycleSummary['days_until_change'] }} day{{ $cycleSummary['days_until_change'] === 1 ? '' : 's' }}
+                        (cycle started {{ $cycleSummary['cycle_start']->toFormattedDateString() }})
+                    </p>
                 @endif
-            </form>
+            </div>
+            @if ($auctionStatus === 'closed')
+                <form action="{{ route('admin.settings.transfer-window.toggle') }}" method="POST">
+                    @csrf
+                    @if (! $manuallyClosed)
+                        <button type="submit" class="px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition">Force Close Now</button>
+                    @else
+                        <button type="submit" class="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition">Release Back To Schedule</button>
+                    @endif
+                </form>
+            @endif
         </div>
     </div>
 
@@ -34,18 +46,19 @@
             @csrf
 
             <div class="space-y-4 border-b border-slate-700 pb-6">
-                <h3 class="text-lg font-bold text-white">Transfer Window</h3>
+                <h3 class="text-lg font-bold text-white">Transfer Window Schedule</h3>
+                <p class="text-xs text-slate-400">Once the auction is Closed, the window automatically repeats this open/closed cycle — e.g. 15 days open, 15 days closed, on and on — until you open the auction again.</p>
 
                 <div>
-                    <label class="block text-sm font-bold text-white mb-2">Transfer Window Duration (days)</label>
-                    <input type="number" name="transfer_window_days" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ $settings['transfer_window_days']['value'] ?? 15 }}" min="1" max="90" required>
-                    <p class="text-xs text-slate-500 mt-1">How many days the transfer market is open</p>
+                    <label class="block text-sm font-bold text-white mb-2">Open For (days)</label>
+                    <input type="number" name="transfer_window_open_days" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ $settings['transfer_window.open_days']['value'] ?? 15 }}" min="1" max="90" required>
+                    <p class="text-xs text-slate-500 mt-1">How many days the window stays open each cycle</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-white mb-2">Transfer Cycle (days)</label>
-                    <input type="number" name="transfer_cycle_days" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ $settings['transfer_cycle_days']['value'] ?? 60 }}" min="1" max="365" required>
-                    <p class="text-xs text-slate-500 mt-1">How often the transfer window opens (in days)</p>
+                    <label class="block text-sm font-bold text-white mb-2">Then Closed For (days)</label>
+                    <input type="number" name="transfer_window_closed_days" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ $settings['transfer_window.closed_days']['value'] ?? 15 }}" min="0" max="365" required>
+                    <p class="text-xs text-slate-500 mt-1">How many days it then stays closed, before reopening automatically (e.g. 60 for two months)</p>
                 </div>
             </div>
 

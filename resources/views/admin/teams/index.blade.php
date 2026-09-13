@@ -36,6 +36,9 @@
                         </div>
                     </div>
                     <div class="space-x-2">
+                        <a href="{{ route('admin.teams.roster', $team) }}" class="px-3 py-1 rounded text-sm font-bold bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 transition inline-block">
+                            Roster
+                        </a>
                         <a href="{{ route('admin.teams.edit', $team) }}" class="px-3 py-1 rounded text-sm font-bold bg-amber-600/20 text-amber-300 hover:bg-amber-600/30 transition inline-block">
                             Edit
                         </a>

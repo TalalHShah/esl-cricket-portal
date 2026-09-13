@@ -139,6 +139,9 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
 
     // Team CRUD
     Route::resource('teams', AdminTeamController::class)->except(['show']);
+    Route::get('teams/{team}/roster', [AdminTeamController::class, 'roster'])->name('teams.roster');
+    Route::delete('teams/{team}/players/{player}', [AdminTeamController::class, 'removePlayer'])->name('teams.players.remove');
+    Route::delete('teams/{team}/players', [AdminTeamController::class, 'removeAllPlayers'])->name('teams.players.remove-all');
 
     // Player CRUD
     Route::resource('players', AdminPlayerController::class)->except(['show']);

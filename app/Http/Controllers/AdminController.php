@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuctionDraft;
+use App\Models\AuctionSession;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\User;
@@ -25,6 +27,19 @@ class AdminController extends Controller
         $auctionStatus = \App\Models\Setting::auctionStatus();
         $transferWindowOpen = \App\Models\Setting::isTransferWindowOpen();
 
-        return view('admin.panel', compact('stats', 'auctionStatus', 'transferWindowOpen'));
+        $draft = AuctionDraft::latest()->first();
+        $draftPoolCount = $draft ? AuctionSession::where('auction_draft_id', $draft->id)->where('status', 'scheduled')->count() : 0;
+        $anyPlayersRemainForDraft = Player::query()->transferable()->notNominated()->whereNull('team_id')->where('is_active', true)->exists();
+
+        $liveAuction = AuctionSession::whereIn('status', ['live', 'paused'])->with('player', 'highestBidder')->first();
+        $scheduledAuctionCount = AuctionSession::where('status', 'scheduled')->count();
+
+        $teams = Team::withCount('players')->orderBy('name')->get();
+
+        return view('admin.panel', compact(
+            'stats', 'auctionStatus', 'transferWindowOpen',
+            'draft', 'draftPoolCount', 'anyPlayersRemainForDraft',
+            'liveAuction', 'scheduledAuctionCount', 'teams'
+        ));
     }
 }

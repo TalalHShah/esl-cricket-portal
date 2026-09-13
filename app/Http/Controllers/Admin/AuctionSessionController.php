@@ -34,11 +34,35 @@ class AuctionSessionController extends Controller
         return view('admin.auctions.index', compact('sessions', 'sort'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $players = Player::whereNull('team_id')->where('is_active', true)->orderBy('name')->get();
+        $query = Player::query()->notNominated()->whereNull('team_id')->where('is_active', true);
 
-        return view('admin.auctions.create', compact('players'));
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
+        if ($request->filled('tier')) {
+            $query->where('tier', $request->input('tier'));
+        }
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->input('role'));
+        }
+
+        if ($request->filled('country')) {
+            $query->where('country', 'like', '%' . $request->input('country') . '%');
+        }
+
+        $players = $query->orderByRaw("FIELD(tier, '" . implode("','", AuctionSession::TIER_ORDER) . "')")
+            ->orderByDesc('current_value')
+            ->paginate(24)
+            ->withQueryString();
+
+        $roles = ['Batsman', 'All-rounder', 'Bowler', 'Wicketkeeper'];
+        $tiers = AuctionSession::TIER_ORDER;
+
+        return view('admin.auctions.create', compact('players', 'roles', 'tiers'));
     }
 
     public function store(Request $request): RedirectResponse

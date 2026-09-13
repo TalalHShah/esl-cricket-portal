@@ -3,199 +3,210 @@
 @section('title', 'Admin Control Panel')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-4xl font-black text-white tracking-tight">Admin Control Panel</h1>
-        <p class="mt-2 text-slate-400">Manage managers, teams, players, and league settings</p>
-    </div>
+    @include('partials.page-header', [
+        'title' => 'Admin Control Panel',
+        'eyebrow' => 'League Command',
+        'subtitle' => 'Managers, teams, players, the draft, auctions, and league settings — all in one place.',
+    ])
+
+    @if (session('status'))
+        <div class="mb-6 rounded-lg border px-4 py-3 text-sm" style="background-color: rgba(63,174,114,0.08); border-color: var(--up); color: var(--up);">{{ session('status') }}</div>
+    @endif
+    @if ($errors->any())
+        <div class="mb-6 rounded-lg border px-4 py-3 text-sm" style="background-color: rgba(214,69,90,0.08); border-color: var(--live); color: var(--live);">
+            @foreach ($errors->all() as $error) <p>{{ $error }}</p> @endforeach
+        </div>
+    @endif
 
     @php
         $statusMeta = [
-            'open' => ['label' => 'Open', 'color' => 'emerald', 'desc' => 'Bidding is live. Managers cannot purchase players directly — only shortlist them from Scouts.'],
-            'announced' => ['label' => 'Announced', 'color' => 'amber', 'desc' => 'The auction has been announced but not started. Managers cannot purchase players directly — only shortlist them from Scouts.'],
-            'closed' => ['label' => 'Closed', 'color' => 'red', 'desc' => 'The auction is closed. The Transfer Window can now open on its configured schedule.'],
+            'open' => ['label' => 'Open', 'color' => 'up', 'desc' => 'Bidding is live. Managers can only shortlist from Scouts.'],
+            'announced' => ['label' => 'Announced', 'color' => 'gold', 'desc' => 'Announced but not started. Managers can only shortlist from Scouts.'],
+            'closed' => ['label' => 'Closed', 'color' => 'live', 'desc' => 'The Transfer Window can now open on its configured schedule.'],
         ];
         $current = $statusMeta[$auctionStatus] ?? $statusMeta['closed'];
     @endphp
 
-    {{-- Auction Status — the single most important control on this panel --}}
-    <div class="cricket-card rounded-2xl p-6 mb-8 border-2 border-{{ $current['color'] }}-500/40">
-        <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
-            <div>
-                <p class="text-xs font-bold uppercase text-slate-500 mb-1">Auction Status</p>
-                <p class="text-3xl font-black text-{{ $current['color'] }}-400">{{ $current['label'] }}</p>
-                <p class="text-sm text-slate-400 mt-2 max-w-xl">{{ $current['desc'] }}</p>
+    {{-- Top row: Auction Status + Transfer Window, compact --}}
+    <div class="card-section p-5 mb-6" style="border-top: 3px solid var(--{{ $current['color'] }});">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-8 flex-wrap">
+                <div>
+                    <p class="eyebrow mb-1">Auction Status</p>
+                    <p class="font-display text-2xl font-semibold" style="color: var(--{{ $current['color'] }});">{{ $current['label'] }}</p>
+                </div>
+                <div>
+                    <p class="eyebrow mb-1">Transfer Window</p>
+                    <p class="font-display text-2xl font-semibold" style="color: {{ $transferWindowOpen ? 'var(--up)' : 'var(--live)' }};">{{ $transferWindowOpen ? 'Open' : 'Closed' }}</p>
+                </div>
+                <p class="text-xs max-w-sm" style="color: var(--paper-faint);">{{ $current['desc'] }}</p>
             </div>
-            <div class="text-right">
-                <p class="text-xs font-bold uppercase text-slate-500 mb-1">Transfer Window</p>
-                <p class="text-xl font-black {{ $transferWindowOpen ? 'text-emerald-400' : 'text-red-400' }}">{{ $transferWindowOpen ? 'Open' : 'Closed' }}</p>
-            </div>
-        </div>
-        <form action="{{ route('admin.settings.auction-status.update') }}" method="POST" class="flex flex-wrap gap-3">
-            @csrf
-            @foreach ($statusMeta as $value => $meta)
-                <button type="submit" name="auction_status" value="{{ $value }}"
-                        class="px-6 py-3 rounded-lg font-bold transition
-                            {{ $auctionStatus === $value
-                                ? 'bg-'.$meta['color'].'-600 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700' }}">
-                    {{ $meta['label'] }}
-                </button>
-            @endforeach
-            <a href="{{ route('admin.settings.index') }}" class="ml-auto px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
-                Transfer Window Schedule &rarr;
-            </a>
-        </form>
-    </div>
-
-    {{-- Stats Grid --}}
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 mb-8">
-        <div class="cricket-card rounded-2xl p-6">
-            <p class="text-xs font-bold uppercase text-emerald-400">Managers</p>
-            <p class="text-3xl font-black text-white mt-2">{{ $stats['managers'] }}</p>
-        </div>
-        <div class="cricket-card rounded-2xl p-6">
-            <p class="text-xs font-bold uppercase text-amber-400">Admins</p>
-            <p class="text-3xl font-black text-white mt-2">{{ $stats['admins'] }}</p>
-        </div>
-        <div class="cricket-card rounded-2xl p-6">
-            <p class="text-xs font-bold uppercase text-red-400">Teams</p>
-            <p class="text-3xl font-black text-white mt-2">{{ $stats['teams'] }}</p>
-        </div>
-        <div class="cricket-card rounded-2xl p-6">
-            <p class="text-xs font-bold uppercase text-blue-400">Players</p>
-            <p class="text-3xl font-black text-white mt-2">{{ $stats['players'] }}</p>
-        </div>
-        <div class="cricket-card rounded-2xl p-6">
-            <p class="text-xs font-bold uppercase text-cyan-400">Total Budget</p>
-            <p class="text-lg font-black text-white mt-2"><x-money :amount="$stats['total_budget']" :size="16" /></p>
+            <form action="{{ route('admin.settings.auction-status.update') }}" method="POST" class="flex flex-wrap gap-2">
+                @csrf
+                @foreach ($statusMeta as $value => $meta)
+                    <button type="submit" name="auction_status" value="{{ $value }}"
+                            class="{{ $auctionStatus === $value ? 'btn-accent' : 'btn-ghost' }} px-4 py-2 text-xs">
+                        {{ $meta['label'] }}
+                    </button>
+                @endforeach
+                <a href="{{ route('admin.settings.index') }}" class="btn-ghost px-4 py-2 text-xs">Schedule &rarr;</a>
+            </form>
         </div>
     </div>
 
-    {{-- Control Options --}}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {{-- Managers Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-emerald-500/10">
-                <h2 class="text-lg font-bold text-white">Managers</h2>
+    {{-- Compact stats strip --}}
+    <div class="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-5">
+        <div class="stat"><p class="stat-figure">{{ $stats['managers'] }}</p><p class="stat-caption">Managers</p></div>
+        <div class="stat"><p class="stat-figure">{{ $stats['admins'] }}</p><p class="stat-caption">Admins</p></div>
+        <div class="stat"><p class="stat-figure">{{ $stats['teams'] }}</p><p class="stat-caption">Teams</p></div>
+        <div class="stat"><p class="stat-figure">{{ $stats['players'] }}</p><p class="stat-caption">Players</p></div>
+        <div class="stat"><p class="stat-figure gold"><x-money :amount="$stats['total_budget']" :size="18" /></p><p class="stat-caption">Total Budget</p></div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
+        {{-- Draft Control --}}
+        <div class="card-section overflow-hidden">
+            <div class="card-header">
+                <h2>Draft Control</h2>
+                @if ($draft)
+                    <span class="tag {{ in_array($draft->status, ['active', 'bonus_round']) ? 'gold' : '' }}">{{ str_replace('_', ' ', $draft->status) }}</span>
+                @endif
             </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.managers.index') }}" class="block w-full px-4 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center transition">
-                    View All Managers
-                </a>
-                <a href="{{ route('admin.managers.create') }}" class="block w-full px-4 py-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-bold text-center transition border border-emerald-500/30">
-                    + Add New Manager
-                </a>
+            <div class="p-6 space-y-4">
+                @if (! $draft)
+                    <p class="text-sm" style="color: var(--paper-faint);">No draft has been run yet.</p>
+                @else
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="eyebrow mb-1">Current Country</p>
+                            <p style="color: var(--paper);">{{ $draft->current_country ?? '—' }}</p>
+                        </div>
+                        <div>
+                            <p class="eyebrow mb-1">Queued For Auction</p>
+                            <p style="color: var(--paper);">{{ $draftPoolCount }} player(s)</p>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="flex flex-wrap gap-2 pt-2" style="border-top: var(--rule);">
+                    <a href="{{ route('manager.draft') }}" class="btn-ghost px-4 py-2 text-xs">Open Draft Room</a>
+
+                    @if ($draft && in_array($draft->status, ['active', 'bonus_round'], true))
+                        <form action="{{ route('admin.draft.end', $draft) }}" method="POST" onsubmit="return confirm('End the draft now? Anything already queued stays available for the Auction phase.');">
+                            @csrf
+                            <button type="submit" class="btn-ghost px-4 py-2 text-xs" style="color: var(--live);">End Draft</button>
+                        </form>
+                        <form action="{{ route('admin.draft.cancel', $draft) }}" method="POST" onsubmit="return confirm('Cancel this draft entirely? This cannot be undone.');">
+                            @csrf
+                            <button type="submit" class="btn-ghost px-4 py-2 text-xs" style="color: var(--live);">Cancel Draft</button>
+                        </form>
+                    @endif
+
+                    @if ($draft && $draft->status === 'completed' && $anyPlayersRemainForDraft)
+                        <form action="{{ route('admin.draft.bonus-round', $draft) }}" method="POST" onsubmit="return confirm('Open the Bonus Round? Any manager will be able to pick freely, country by country.');">
+                            @csrf
+                            <button type="submit" class="btn-accent px-4 py-2 text-xs">Start Bonus Round</button>
+                        </form>
+                    @endif
+
+                    @if (! $draft || in_array($draft->status, ['completed'], true))
+                        <a href="{{ route('admin.draft.create') }}" class="btn-accent px-4 py-2 text-xs">
+                            {{ $draft ? 'Start Another Draft' : 'Start Country Draft' }}
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
 
-        {{-- Teams Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-red-500/10">
-                <h2 class="text-lg font-bold text-white">Teams</h2>
+        {{-- Auction Control --}}
+        <div class="card-section overflow-hidden">
+            <div class="card-header">
+                <h2>Auction Control</h2>
+                @if ($liveAuction)
+                    <span class="tag gold">{{ $liveAuction->status }}</span>
+                @endif
             </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.teams.index') }}" class="block w-full px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-center transition">
-                    View All Teams
-                </a>
-                <a href="{{ route('admin.teams.create') }}" class="block w-full px-4 py-3 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 font-bold text-center transition border border-red-500/30">
-                    + Add New Team
-                </a>
+            <div class="p-6 space-y-4">
+                @if ($liveAuction)
+                    <div class="text-sm">
+                        <p class="eyebrow mb-1">On The Block</p>
+                        <p style="color: var(--paper);">{{ $liveAuction->player?->name }} — current bid <x-money :amount="$liveAuction->current_bid" :size="14" /> ({{ $liveAuction->highestBidder?->name ?? 'no bidder yet' }})</p>
+                    </div>
+                @else
+                    <p class="text-sm" style="color: var(--paper-faint);">No auction is currently live.</p>
+                @endif
+                <p class="text-sm" style="color: var(--paper-dim);">{{ $scheduledAuctionCount }} lot(s) scheduled and waiting to be started.</p>
+
+                <div class="flex flex-wrap gap-2 pt-2" style="border-top: var(--rule);">
+                    <a href="{{ route('admin.auctions.index') }}" class="btn-ghost px-4 py-2 text-xs">Manage Auctions</a>
+                    <a href="{{ route('admin.auctions.create') }}" class="btn-accent px-4 py-2 text-xs">Queue Player For Auction</a>
+                </div>
             </div>
         </div>
+    </div>
 
-        {{-- Players Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-amber-500/10">
-                <h2 class="text-lg font-bold text-white">Players</h2>
-            </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.players.index') }}" class="block w-full px-4 py-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-center transition">
-                    View All Players
-                </a>
-                <a href="{{ route('admin.players.create') }}" class="block w-full px-4 py-3 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-bold text-center transition border border-amber-500/30">
-                    + Add New Player
-                </a>
-            </div>
+    {{-- Team Roster Control --}}
+    <div class="card-section overflow-hidden mb-6">
+        <div class="card-header"><h2>Team Roster Control</h2></div>
+        <div class="overflow-x-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Team</th>
+                        <th style="text-align:right;">Squad</th>
+                        <th style="text-align:right;">Remaining Budget</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($teams as $team)
+                        <tr>
+                            <td style="color: var(--paper);">{{ $team->name }}</td>
+                            <td style="text-align:right; color: var(--paper-dim);">{{ $team->players_count }} / {{ \App\Models\Team::SQUAD_LIMIT }}</td>
+                            <td style="text-align:right; color: var(--gold); font-weight: 600;"><x-money :amount="$team->remainingBudget()" /></td>
+                            <td style="text-align:right;">
+                                <a href="{{ route('admin.teams.roster', $team) }}" class="btn-ghost px-3 py-1.5 text-xs">Manage Roster</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        {{-- Match Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-cyan-500/10">
-                <h2 class="text-lg font-bold text-white">Matches</h2>
+    {{-- Compact management grid --}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+        @foreach ([
+            ['label' => 'Managers', 'index' => 'admin.managers.index', 'create' => 'admin.managers.create', 'createLabel' => '+ Add Manager'],
+            ['label' => 'Teams', 'index' => 'admin.teams.index', 'create' => 'admin.teams.create', 'createLabel' => '+ Add Team'],
+            ['label' => 'Players', 'index' => 'admin.players.index', 'create' => 'admin.players.create', 'createLabel' => '+ Add Player'],
+            ['label' => 'Matches', 'index' => 'admin.matches.index', 'create' => 'admin.matches.create', 'createLabel' => '+ Schedule Match'],
+            ['label' => 'Competitions', 'index' => 'admin.competitions.index', 'create' => 'admin.competitions.create', 'createLabel' => '+ New Competition'],
+            ['label' => 'News', 'index' => 'admin.news.index', 'create' => 'admin.news.create', 'createLabel' => '+ New Article'],
+        ] as $section)
+            <div class="card-section p-5 flex items-center justify-between gap-4">
+                <p class="font-display text-lg font-semibold" style="color: var(--paper);">{{ $section['label'] }}</p>
+                <div class="flex gap-2">
+                    <a href="{{ route($section['index']) }}" class="btn-ghost px-3 py-2 text-xs whitespace-nowrap">View</a>
+                    <a href="{{ route($section['create']) }}" class="btn-accent px-3 py-2 text-xs whitespace-nowrap">{{ $section['createLabel'] }}</a>
+                </div>
             </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.matches.index') }}" class="block w-full px-4 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-center transition">
-                    View All Matches
-                </a>
-                <a href="{{ route('admin.matches.create') }}" class="block w-full px-4 py-3 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-bold text-center transition border border-cyan-500/30">
-                    + Schedule Match
-                </a>
-            </div>
-        </div>
+        @endforeach
 
-        {{-- Auction Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-orange-500/10">
-                <h2 class="text-lg font-bold text-white">Auctions</h2>
-            </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.auctions.index') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-center transition">
-                    Manage Auctions
-                </a>
-                <a href="{{ route('admin.auctions.create') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 font-bold text-center transition border border-orange-500/30">
-                    + Start New Auction
-                </a>
-                <a href="{{ route('admin.draft.create') }}" class="block w-full px-4 py-3 rounded-lg bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 font-bold text-center transition border border-orange-500/30">
-                    Start Country Draft
-                </a>
-            </div>
-        </div>
-
-        {{-- News Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-purple-500/10">
-                <h2 class="text-lg font-bold text-white">News</h2>
-            </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.news.index') }}" class="block w-full px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-center transition">
-                    Manage Articles
-                </a>
-                <a href="{{ route('admin.news.create') }}" class="block w-full px-4 py-3 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold text-center transition border border-purple-500/30">
-                    + New Article
-                </a>
-            </div>
-        </div>
-
-        {{-- Settings Management --}}
-        <div class="cricket-card rounded-2xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-emerald-500/10 bg-gradient-to-r from-blue-500/10">
-                <h2 class="text-lg font-bold text-white">Settings</h2>
-            </div>
-            <div class="p-6 space-y-3">
-                <a href="{{ route('admin.settings.index') }}" class="block w-full px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-center transition">
-                    League Settings
-                </a>
-                <p class="text-xs text-slate-400 text-center">Transfer windows, valuation rules, thresholds</p>
-            </div>
+        <div class="card-section p-5 flex items-center justify-between gap-4">
+            <p class="font-display text-lg font-semibold" style="color: var(--paper);">Settings</p>
+            <a href="{{ route('admin.settings.index') }}" class="btn-accent px-3 py-2 text-xs whitespace-nowrap">League Settings</a>
         </div>
     </div>
 
     {{-- Quick Links --}}
-    <div class="mt-8 cricket-card rounded-2xl p-6">
-        <h2 class="text-lg font-bold text-white mb-4">Quick Links</h2>
+    <div class="card-section p-5">
+        <p class="eyebrow gold mb-3">Quick Links</p>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
-                League Dashboard
-            </a>
-            <a href="{{ route('teams.index') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
-                Public Teams
-            </a>
-            <a href="{{ route('players.index') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
-                Public Players
-            </a>
-            <a href="{{ route('managers.index') }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold text-center transition">
-                Public Managers
-            </a>
+            <a href="{{ route('dashboard') }}" class="btn-ghost px-3 py-2 text-xs text-center">League Dashboard</a>
+            <a href="{{ route('teams.index') }}" class="btn-ghost px-3 py-2 text-xs text-center">Public Teams</a>
+            <a href="{{ route('players.index') }}" class="btn-ghost px-3 py-2 text-xs text-center">Public Players</a>
+            <a href="{{ route('managers.index') }}" class="btn-ghost px-3 py-2 text-xs text-center">Public Managers</a>
         </div>
     </div>
 @endsection

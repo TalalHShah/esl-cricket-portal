@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Concerns\Sortable;
 use App\Models\CricketMatch;
+use App\Models\Player;
 use App\Models\Team;
+use App\Models\Transfer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class AdminTeamController extends Controller
@@ -16,7 +20,7 @@ class AdminTeamController extends Controller
 
     public function index(Request $request)
     {
-        $query = Team::with('manager');
+        $query = Team::with('manager')->withCount('players');
 
         $sort = $this->applySort($query, $request, [
             'name_asc' => fn ($q) => $q->orderBy('name'),
@@ -117,5 +121,95 @@ class AdminTeamController extends Controller
 
         $team->delete();
         return redirect()->route('admin.teams.index')->with('status', "Team '$name' deleted.");
+    }
+
+    /**
+     * Admin roster control for one team — release any signed player
+     * (or the whole roster at once) straight back to free agency, with
+     * their spent budget refunded. Unlike a manager's own Release
+     * button, this isn't gated by the transfer window: the admin is
+     * doing this deliberately, not as a live game action.
+     */
+    public function roster(Team $team)
+    {
+        $players = $team->players()->orderByDesc('current_value')->get();
+
+        return view('admin.teams.roster', compact('team', 'players'));
+    }
+
+    public function removePlayer(Team $team, Player $player)
+    {
+        if ($player->team_id !== $team->id) {
+            return back()->withErrors(['roster' => 'That player is not on this team.']);
+        }
+
+        if ($player->is_manager_player) {
+            return back()->withErrors(['roster' => 'A manager\'s own player cannot be removed from their team.']);
+        }
+
+        DB::transaction(function () use ($team, $player) {
+            $locked = Player::whereKey($player->id)->lockForUpdate()->first();
+            $lockedTeam = Team::whereKey($team->id)->lockForUpdate()->first();
+
+            if ($locked->team_id !== $lockedTeam->id) {
+                return;
+            }
+
+            $refund = min((float) ($locked->sold_price ?? 0), (float) $lockedTeam->spent);
+
+            $lockedTeam->decrement('spent', $refund);
+
+            $locked->update(['team_id' => null, 'sold_price' => null]);
+
+            Transfer::create([
+                'player_id' => $locked->id,
+                'from_team_id' => $lockedTeam->id,
+                'to_team_id' => null,
+                'fee' => 0,
+                'type' => 'release',
+                'status' => 'approved',
+                'requested_by_user_id' => Auth::id(),
+                'approved_by_user_id' => Auth::id(),
+                'effective_at' => now(),
+                'notes' => "Admin removed {$locked->name} from {$lockedTeam->name} — PKR " . number_format($refund, 0) . ' refunded to budget.',
+            ]);
+        });
+
+        return back()->with('status', "{$player->name} removed from {$team->name} and their budget refunded.");
+    }
+
+    public function removeAllPlayers(Team $team)
+    {
+        DB::transaction(function () use ($team) {
+            $lockedTeam = Team::whereKey($team->id)->lockForUpdate()->first();
+
+            $players = Player::where('team_id', $lockedTeam->id)
+                ->where('is_manager_player', false)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($players as $player) {
+                $refund = min((float) ($player->sold_price ?? 0), (float) $lockedTeam->spent);
+
+                $lockedTeam->decrement('spent', $refund);
+
+                $player->update(['team_id' => null, 'sold_price' => null]);
+
+                Transfer::create([
+                    'player_id' => $player->id,
+                    'from_team_id' => $lockedTeam->id,
+                    'to_team_id' => null,
+                    'fee' => 0,
+                    'type' => 'release',
+                    'status' => 'approved',
+                    'requested_by_user_id' => Auth::id(),
+                    'approved_by_user_id' => Auth::id(),
+                    'effective_at' => now(),
+                    'notes' => "Admin cleared {$player->name} from {$lockedTeam->name}'s roster — PKR " . number_format($refund, 0) . ' refunded to budget.',
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.teams.roster', $team)->with('status', "{$team->name}'s roster has been cleared and their budget refunded.");
     }
 }

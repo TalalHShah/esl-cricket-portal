@@ -14,7 +14,7 @@ class AuctionDraftController extends Controller
 {
     public function create(): View|RedirectResponse
     {
-        if (AuctionDraft::where('status', 'active')->exists()) {
+        if (AuctionDraft::whereIn('status', ['active', 'bonus_round'])->exists()) {
             return redirect()->route('manager.draft')->with('status', 'A draft is already in progress.');
         }
 
@@ -25,7 +25,7 @@ class AuctionDraftController extends Controller
 
     public function store(Request $request, AuctionDraftService $service): RedirectResponse
     {
-        if (AuctionDraft::where('status', 'active')->exists()) {
+        if (AuctionDraft::whereIn('status', ['active', 'bonus_round'])->exists()) {
             return back()->withErrors(['draft' => 'A draft is already in progress.']);
         }
 

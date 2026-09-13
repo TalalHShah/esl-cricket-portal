@@ -91,6 +91,15 @@ header .logo-badge {
   border-radius: 2px;
 }
 
+/* Legacy admin dashboard cards (Tailwind-utility-driven pages) —
+   gives them the same surface/border treatment as .card-section so
+   they don't render as flat, borderless boxes against the dark body. */
+.cricket-card {
+  background-color: var(--surface-raised);
+  border: var(--rule);
+  transition: border-color 0.15s ease;
+}
+
 .card-header {
   border-bottom: var(--rule);
   padding: 1.1rem 1.5rem;

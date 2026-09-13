@@ -25,6 +25,9 @@ class CricketMatch extends Model
      */
     protected $fillable = [
         'competition_id',
+        'series_id',
+        'match_format',
+        'venue',
         'stage',
         'leg',
         'home_team_id',
@@ -66,6 +69,29 @@ class CricketMatch extends Model
     public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);
+    }
+
+    /**
+     * The bilateral/tri-series this fixture belongs to, if any —
+     * mutually exclusive with competition_id in practice.
+     */
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(Series::class);
+    }
+
+    /**
+     * The overs cap implied by this match's format, for validating
+     * the scorecard. Test matches have no single-innings overs cap.
+     */
+    public function formatOversCap(): ?int
+    {
+        return match ($this->match_format) {
+            'T10' => 10,
+            'T20' => 20,
+            'ODI' => 50,
+            default => $this->competition?->total_overs,
+        };
     }
 
     /**

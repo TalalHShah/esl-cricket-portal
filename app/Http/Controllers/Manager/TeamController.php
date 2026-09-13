@@ -65,6 +65,34 @@ class TeamController extends Controller
         return back()->with('status', 'Team logo updated.');
     }
 
+    public function updateHomeGround(Request $request): RedirectResponse
+    {
+        $team = Auth::user()->managedTeam;
+
+        if (! $team) {
+            return back()->withErrors(['home_ground' => 'You are not assigned to manage a team.']);
+        }
+
+        $validated = $request->validate([
+            'home_ground_name' => 'nullable|string|max:255',
+            'home_ground_location' => 'nullable|string|max:255',
+            'home_ground_image' => 'nullable|image|max:4096',
+        ]);
+
+        if ($request->hasFile('home_ground_image')) {
+            if ($team->home_ground_image) {
+                Storage::disk('public')->delete($team->home_ground_image);
+            }
+            $validated['home_ground_image'] = $request->file('home_ground_image')->store('home-grounds', 'public');
+        } else {
+            unset($validated['home_ground_image']);
+        }
+
+        $team->update($validated);
+
+        return back()->with('status', 'Home ground updated.');
+    }
+
     /**
      * Drop a player from the squad, freeing up a roster slot so the
      * manager can sign or negotiate for someone else. Money already

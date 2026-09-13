@@ -51,10 +51,17 @@ class AdminTeamController extends Controller
             'primary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
             'secondary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
             'logo' => 'nullable|image|max:2048',
+            'home_ground_name' => 'nullable|string|max:255',
+            'home_ground_location' => 'nullable|string|max:255',
+            'home_ground_image' => 'nullable|image|max:4096',
         ]);
 
         if ($request->hasFile('logo')) {
             $validated['logo'] = $request->file('logo')->store('team-logos', 'public');
+        }
+
+        if ($request->hasFile('home_ground_image')) {
+            $validated['home_ground_image'] = $request->file('home_ground_image')->store('home-grounds', 'public');
         }
 
         Team::create($validated);
@@ -78,6 +85,10 @@ class AdminTeamController extends Controller
             'secondary_color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
             'logo' => 'nullable|image|max:2048',
             'remove_logo' => 'nullable|boolean',
+            'home_ground_name' => 'nullable|string|max:255',
+            'home_ground_location' => 'nullable|string|max:255',
+            'home_ground_image' => 'nullable|image|max:4096',
+            'remove_home_ground_image' => 'nullable|boolean',
         ]);
 
         if ($request->boolean('remove_logo') && $team->logo) {
@@ -92,7 +103,19 @@ class AdminTeamController extends Controller
             $validated['logo'] = $request->file('logo')->store('team-logos', 'public');
         }
 
-        unset($validated['remove_logo']);
+        if ($request->boolean('remove_home_ground_image') && $team->home_ground_image) {
+            Storage::disk('public')->delete($team->home_ground_image);
+            $validated['home_ground_image'] = null;
+        }
+
+        if ($request->hasFile('home_ground_image')) {
+            if ($team->home_ground_image) {
+                Storage::disk('public')->delete($team->home_ground_image);
+            }
+            $validated['home_ground_image'] = $request->file('home_ground_image')->store('home-grounds', 'public');
+        }
+
+        unset($validated['remove_logo'], $validated['remove_home_ground_image']);
 
         $team->update($validated);
 
@@ -117,6 +140,10 @@ class AdminTeamController extends Controller
 
         if ($team->logo) {
             Storage::disk('public')->delete($team->logo);
+        }
+
+        if ($team->home_ground_image) {
+            Storage::disk('public')->delete($team->home_ground_image);
         }
 
         $team->delete();

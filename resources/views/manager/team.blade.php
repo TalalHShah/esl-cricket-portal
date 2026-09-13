@@ -52,6 +52,38 @@
             </div>
         </div>
 
+        <div class="card-section p-6 mb-10">
+            <p class="eyebrow gold mb-4">Home Ground</p>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div class="lg:col-span-2">
+                    <form method="POST" action="{{ route('manager.team.home-ground.update') }}" enctype="multipart/form-data" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        @csrf
+                        <div>
+                            <label class="eyebrow block mb-2">Ground Name</label>
+                            <input type="text" name="home_ground_name" value="{{ old('home_ground_name', $team->home_ground_name) }}" placeholder="e.g., National Stadium" class="field w-full px-3 py-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="eyebrow block mb-2">Location</label>
+                            <input type="text" name="home_ground_location" value="{{ old('home_ground_location', $team->home_ground_location) }}" placeholder="e.g., Karachi, Pakistan" class="field w-full px-3 py-2.5 text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="eyebrow block mb-2">Photo</label>
+                            <input type="file" name="home_ground_image" accept="image/*" class="field w-full px-3 py-2.5 text-sm">
+                            @error('home_ground_image') <p class="text-xs mt-1" style="color: var(--live);">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="sm:col-span-2">
+                            <button type="submit" class="btn-accent px-5 py-2.5 text-sm">Save Home Ground</button>
+                        </div>
+                    </form>
+                </div>
+                @if ($team->home_ground_image)
+                    <div>
+                        <img src="{{ asset('storage/' . $team->home_ground_image) }}" alt="{{ $team->home_ground_name }}" class="w-full object-cover" style="border-radius: 2px; aspect-ratio: 16/9;">
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
             <p class="eyebrow gold">Full Squad ({{ $players->count() }} / {{ \App\Models\Team::SQUAD_LIMIT }})</p>
             <form method="GET" class="flex items-center gap-2 flex-wrap">

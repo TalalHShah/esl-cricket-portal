@@ -41,8 +41,9 @@ class AdminMatchController extends Controller
     {
         $teams = Team::orderBy('name')->get();
         $competitions = Competition::orderByDesc('created_at')->get();
+        $series = \App\Models\Series::where('status', 'active')->orderBy('name')->get();
 
-        return view('admin.matches.create', compact('teams', 'competitions'));
+        return view('admin.matches.create', compact('teams', 'competitions', 'series'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -52,6 +53,9 @@ class AdminMatchController extends Controller
             'away_team_id' => 'required|exists:teams,id',
             'match_date' => 'required|date',
             'competition_id' => 'nullable|exists:competitions,id',
+            'series_id' => 'nullable|exists:series,id',
+            'match_format' => 'nullable|in:T10,T20,ODI,Test',
+            'venue' => 'nullable|string|max:255',
         ]);
 
         $match = CricketMatch::create([
@@ -79,16 +83,18 @@ class AdminMatchController extends Controller
             return back()->withErrors(['match' => 'A confirmed match cannot be edited. Cancel and reschedule if this was recorded in error.']);
         }
 
+        $oversCap = $match->formatOversCap() ?? 50;
+
         $validated = $request->validate([
             'match_date' => 'required|date',
             'winner_team_id' => 'nullable|exists:teams,id',
             'status' => 'required|in:pending_review,pending_confirmation,disputed',
             'summary_notes' => 'nullable|string|max:2000',
             'home_runs' => 'nullable|integer|min:0',
-            'home_overs' => 'nullable|numeric|min:0|max:' . ($match->competition->total_overs ?? 50),
+            'home_overs' => 'nullable|numeric|min:0|max:' . $oversCap,
             'home_all_out' => 'nullable|boolean',
             'away_runs' => 'nullable|integer|min:0',
-            'away_overs' => 'nullable|numeric|min:0|max:' . ($match->competition->total_overs ?? 50),
+            'away_overs' => 'nullable|numeric|min:0|max:' . $oversCap,
             'away_all_out' => 'nullable|boolean',
             'stats' => 'array',
             'stats.*.runs_scored' => 'nullable|integer|min:0',

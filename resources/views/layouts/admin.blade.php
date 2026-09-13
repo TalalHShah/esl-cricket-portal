@@ -67,6 +67,7 @@
                             ['route' => 'admin.players.index', 'label' => 'Players', 'active' => 'admin.players.*'],
                             ['route' => 'admin.matches.index', 'label' => 'Matches', 'active' => 'admin.matches.*'],
                             ['route' => 'admin.competitions.index', 'label' => 'Competitions', 'active' => 'admin.competitions.*'],
+                            ['route' => 'admin.series.index', 'label' => 'Series'],
                             ['route' => 'admin.auctions.index', 'label' => 'Auctions', 'active' => 'admin.auctions.*'],
                             ['route' => 'admin.news.index', 'label' => 'News', 'active' => 'admin.news.*'],
                             ['route' => 'admin.settings.index', 'label' => 'Settings'],

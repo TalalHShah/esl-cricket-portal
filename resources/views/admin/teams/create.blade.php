@@ -17,6 +17,23 @@
                 @error('logo') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-white mb-2">Home Ground Name</label>
+                    <input type="text" name="home_ground_name" value="{{ old('home_ground_name') }}" placeholder="e.g., National Stadium" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-white mb-2">Location</label>
+                    <input type="text" name="home_ground_location" value="{{ old('home_ground_location') }}" placeholder="e.g., Karachi, Pakistan" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-white mb-2">Home Ground Photo (Optional)</label>
+                <input type="file" name="home_ground_image" accept="image/*" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                @error('home_ground_image') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+
             <div>
                 <label class="block text-sm font-bold text-white mb-2">Team Name</label>
                 <input type="text" name="name" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" placeholder="e.g., Karachi Kings" value="{{ old('name') }}" required>

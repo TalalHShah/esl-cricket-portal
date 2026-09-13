@@ -114,11 +114,20 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 
     Route::get('/fixtures', [ManagerFixtureController::class, 'index'])->name('fixtures');
 
+    Route::get('/series', [\App\Http\Controllers\Manager\SeriesController::class, 'index'])->name('series.index');
+    Route::get('/series/create', [\App\Http\Controllers\Manager\SeriesController::class, 'create'])->name('series.create');
+    Route::post('/series', [\App\Http\Controllers\Manager\SeriesController::class, 'store'])->name('series.store');
+    Route::get('/series/{series}', [\App\Http\Controllers\Manager\SeriesController::class, 'show'])->name('series.show');
+    Route::post('/series/{series}/respond', [\App\Http\Controllers\Manager\SeriesController::class, 'respond'])->name('series.respond');
+    Route::post('/series/{series}/fixtures', [\App\Http\Controllers\Manager\SeriesController::class, 'storeFixture'])->name('series.fixtures.store');
+    Route::post('/series/{series}/cancel', [\App\Http\Controllers\Manager\SeriesController::class, 'cancel'])->name('series.cancel');
+
     Route::get('/livestream', [LiveStreamController::class, 'index'])->name('livestream');
 
     Route::get('/team', [ManagerTeamController::class, 'show'])->name('team');
     Route::post('/team/logo', [ManagerTeamController::class, 'updateLogo'])->name('team.logo.update');
     Route::post('/team/players/{player}/release', [ManagerTeamController::class, 'releasePlayer'])->name('team.players.release');
+    Route::post('/team/home-ground', [ManagerTeamController::class, 'updateHomeGround'])->name('team.home-ground.update');
 
     Route::get('/teams', [LeagueTeamController::class, 'index'])->name('teams.index');
     Route::get('/teams/{team}', [LeagueTeamController::class, 'show'])->name('teams.show');
@@ -158,6 +167,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('matches/{match}/screenshots/{screenshot}', [AdminMatchController::class, 'destroyScreenshot'])->name('matches.screenshots.destroy');
 
     // Competitions (leagues & cups): fixtures, points table, playoff bracket
+    Route::get('series', [\App\Http\Controllers\Admin\SeriesController::class, 'index'])->name('series.index');
+
     Route::resource('competitions', AdminCompetitionController::class);
     Route::post('competitions/{competition}/teams', [AdminCompetitionController::class, 'addTeam'])->name('competitions.teams.add');
     Route::delete('competitions/{competition}/teams/{team}', [AdminCompetitionController::class, 'removeTeam'])->name('competitions.teams.remove');

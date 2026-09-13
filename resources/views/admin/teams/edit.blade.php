@@ -35,6 +35,31 @@
                 @error('logo') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-white mb-2">Home Ground Name</label>
+                    <input type="text" name="home_ground_name" value="{{ old('home_ground_name', $team->home_ground_name) }}" placeholder="e.g., National Stadium" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-white mb-2">Location</label>
+                    <input type="text" name="home_ground_location" value="{{ old('home_ground_location', $team->home_ground_location) }}" placeholder="e.g., Karachi, Pakistan" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-white mb-2">Home Ground Photo</label>
+                @if ($team->home_ground_image)
+                    <img src="{{ asset('storage/' . $team->home_ground_image) }}" alt="" class="w-full max-w-xs object-cover rounded-lg mb-2" style="aspect-ratio: 16/9;">
+                @endif
+                <input type="file" name="home_ground_image" accept="image/*" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:border-emerald-500 focus:outline-none transition">
+                @if ($team->home_ground_image)
+                    <label class="flex items-center gap-2 mt-2 text-sm text-slate-400">
+                        <input type="checkbox" name="remove_home_ground_image" value="1"> Remove current photo
+                    </label>
+                @endif
+                @error('home_ground_image') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+
             <div>
                 <label class="block text-sm font-bold text-white mb-2">Team Name</label>
                 <input type="text" name="name" class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition" value="{{ old('name', $team->name) }}" required>

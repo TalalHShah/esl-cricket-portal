@@ -32,6 +32,9 @@ class Team extends Model
         'spent',
         'description',
         'is_active',
+        'home_ground_name',
+        'home_ground_location',
+        'home_ground_image',
     ];
 
     /**
@@ -87,6 +90,22 @@ class Team extends Model
     public function awayMatches(): HasMany
     {
         return $this->hasMany(CricketMatch::class, 'away_team_id');
+    }
+
+    /**
+     * Bilateral/tri-series this team is (or has been) part of, whether
+     * it created the series or was invited into it.
+     */
+    public function series(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Series::class, 'series_teams')
+            ->withPivot(['status', 'responded_at'])
+            ->withTimestamps();
+    }
+
+    public function createdSeries(): HasMany
+    {
+        return $this->hasMany(Series::class, 'created_by_team_id');
     }
 
     /**

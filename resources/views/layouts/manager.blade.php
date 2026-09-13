@@ -102,6 +102,7 @@
                             ['route' => 'manager.scouts', 'label' => 'Scouts'],
                             ['route' => 'manager.teams.index', 'label' => 'Teams', 'active' => 'manager.teams.*'],
                             ['route' => 'manager.fixtures', 'label' => 'Fixtures'],
+                            ['route' => 'manager.series.index', 'label' => 'Series', 'active' => 'manager.series.*'],
                             ['route' => 'manager.livestream', 'label' => 'Live Stream'],
                             ['route' => 'manager.team', 'label' => 'Team Profile'],
                             ['route' => 'manager.profile', 'label' => 'Manager Profile'],

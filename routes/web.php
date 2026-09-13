@@ -17,6 +17,7 @@ use App\Http\Controllers\Manager\CallController;
 use App\Http\Controllers\Manager\FixtureController as ManagerFixtureController;
 use App\Http\Controllers\Manager\LeagueTeamController;
 use App\Http\Controllers\Manager\LiveStreamController;
+use App\Http\Controllers\Manager\NegotiationController;
 use App\Http\Controllers\Manager\PlayerController as ManagerPlayerController;
 use App\Http\Controllers\Manager\ProfileController;
 use App\Http\Controllers\Manager\ScoutController;
@@ -77,8 +78,13 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 
     Route::get('/transfers', [TransferMarketController::class, 'index'])->name('transfers');
     Route::post('/transfers/{player}/offer', [TransferMarketController::class, 'makeOffer'])->name('transfers.offer');
-    Route::post('/transfers/offers/{transfer}/approve', [TransferMarketController::class, 'approveOffer'])->name('transfers.offers.approve');
-    Route::post('/transfers/offers/{transfer}/reject', [TransferMarketController::class, 'rejectOffer'])->name('transfers.offers.reject');
+
+    Route::get('/negotiations', [NegotiationController::class, 'index'])->name('negotiations.index');
+    Route::get('/negotiations/{transfer}', [NegotiationController::class, 'show'])->name('negotiations.show');
+    Route::post('/negotiations/{transfer}/counter', [NegotiationController::class, 'counter'])->name('negotiations.counter');
+    Route::post('/negotiations/{transfer}/accept', [NegotiationController::class, 'accept'])->name('negotiations.accept');
+    Route::post('/negotiations/{transfer}/reject', [NegotiationController::class, 'reject'])->name('negotiations.reject');
+    Route::post('/negotiations/{transfer}/withdraw', [NegotiationController::class, 'withdraw'])->name('negotiations.withdraw');
 
     Route::get('/auction', [AuctionController::class, 'index'])->name('auction');
     Route::get('/auction/{auctionSession}/room', [AuctionController::class, 'room'])->name('auction.room');

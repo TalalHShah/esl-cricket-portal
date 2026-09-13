@@ -20,6 +20,7 @@ class Transfer extends Model
         'from_team_id',
         'to_team_id',
         'fee',
+        'last_offer_by_team_id',
         'type',
         'status',
         'requested_by_user_id',
@@ -79,5 +80,37 @@ class Transfer extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
+
+    /**
+     * The team that made the currently-standing offer — the other side
+     * is the one whose turn it is to accept, counter, or reject.
+     */
+    public function lastOfferBy(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'last_offer_by_team_id');
+    }
+
+    /**
+     * The full back-and-forth history for this negotiation, oldest
+     * first, so the thread reads top-to-bottom like a conversation.
+     */
+    public function rounds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TransferNegotiationRound::class)->orderBy('created_at');
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    /**
+     * Whether the given team is the one who must act next — i.e. they
+     * did NOT make the current standing offer.
+     */
+    public function awaitingResponseFrom(int $teamId): bool
+    {
+        return $this->isPending() && $this->last_offer_by_team_id !== $teamId;
     }
 }

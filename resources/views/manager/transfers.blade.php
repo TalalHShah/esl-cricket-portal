@@ -84,33 +84,28 @@
         </div>
 
         <div>
-            <p class="eyebrow gold mb-4">My Activity</p>
+            <div class="flex items-center justify-between mb-4">
+                <p class="eyebrow gold">My Activity</p>
+                <a href="{{ route('manager.negotiations.index') }}" class="text-xs underline" style="color: var(--paper-faint);">View All Negotiations</a>
+            </div>
             <div class="card-section">
                 @forelse ($myTransfers as $transfer)
-                    <div class="news-row px-6">
+                    <a href="{{ route('manager.negotiations.show', $transfer) }}" class="news-row px-6" style="display:block; text-decoration:none;">
                         <p class="font-semibold text-sm" style="color: var(--paper);">{{ $transfer->player?->name }}</p>
                         <p class="text-xs mb-3" style="color: var(--paper-faint);">
                             {{ $transfer->fromTeam?->short_name ?? '—' }} &rarr; {{ $transfer->toTeam?->short_name ?? '—' }}
                         </p>
                         <div class="flex items-center justify-between">
                             <span class="text-sm font-semibold" style="color: var(--gold);"><x-money :amount="$transfer->fee" /></span>
-                            <span class="status-pill {{ $transfer->status === 'approved' ? 'confirmed' : ($transfer->status === 'rejected' ? 'live' : 'pending') }}">
-                                {{ ucfirst($transfer->status) }}
-                            </span>
+                            @if ($transfer->status === 'pending')
+                                <span class="status-pill {{ $transfer->awaitingResponseFrom($team?->id) ? 'live' : 'pending' }}">
+                                    {{ $transfer->awaitingResponseFrom($team?->id) ? 'Your Move' : 'Awaiting Them' }}
+                                </span>
+                            @else
+                                <span class="status-pill {{ $transfer->status === 'approved' ? 'confirmed' : '' }}">{{ ucfirst($transfer->status) }}</span>
+                            @endif
                         </div>
-                        @if ($transfer->status === 'pending' && $team && $transfer->from_team_id === $team->id)
-                            <div class="flex items-center gap-2 mt-3">
-                                <form method="POST" action="{{ route('manager.transfers.offers.approve', $transfer) }}" class="flex-1">
-                                    @csrf
-                                    <button type="submit" class="btn-accent w-full py-1.5 text-xs">Accept Offer</button>
-                                </form>
-                                <form method="POST" action="{{ route('manager.transfers.offers.reject', $transfer) }}" class="flex-1">
-                                    @csrf
-                                    <button type="submit" class="btn-ghost w-full py-1.5 text-xs" style="color: var(--live);">Decline</button>
-                                </form>
-                            </div>
-                        @endif
-                    </div>
+                    </a>
                 @empty
                     <div class="p-10 text-center" style="color: var(--paper-faint);">No transfer activity yet</div>
                 @endforelse

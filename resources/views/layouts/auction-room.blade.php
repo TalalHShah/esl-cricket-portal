@@ -27,7 +27,11 @@
                     <img src="{{ asset('images/esl-logo.png') }}" alt="ESL" class="h-10 w-auto" style="flex-shrink: 0;">
                     <p class="eyebrow gold">Auction Room</p>
                 </div>
-                <a href="{{ route('manager.auction') }}" class="btn-ghost px-4 py-2 text-xs">Exit Room</a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('manager.draft') }}" class="btn-ghost px-4 py-2 text-xs" @if(request()->routeIs('manager.draft')) style="border-color: var(--gold); color: var(--gold);" @endif>Draft Room</a>
+                    <a href="{{ route('manager.auction') }}" class="btn-ghost px-4 py-2 text-xs" @if(request()->routeIs('manager.auction*')) style="border-color: var(--gold); color: var(--gold);" @endif>Auction Room</a>
+                    <a href="{{ route('manager.dashboard') }}" class="btn-ghost px-4 py-2 text-xs">Exit</a>
+                </div>
             </div>
         </div>
         <div class="brand-rule"></div>

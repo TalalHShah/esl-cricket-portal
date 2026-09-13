@@ -31,7 +31,30 @@
 
                 <div class="hidden sm:flex items-center gap-4">
                     @if(auth()->user()->managedTeam)
-                        <span class="text-sm" style="color: var(--paper-dim);">{{ auth()->user()->managedTeam->name }}</span>
+                        @php $sessionTeam = auth()->user()->managedTeam; @endphp
+                        <a href="{{ route('manager.team') }}" class="flex items-center gap-2.5">
+                            <div class="flex items-center" style="flex-shrink: 0;">
+                                <div style="width: 34px; height: 34px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--line-strong); background-color: var(--surface-raised); display: flex; align-items: center; justify-content: center;">
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="text-xs font-bold" style="color: var(--paper-faint);">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                                    @endif
+                                </div>
+                                <div style="width: 22px; height: 22px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--surface); background-color: var(--surface-raised); margin-left: -10px; display: flex; align-items: center; justify-content: center;">
+                                    @if($sessionTeam->logo)
+                                        <img src="{{ asset('storage/' . $sessionTeam->logo) }}" alt="{{ $sessionTeam->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span style="font-size: 0.6rem; font-weight: 700; color: var(--gold);">{{ strtoupper(substr($sessionTeam->name, 0, 1)) }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="leading-none">
+                                <p class="text-sm font-semibold" style="color: var(--paper);">{{ auth()->user()->name }}</p>
+                                <p class="text-xs mt-0.5" style="color: var(--paper-faint);">{{ $sessionTeam->name }}</p>
+                            </div>
+                        </a>
+                        <div style="width: 1px; height: 28px; background-color: var(--line-strong);"></div>
                     @endif
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.panel') }}" class="btn-accent px-5 py-2.5">
@@ -47,6 +70,15 @@
                 </div>
 
                 <div class="sm:hidden flex items-center gap-2">
+                    @if(auth()->user()->managedTeam)
+                        <a href="{{ route('manager.team') }}" style="width: 32px; height: 32px; border-radius: 9999px; overflow: hidden; border: 2px solid var(--line-strong); background-color: var(--surface-raised); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            @if(auth()->user()->avatar)
+                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
+                            @else
+                                <span class="text-xs font-bold" style="color: var(--paper-faint);">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                            @endif
+                        </a>
+                    @endif
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.panel') }}" class="btn-accent px-3 py-2 text-xs">Admin</a>
                     @endif
